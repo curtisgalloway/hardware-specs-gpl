@@ -1,0 +1,35 @@
+<!--
+SPDX-FileCopyrightText: 2026 contributors
+SPDX-License-Identifier: GPL-2.0-only
+-->
+
+# hardware-specs-gpl
+
+Instructions for coding agents working in this repository. The user guide is the
+[README](README.md).
+
+- **What this is:** published hardware specs, licensed GPL-2.0-only. The method (how a spec is
+  written, the anchor grammar, the checkers, verification) lives in
+  [driver-lab](https://github.com/curtisgalloway/driver-lab): the `anchored-peripheral-spec` skill for peripheral specs, and
+  `board-expert`'s `SPEC-FORMAT.md` for board specs and the root marker. Read those before writing
+  or changing a spec; do not restate them here.
+- **Placement first:** apply the README's placement rule before adding a spec. A spec citing a
+  source this repository's `accepts:` does not list belongs in another spec repository, or in
+  none.
+- **What a spec here may cite:** `[src:]` anchors into GPL-2.0-only or GPL-2.0-or-later
+  trees, anything the permissive repository accepts, and documents. A GPL-3.0, LGPL or vendor
+  source fits none of the three repositories; do not publish a spec anchored to one.
+- **Names:** peripheral specs `specs/<device>-spec.md`; board specs `specs/<id>.spec.md`
+  (`spec_check.py` reads every `*.spec.md` as a board spec).
+- **Checks:** `scripts/checks.sh all <driver-lab checkout>` runs what CI runs. CI pins driver-lab
+  to the commit in `.github/workflows/checks.yml`; check against that commit.
+- **Do not** widen `accepts:` in `specs/board-specs.yaml` to make a spec pass: that changes the
+  repository's license policy, which is the user's decision. Do not add the self-test's fixture
+  specs to `specs/`.
+- **License headers:** every file except the license texts carries
+  `SPDX-FileCopyrightText: 2026 contributors` and its `SPDX-License-Identifier`, as an HTML
+  comment in Markdown, after the front matter when there is one.
+- **Privacy:** this repository is public. No host names, addresses, user names or home paths in
+  any file or commit message.
+- **Git:** a topic branch and a pull request per change; push or open a pull request only on the
+  user's explicit "push".

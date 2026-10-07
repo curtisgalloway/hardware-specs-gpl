@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2026 contributors
+# SPDX-License-Identifier: GPL-2.0-only
+#
+# Root marker for hardware-specs-gpl (driver-lab, board-expert/SPEC-FORMAT.md). license: is this
+# repository's license; accepts: lists the SPDX licenses a cited source may carry.
+# GPL-2.0-only or -or-later trees, plus everything hardware-specs-permissive accepts.
+layer: public
+name: hardware-specs-gpl
+license: GPL-2.0-only
+accepts: [GPL-2.0-only, GPL-2.0-or-later, Apache-2.0, MIT, BSD-2-Clause, BSD-3-Clause]
