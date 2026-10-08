@@ -12,7 +12,10 @@ license does not matter to you. For specs you can use under other terms, see
 [hardware-specs-docs](https://github.com/curtisgalloway/hardware-specs-docs) (datasheets only,
 CC-BY-4.0) and
 [hardware-specs-permissive](https://github.com/curtisgalloway/hardware-specs-permissive) (BSD, ISC, 0BSD, MIT
-and Apache sources, Apache-2.0).
+and Apache sources, Apache-2.0). A spec here may be an *overlay* that adds facts to a spec in
+hardware-specs-docs, such as the device-tree facts of a chip whose device trees are all
+GPL-2.0-only; CI checks this repository together with the other two so such an overlay always
+finds its target.
 
 **Every claim is anchored, and the checker runs in CI.** Each fact in a peripheral spec here names the line of a pinned source tree or the page of a listed document it rests on; each fact in a board spec carries a tag for its kind of source and, for documents and device trees, names the source. Every push and pull
 request runs driver-lab's checkers over the whole repository: a malformed anchor or tag, or a
@@ -63,10 +66,12 @@ verifies peripheral specs and defines the anchor grammar;
 the root marker. CI checks out driver-lab at one pinned commit and runs, through
 `scripts/checks.sh`:
 
-1. `spec_check.py specs --require-license`: the root marker's license fields and every
-   board spec, including the board-spec license gate on `resources.repos` licenses.
-2. `anchor_check.py <spec> --root specs --require-license` on every peripheral spec: anchors,
-   pins and the license gate. CI has no checkout of the cited source trees, so it checks the
+1. `spec_check.py specs .hardware-specs-docs/specs .hardware-specs-permissive/specs
+   --require-license`: the root marker's license fields and every board spec, including the board-spec license gate on `resources.repos` licenses.
+2. `anchor_check.py <spec> --root specs --require-license` on every peripheral spec, and on
+   every board spec with a `[src]` fact (a fact read from source, cited with `[src:<repo>:
+   path:L]` anchors whose pins are the spec's `resources.repos` entries): anchors, pins and the
+   license gate. CI has no checkout of the cited source trees, so it checks the
    anchors' form and licenses; resolving each `[src:]` line against its tree is part of
    verification (the skill's verify step).
 3. A self-test that proves the gate works with this repository's own root marker: driver-lab's
@@ -78,7 +83,9 @@ To run the same checks locally:
 
 ```bash
 git clone https://github.com/curtisgalloway/driver-lab ../driver-lab
-scripts/checks.sh all ../driver-lab
+git clone https://github.com/curtisgalloway/hardware-specs-docs ../hardware-specs-docs
+git clone https://github.com/curtisgalloway/hardware-specs-permissive ../hardware-specs-permissive
+scripts/checks.sh all ../driver-lab ../hardware-specs-docs/specs ../hardware-specs-permissive/specs
 ```
 
 The script needs bash and python3 (standard library only).

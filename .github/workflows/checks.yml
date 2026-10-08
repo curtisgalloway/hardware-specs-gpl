@@ -29,13 +29,31 @@ jobs:
           path: .driver-lab
           persist-credentials: false
 
-      - name: Root marker and board specs (spec_check.py --require-license)
-        run: scripts/checks.sh specs .driver-lab
+      # Overlays here may target specs in hardware-specs-docs, which overlays in
+      # hardware-specs-permissive may also target, so spec_check.py reads all three roots. Their
+      # main branches rather than pins: they hold spec data only, no code that runs here, and an
+      # overlay must resolve against the specs as they are published.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: curtisgalloway/hardware-specs-docs
+          ref: main
+          path: .hardware-specs-docs
+          persist-credentials: false
 
-      - name: Peripheral specs (anchor_check.py --root specs --require-license)
-        run: scripts/checks.sh anchors .driver-lab
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: curtisgalloway/hardware-specs-permissive
+          ref: main
+          path: .hardware-specs-permissive
+          persist-credentials: false
+
+      - name: Root marker and board specs (spec_check.py --require-license)
+        run: scripts/checks.sh specs .driver-lab .hardware-specs-docs/specs .hardware-specs-permissive/specs
+
+      - name: Peripheral specs and board specs with [src] facts (anchor_check.py --root specs --require-license)
+        run: scripts/checks.sh anchors .driver-lab .hardware-specs-docs/specs .hardware-specs-permissive/specs
 
       # Proves the license gate with this repository's own root marker: fixture specs that do
       # not fit must fail with the gate's message, and those that fit must pass.
       - name: License-gate self-test
-        run: scripts/checks.sh self-test .driver-lab
+        run: scripts/checks.sh self-test .driver-lab .hardware-specs-docs/specs .hardware-specs-permissive/specs
