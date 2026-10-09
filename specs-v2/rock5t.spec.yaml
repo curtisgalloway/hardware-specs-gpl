@@ -1,0 +1,496 @@
+# SPDX-FileCopyrightText: 2026 contributors
+# SPDX-License-Identifier: GPL-2.0-only
+format: 2
+kind: overlay
+overlays: rock5t
+resources:
+  repos:
+    - name: linux-dts
+      url: https://github.com/torvalds/linux
+      commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+      license: GPL-2.0-or-later OR MIT
+      role: source
+      status: merged
+      files:
+        - {path: arch/arm64/boot/dts/rockchip/rk3588-rock-5t.dts, license_from: spdx-line}
+        - {path: arch/arm64/boot/dts/rockchip/rk3588-rock-5b-5bp-5t.dtsi, license_from: spdx-line}
+      verified: 2026-10-09
+      fetch: ok
+      fetch_via: git
+      note: Linux v7.2. The ROCK 5T device-tree sources are dual-licensed (GPL-2.0+ OR MIT).
+    - name: u-boot
+      url: https://github.com/u-boot/u-boot
+      commit: 5508406582f6f7120dce0c4b3059819a41788db2
+      license: GPL-2.0-or-later
+      role: source
+      status: merged
+      files:
+        - {path: configs/rock5b-rk3588_defconfig, license_from: license-file, note: no SPDX line; U-Boot's Licenses/README makes GPL-2.0+ the default}
+        - {path: board/radxa/rock5b-rk3588/rock5b-rk3588.c, license_from: spdx-line}
+        - {path: drivers/net/rtl8169.c, license_from: spdx-line}
+      verified: 2026-10-09
+      fetch: ok
+      fetch_via: git
+      note: U-Boot v2026.10.
+    - name: radxa-u-boot
+      url: https://github.com/radxa/u-boot
+      commit: 39cd993e5d6296635438e84f4576b3a9bf76f86e
+      license: GPL-2.0-or-later
+      role: source
+      status: merged
+      files:
+        - {path: configs/rock-5t-rk3588_defconfig, license_from: license-file, note: no SPDX line; the tree's Licenses/README makes GPL-2.0+ the default}
+        - {path: Kconfig, license_from: license-file}
+        - {path: arch/arm/mach-rockchip/Kconfig, license_from: license-file}
+        - {path: board/rockchip/evb_rk3588/Kconfig, license_from: license-file}
+        - {path: include/configs/rk3588_common.h, license_from: spdx-line}
+        - {path: include/configs/rockchip-common.h, license_from: spdx-line}
+        - {path: include/configs/evb_rk3588.h, license_from: spdx-line}
+        - {path: arch/arm/mach-rockchip/rk3588/rk3588.c, license_from: spdx-line}
+        - {path: arch/arm/mach-rockchip/board.c, license_from: spdx-line}
+        - {path: arch/arm/lib/bootm.c, license_from: spdx-line}
+        - {path: arch/arm/cpu/armv8/transition.S, license_from: spdx-line}
+      verified: 2026-10-09
+      fetch: ok
+      fetch_via: git
+      note: >-
+        Radxa's vendor U-Boot, branch next-dev-v2024.10 at its head on 2026-10-09; the Makefile
+        says VERSION 2017, PATCHLEVEL 09. Radxa's BSP tool builds the ROCK 5T stock loader from
+        this branch (profile rk2410) and adds its own configuration fragments, which are not read
+        here.
+    - name: radxa-u-boot-gpl2
+      url: https://github.com/radxa/u-boot
+      commit: 39cd993e5d6296635438e84f4576b3a9bf76f86e
+      license: GPL-2.0-only
+      role: source
+      status: merged
+      files:
+        - {path: arch/arm/mach-rockchip/param.c, license_from: spdx-line}
+      verified: 2026-10-09
+      fetch: ok
+      fetch_via: git
+      note: param.c carries SPDX GPL-2.0.
+assumptions:
+  - id: stock-build-identity
+    text: >-
+      the ROCK 5T's stock loader is built from radxa/u-boot at the pinned commit with
+      `rock-5t-rk3588_defconfig`; Radxa's BSP adds configuration fragments (not read here), and
+      the loader Radxa ships may come from an older commit
+    todo:
+      check: hardware
+      text: compare the version string the stock loader prints on the console with this commit, and dump its environment and `bdinfo`.
+  - id: bl31-runs-u-boot-at-el2
+    text: >-
+      the stock BL31 (a Rockchip binary from rkbin, not read) starts U-Boot proper at EL2 or EL3,
+      not EL1
+    todo:
+      check: hardware
+      text: print CurrentEL from the stock U-Boot (for example with a small standalone program) or read it in the kernel shim.
+facts:
+  - id: dt-console
+    section: quick-facts
+    title: Console in the device tree
+    critical: true
+    claim: >-
+      The ROCK 5T tree (`radxa,rock-5t`, built on the shared ROCK 5B, 5B+ and 5T file) sets
+      `stdout-path = "serial2:1500000n8"` and switches UART2 to the `uart2m0_xfer` pins.
+    support:
+      - class: DT
+        anchors:
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5t.dts, lines: [5, 9], node: /}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5b-5bp-5t.dtsi, lines: [18, 20], node: chosen}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5b-5bp-5t.dtsi, lines: [976, 980], node: uart2}
+    relates:
+      - {fact: "rock5t@hardware-specs-docs#debug-console-is-uart2-m0", relation: same-as}
+
+  - id: dt-storage
+    section: quick-facts
+    title: Storage in the device tree
+    critical: true
+    claim: >-
+      `mmc0` is the eMMC controller (`sdhci`: 8-bit, non-removable, HS400 with enhanced strobe at
+      1.8 V) and `mmc1` the microSD controller (`sdmmc`: 4-bit, UHS SDR104, card detect on
+      GPIO0_A4 active low, card power from `vcc_3v3_s3`). The SPI NOR is a `jedec,spi-nor` at
+      chip select 0 of `sfc` on the `fspim2_pins` group, up to 104 MHz, 4-bit reads and 1-bit
+      writes.
+    support:
+      - class: DT
+        anchors:
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5b-5bp-5t.dtsi, lines: [12, 16], node: aliases}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5b-5bp-5t.dtsi, lines: [606, 614], node: sdhci}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5b-5bp-5t.dtsi, lines: [616, 630], node: sdmmc}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5b-5bp-5t.dtsi, lines: [632, 645], node: sfc}
+    relates:
+      - {fact: "rock5t@hardware-specs-docs#boot-storage", relation: refines}
+
+  - id: dt-pcie
+    section: quick-facts
+    title: PCIe controllers in the device tree
+    claim: >-
+      The ROCK 5T tree enables the three PCIe 2.0 x1 controllers (`pcie2x1l0`, `pcie2x1l1`,
+      `pcie2x1l2`) and the PCIe 3.0 controllers `pcie3x4` (limited to 2 lanes) and `pcie3x2`, with
+      the PCIe 3.0 PHY split as `data-lanes = <1 1 2 2>`. Which PCIe 2.0 controller serves which
+      RTL8125B the tree does not say.
+    support:
+      - class: DT
+        anchors:
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5b-5bp-5t.dtsi, lines: [475, 491], node: pcie2x1l0}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5t.dts, lines: [73, 95], node: pcie2x1l1}
+    todo:
+      check: hardware
+      text: run `pci enum` and `pci` in U-Boot, or lspci under Linux, and match each RTL8125B to its controller.
+
+  - id: uboot-config
+    section: quick-facts
+    title: Mainline U-Boot configuration for the ROCK 5T
+    critical: true
+    claim: >-
+      Mainline U-Boot builds the ROCK 5T from `rock5b-rk3588_defconfig`, which carries the
+      `rk3588-rock-5t` device tree and picks it at run time when the DRAM type is LPDDR5 and the
+      hardware-ID ADC channel 5 reads 926–1106. The configuration sets the debug UART at
+      `0xFEB50000` with a 24 MHz clock, register shift 2 and 32-bit access, the console at
+      1500000 baud, `CONFIG_COUNTER_FREQUENCY=24000000`, `CONFIG_SYS_LOAD_ADDR=0xc00800`, TF-A
+      loading from the SPL (`CONFIG_SPL_ATF`), U-Boot proper at `0x60000` in SPI flash, and
+      PCI with the Rockchip DesignWare PCIe host and combo-PHY drivers, and drivers for
+      RTL8169-family Ethernet, NVMe over PCI and Rockchip's USB download protocol (`rockusb`).
+    support:
+      - class: src
+        anchors:
+          - {repo: u-boot, path: configs/rock5b-rk3588_defconfig, lines: [4, 4], symbol: CONFIG_COUNTER_FREQUENCY}
+          - {repo: u-boot, path: configs/rock5b-rk3588_defconfig, lines: [13, 16], symbol: CONFIG_DEBUG_UART_BASE}
+          - {repo: u-boot, path: configs/rock5b-rk3588_defconfig, lines: [33, 34], symbol: CONFIG_SPL_ATF}
+          - {repo: u-boot, path: configs/rock5b-rk3588_defconfig, lines: [42, 42], symbol: CONFIG_CMD_ROCKUSB}
+          - {repo: u-boot, path: configs/rock5b-rk3588_defconfig, lines: [49, 49], symbol: CONFIG_OF_LIST}
+          - {repo: u-boot, path: configs/rock5b-rk3588_defconfig, lines: [19, 19], symbol: CONFIG_PCI}
+          - {repo: u-boot, path: configs/rock5b-rk3588_defconfig, lines: [72, 77], symbol: CONFIG_RTL8169}
+          - {repo: u-boot, path: configs/rock5b-rk3588_defconfig, lines: [83, 85], symbol: CONFIG_BAUDRATE}
+          - {repo: u-boot, path: board/radxa/rock5b-rk3588/rock5b-rk3588.c, lines: [25, 28], symbol: board_models}
+    scope:
+      builds: [U-Boot v2026.10 (mainline)]
+    relates:
+      - {fact: "rock5t@hardware-specs-docs#mainline-boot-chain", relation: refines}
+
+  - id: uboot-rtl8125b
+    section: quick-facts
+    title: U-Boot's driver knows the RTL8125B
+    claim: >-
+      Mainline U-Boot's RTL8169 driver lists the RTL8125B (chip version `0x64`) and matches the
+      Realtek PCI device ID `0x8125`.
+    support:
+      - class: src
+        anchors:
+          - {repo: u-boot, path: drivers/net/rtl8169.c, lines: [272, 289], symbol: rtl_chip_info}
+          - {repo: u-boot, path: drivers/net/rtl8169.c, lines: [375, 376], symbol: supported}
+    scope:
+      builds: [U-Boot v2026.10 (mainline)]
+
+  - id: mainline-netboot
+    section: quick-facts
+    title: Netboot with mainline U-Boot
+    claim: >-
+      Mainline U-Boot (v2026.10) can most likely fetch a kernel over either onboard 2.5 GbE port
+      with `dhcp` or `pxe`, and tries PXE and DHCP in its default boot order after
+      the local media. The stock vendor loader is not covered.
+    support:
+      - class: inference
+        confidence: medium
+        premises:
+          - fact: "rock5t@hardware-specs-docs#ethernet"
+            uses: both ports are RTL8125B chips on PCIe 2.0 lanes
+          - fact: "#uboot-config"
+            uses: the configuration enables PCI, the Rockchip PCIe driver and the RTL8169-family driver
+          - fact: "#uboot-rtl8125b"
+            uses: that driver matches the RTL8125B
+          - fact: "#dt-pcie"
+            uses: the ROCK 5T tree enables the three PCIe 2.0 controllers
+          - fact: "rk3588#uboot-boot-targets"
+            uses: pxe and dhcp are in the default boot targets
+        derivation: >-
+          a driver for the chip, the controllers behind it and network boot targets are all
+          present; nothing read shows them working together on this board
+    todo:
+      check: hardware
+      text: on mainline U-Boot, run `pci enum`, `dhcp` and `pxe get` with a cable in each port.
+    relates:
+      - {fact: "rock5t@hardware-specs-docs#netboot-stock-loader", relation: qualifies}
+
+  - id: mainline-console-at-handoff
+    section: quick-facts
+    title: UART2 state left by mainline U-Boot
+    critical: true
+    claim: >-
+      Under mainline U-Boot, UART2 is very likely left on the M0 pins, enabled and running at
+      1500000 baud at kernel entry, so polled THR writes at `0xFEB5_0000` work without touching
+      the CRU or IOCs, provided UART2's baud clock is still the 24 MHz the configuration assumes.
+      The stock vendor loader is not covered.
+    support:
+      - class: inference
+        confidence: medium
+        premises:
+          - fact: "rk3588#uboot-debug-uart-pinmux"
+            uses: U-Boot's early console code selects UART2 M0 in both IOC levels
+          - fact: "#uboot-config"
+            uses: debug UART at 0xFEB50000 with a 24 MHz clock, console at 1500000 baud
+          - fact: "#dt-console"
+            uses: the tree U-Boot passes names serial2 at 1500000n8 on the M0 pins
+        derivation: >-
+          U-Boot programs these settings for its own console and nothing read shows it undoing
+          them before the jump; whether U-Boot proper's clock driver moves UART2's clock away
+          from 24 MHz was not read
+    todo:
+      check: hardware
+      text: >-
+        at kernel entry under mainline U-Boot, read both IOMUX registers and UART2's divisor, and
+        write a byte to THR.
+    relates:
+      - {fact: "rock5t@hardware-specs-docs#uart2-state-at-handoff", relation: qualifies}
+
+  - id: mainline-cntfrq
+    section: quick-facts
+    title: CNTFRQ under mainline U-Boot
+    claim: >-
+      Under mainline U-Boot the generic timer frequency the kernel reads from CNTFRQ_EL0 is very
+      likely 24 MHz.
+    support:
+      - class: inference
+        confidence: medium
+        premises:
+          - fact: "rk3588#uboot-spl-sets-cntfrq"
+            uses: the SPL writes CONFIG_COUNTER_FREQUENCY to CNTFRQ_EL0 unless the timer is already running
+          - fact: "#uboot-config"
+            uses: CONFIG_COUNTER_FREQUENCY is 24000000
+        derivation: >-
+          if the DDR blob that runs before the SPL already started the timer, the SPL skips the
+          write and the value is whatever the blob set; nothing read says what it sets
+    todo:
+      check: hardware
+      text: read CNTFRQ_EL0 in the kernel shim.
+    relates:
+      - {fact: "rk3588@hardware-specs-docs#system-counter", relation: qualifies}
+
+  - id: stock-uboot-config
+    section: quick-facts
+    title: Stock loader configuration
+    critical: true
+    claim: >-
+      The stock loader's configuration (`rock-5t-rk3588_defconfig` in Radxa's vendor U-Boot, a
+      2017.09 base) uses the `rk3588-rock-5t` device tree, a debug UART at `0xFEB50000` with a 24
+      MHz clock and register shift 2, a 1500000-baud console, a boot delay of 0, TF-A loaded by
+      the SPL, Android boot support, and Ethernet drivers only for the SoC's own GMAC
+      (`DWC_ETH_QOS`, `GMAC_ROCKCHIP`), with PCI, the Rockchip PCIe host and NVMe. The board
+      header it selects (`evb_rk3588`) sets the boot command to `RKIMG_BOOTCOMMAND`.
+    support:
+      - class: src
+        anchors:
+          - {repo: radxa-u-boot, path: configs/rock-5t-rk3588_defconfig, lines: [23, 29], symbol: CONFIG_DEFAULT_DEVICE_TREE}
+          - {repo: radxa-u-boot, path: configs/rock-5t-rk3588_defconfig, lines: [37, 41], symbol: CONFIG_BOOTDELAY}
+          - {repo: radxa-u-boot, path: configs/rock-5t-rk3588_defconfig, lines: [51, 51], symbol: CONFIG_SPL_ATF}
+          - {repo: radxa-u-boot, path: configs/rock-5t-rk3588_defconfig, lines: [142, 150], symbol: CONFIG_GMAC_ROCKCHIP}
+          - {repo: radxa-u-boot, path: configs/rock-5t-rk3588_defconfig, lines: [172, 175], symbol: CONFIG_DEBUG_UART_BASE}
+          - {repo: radxa-u-boot, path: board/rockchip/evb_rk3588/Kconfig, lines: [9, 10], symbol: SYS_CONFIG_NAME}
+          - {repo: radxa-u-boot, path: include/configs/evb_rk3588.h, lines: [21, 22], symbol: CONFIG_BOOTCOMMAND}
+    assumes: [stock-build-identity]
+    scope:
+      builds: [Radxa vendor U-Boot next-dev-v2024.10 (2017.09 base)]
+    relates:
+      - {fact: "rock5t@hardware-specs-docs#stock-loader", relation: refines}
+
+  - id: stock-debug-uart-pinmux
+    section: quick-facts
+    title: Stock loader's early console pin setup
+    claim: >-
+      For a debug UART at `0xfeb50000` and mux selection 0 (the default, available when TPL is
+      built, which the RK3588 implies), the vendor `board_debug_uart_init` writes 8 ("refer to
+      BUS_IOC") to the GPIO0_B5 and GPIO0_B6 fields of `PMU2_IOC` (`0xfd5f4000`)
+      `gpio0b_iomux_sel_h`, then UART2_RX_M0 and UART2_TX_M0 (10) to the same fields of `BUS_IOC`
+      (`0xfd5f8000`) `gpio0b_iomux_sel_h`.
+    support:
+      - class: src
+        anchors:
+          - {repo: radxa-u-boot, path: arch/arm/mach-rockchip/rk3588/rk3588.c, lines: [64, 66], symbol: PMU2_IOC_BASE}
+          - {repo: radxa-u-boot, path: arch/arm/mach-rockchip/rk3588/rk3588.c, lines: [558, 575], symbol: board_debug_uart_init}
+          - {repo: radxa-u-boot, path: arch/arm/mach-rockchip/Kconfig, lines: [1080, 1083], symbol: ROCKCHIP_UART_MUX_SEL_M}
+          - {repo: radxa-u-boot, path: arch/arm/mach-rockchip/Kconfig, lines: [531, 544], symbol: ROCKCHIP_RK3588}
+    assumes: [stock-build-identity]
+    scope:
+      builds: [Radxa vendor U-Boot next-dev-v2024.10 (2017.09 base)]
+
+  - id: stock-console-at-handoff
+    section: quick-facts
+    title: UART2 state left by the stock loader
+    critical: true
+    claim: >-
+      Under the stock loader, UART2 is very likely left on the M0 pins and running at 1500000 baud
+      at kernel entry, so polled transmit writes at `0xFEB5_0000` work without touching the clock
+      or pin controllers, provided UART2's baud clock is still the 24 MHz the configuration
+      assumes.
+    support:
+      - class: inference
+        confidence: medium
+        premises:
+          - fact: "#stock-debug-uart-pinmux"
+            uses: the early console code selects UART2 M0 in both multiplexing levels
+          - fact: "#stock-uboot-config"
+            uses: debug UART at 0xFEB50000 with a 24 MHz clock, console at 1500000 baud
+          - assumption: stock-build-identity
+        derivation: >-
+          the loader programs these settings for its own console and nothing read shows it undoing
+          them before the jump; whether its clock driver later moves UART2's clock was not read
+    todo:
+      check: hardware
+      text: at kernel entry under the stock loader, write a byte to THR without other setup, then read both multiplexing registers and UART2's divisor.
+    relates:
+      - {fact: "rock5t@hardware-specs-docs#uart2-state-at-handoff", relation: qualifies}
+
+  - id: stock-kernel-jump
+    section: quick-facts
+    title: How the stock loader enters an arm64 kernel
+    critical: true
+    claim: >-
+      The vendor U-Boot enters an arm64 kernel through `armv8_switch_to_el2` with `x0` = the
+      device tree address and the next three arguments 0; that routine branches straight to the
+      kernel when already at EL2 and drops to EL2 first when at EL3. It goes to EL1 only when
+      `CONFIG_ARMV8_SWITCH_TO_EL1` is defined, which neither the ROCK 5T configuration nor the
+      RK3588 headers define.
+    support:
+      - class: src
+        anchors:
+          - {repo: radxa-u-boot, path: arch/arm/lib/bootm.c, lines: [401, 423], symbol: boot_jump_linux}
+          - {repo: radxa-u-boot, path: arch/arm/cpu/armv8/transition.S, lines: [14, 33], symbol: armv8_switch_to_el2}
+          - {repo: radxa-u-boot, path: configs/rock-5t-rk3588_defconfig, search: "no CONFIG_ARMV8_SWITCH_TO_EL1"}
+          - {repo: radxa-u-boot, path: include/configs/rk3588_common.h, search: "no definition of CONFIG_ARMV8_SWITCH_TO_EL1"}
+          - {repo: radxa-u-boot, path: include/configs/evb_rk3588.h, search: "no definition of CONFIG_ARMV8_SWITCH_TO_EL1"}
+          - {repo: radxa-u-boot, path: include/configs/rockchip-common.h, search: "no definition of CONFIG_ARMV8_SWITCH_TO_EL1"}
+    assumes: [stock-build-identity]
+    scope:
+      builds: [Radxa vendor U-Boot next-dev-v2024.10 (2017.09 base)]
+
+  - id: stock-entry-el
+    section: quick-facts
+    title: Exception level at kernel entry under the stock loader
+    critical: true
+    claim: >-
+      The stock loader most likely enters the kernel at EL2, with `x0` = the device tree and
+      `x1`–`x3` = 0.
+    support:
+      - class: inference
+        confidence: medium
+        premises:
+          - fact: "#stock-kernel-jump"
+            uses: the jump goes through armv8_switch_to_el2 and never to EL1 in this configuration
+          - assumption: bl31-runs-u-boot-at-el2
+        derivation: >-
+          from EL2 the routine branches to the kernel at EL2, and from EL3 it drops to EL2 first,
+          so the kernel starts at EL2 in both cases
+    todo:
+      check: hardware
+      text: read CurrentEL in the kernel shim's first instructions under the stock loader.
+    relates:
+      - {fact: "rock5t@hardware-specs-docs#kernel-entry-contract", relation: refines}
+
+  - id: stock-load-addresses
+    section: quick-facts
+    title: Stock loader load addresses
+    critical: true
+    claim: >-
+      The stock loader's RK3588 environment: `kernel_addr_r=0x00400000` (a decompressed kernel
+      from 4 MB, kept clear of the shared memory at `0x100000`–`0x200000` per its comment),
+      `kernel_addr_c=0x05480000` (compressed kernel), `fdt_addr_r=0x08300000`,
+      `fdtoverlay_addr_r=0x08200000`, `ramdisk_addr_r=0x0a200000`, `scriptaddr=0x00500000` and
+      `pxefile_addr_r=0x00600000`; `CONFIG_SYS_LOAD_ADDR` is `0x00600800`, U-Boot itself runs
+      from `0x00200000`, and DRAM below 4 GB is capped at `0xF000_0000`.
+    support:
+      - class: src
+        anchors:
+          - {repo: radxa-u-boot, path: include/configs/rk3588_common.h, lines: [68, 75], symbol: ENV_MEM_LAYOUT_SETTINGS, comment: true}
+          - {repo: radxa-u-boot, path: include/configs/rk3588_common.h, lines: [76, 83], symbol: ENV_MEM_LAYOUT_SETTINGS}
+          - {repo: radxa-u-boot, path: include/configs/rk3588_common.h, lines: [27, 34], symbol: CONFIG_SYS_LOAD_ADDR}
+          - {repo: radxa-u-boot, path: include/configs/rk3588_common.h, lines: [56, 57], symbol: SDRAM_MAX_SIZE}
+    assumes: [stock-build-identity]
+    scope:
+      builds: [Radxa vendor U-Boot next-dev-v2024.10 (2017.09 base)]
+
+  - id: stock-boot-flow
+    section: quick-facts
+    title: Stock loader boot flow and image formats
+    critical: true
+    claim: >-
+      Without FIT signing or AVB key validation configured, the stock boot command is
+      `run distro_bootcmd; boot_fit; bootrkp;`: first the generic distro boot (extlinux or boot
+      scripts, which boot an arm64 `Image` with `booti`), then a FIT image, then a Rockchip or
+      Android boot image. Distro boot tries USB, SD, NVMe, SCSI, eMMC, MTD (SPI flash), RKNAND,
+      then PXE and DHCP, each when its command is built; Rockchip's distro defaults turn on
+      `booti`, `dhcp` and (implied) `pxe`.
+    support:
+      - class: src
+        anchors:
+          - {repo: radxa-u-boot, path: include/configs/rockchip-common.h, lines: [199, 210], symbol: RKIMG_BOOTCOMMAND}
+          - {repo: radxa-u-boot, path: include/configs/rockchip-common.h, lines: [103, 130], symbol: BOOT_TARGET_DEVICES}
+          - {repo: radxa-u-boot, path: Kconfig, lines: [62, 72], symbol: DISTRO_DEFAULTS}
+          - {repo: radxa-u-boot, path: configs/rock-5t-rk3588_defconfig, search: "no CONFIG_FIT_SIGNATURE, CONFIG_AVB_VBMETA_PUBLIC_KEY_VALIDATE or CONFIG_DISTRO_DEFAULTS line"}
+    assumes: [stock-build-identity]
+    scope:
+      builds: [Radxa vendor U-Boot next-dev-v2024.10 (2017.09 base)]
+    relates:
+      - {fact: "rock5t@hardware-specs-docs#kernel-image-format", relation: refines}
+
+  - id: stock-memory-reservations
+    section: quick-facts
+    title: Stock loader memory reservations
+    critical: true
+    claim: >-
+      The stock loader reserves three regions through `bidram_reserve`: the TF-A region
+      (from the preloader's ATAGs, required to lie within the first 1 MB; otherwise
+      `0x0`–`0xFFFFF`), a shared region `0x100000`–`0x1FFFFF` (pstore, ATAGs and shared memory),
+      and the OP-TEE region the preloader reports (from ATAGs, or a parameter block at DRAM
+      offset 34 MB), when one is reported.
+    support:
+      - class: src
+        anchors:
+          - {repo: radxa-u-boot-gpl2, path: arch/arm/mach-rockchip/param.c, lines: [55, 97], symbol: param_parse_atf_mem}
+          - {repo: radxa-u-boot-gpl2, path: arch/arm/mach-rockchip/param.c, lines: [99, 144], symbol: param_parse_optee_mem}
+          - {repo: radxa-u-boot-gpl2, path: arch/arm/mach-rockchip/param.c, lines: [146, 165], symbol: param_parse_common_resv_mem}
+          - {repo: radxa-u-boot, path: arch/arm/mach-rockchip/board.c, lines: [828, 852], symbol: board_bidram_reserve}
+    assumes: [stock-build-identity]
+    scope:
+      builds: [Radxa vendor U-Boot next-dev-v2024.10 (2017.09 base)]
+    todo:
+      check: hardware
+      text: >-
+        whether OP-TEE is loaded, and where, comes from Rockchip's binaries; read the memory node
+        and reserved-memory entries of the device tree the stock loader passes, to confirm the
+        reserved regions are kept out of the kernel's memory.
+    relates:
+      - {fact: "rock5t@hardware-specs-docs#ram-map-and-reservations", relation: qualifies}
+
+  - id: stock-netboot
+    section: gotchas
+    title: The stock loader most likely cannot netboot over the onboard ports.
+    claim: >-
+      The stock loader very likely cannot fetch a kernel over either onboard 2.5 GbE port: its
+      configuration has TFTP commands but no driver for the RTL8125B, only the SoC GMAC driver,
+      which no ROCK 5T port uses. USB fastboot is not enabled by the defconfig, but Radxa's build
+      fragments (not read) may enable it.
+    support:
+      - class: inference
+        confidence: medium
+        premises:
+          - fact: "rock5t@hardware-specs-docs#ethernet"
+            uses: both ports are RTL8125B chips on PCIe lanes
+          - fact: "#stock-uboot-config"
+            uses: the Ethernet drivers built are DWC_ETH_QOS and GMAC_ROCKCHIP
+          - states: the defconfig enables TFTP commands and builds neither the RTL8169-family driver nor a USB fastboot function
+            support:
+              - class: src
+                anchors:
+                  - {repo: radxa-u-boot, path: configs/rock-5t-rk3588_defconfig, lines: [78, 80], symbol: CONFIG_CMD_TFTPPUT}
+                  - {repo: radxa-u-boot, path: configs/rock-5t-rk3588_defconfig, search: "no CONFIG_RTL8169, CONFIG_USB_FUNCTION_FASTBOOT, CONFIG_UDP_FUNCTION_FASTBOOT, CONFIG_USB_HOST_ETHER or CONFIG_USB_ETHER line"}
+          - assumption: stock-build-identity
+        derivation: >-
+          without a driver for the chip behind either port, U-Boot has no network device there;
+          a USB Ethernet adapter is not covered either (no USB network driver is configured)
+    todo:
+      check: hardware
+      text: on the stock loader's console, run `help`, `pci`, `net list` (or `dhcp`) and `fastboot usb 0`.
+    relates:
+      - {fact: "rock5t@hardware-specs-docs#netboot-stock-loader", relation: refines}

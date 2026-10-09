@@ -1,0 +1,425 @@
+# SPDX-FileCopyrightText: 2026 contributors
+# SPDX-License-Identifier: GPL-2.0-only
+format: 2
+kind: overlay
+overlays: rk3588
+resources:
+  repos:
+    - name: linux-dts
+      url: https://github.com/torvalds/linux
+      commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+      license: GPL-2.0-or-later OR MIT
+      role: source
+      status: merged
+      files:
+        - {path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi, license_from: spdx-line}
+        - {path: arch/arm64/boot/dts/rockchip/rk3588-base-pinctrl.dtsi, license_from: spdx-line}
+      verified: 2026-10-09
+      fetch: ok
+      fetch_via: git
+      note: Linux v7.2. The RK3588 device-tree sources are dual-licensed (GPL-2.0+ OR MIT).
+    - name: linux
+      url: https://github.com/torvalds/linux
+      commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+      license: GPL-2.0-or-later
+      role: source
+      status: merged
+      files:
+        - {path: drivers/tty/serial/8250/8250_dw.c, license_from: spdx-line}
+      verified: 2026-10-09
+      fetch: ok
+      fetch_via: git
+      note: Linux v7.2.
+    - name: linux-gpl2
+      url: https://github.com/torvalds/linux
+      commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+      license: GPL-2.0-only
+      role: source
+      status: merged
+      files:
+        - {path: Documentation/devicetree/bindings/arm/cpus.yaml, license_from: spdx-line}
+      verified: 2026-10-09
+      fetch: ok
+      fetch_via: git
+      note: Linux v7.2.
+    - name: u-boot
+      url: https://github.com/u-boot/u-boot
+      commit: 5508406582f6f7120dce0c4b3059819a41788db2
+      license: GPL-2.0-or-later
+      role: source
+      status: merged
+      files:
+        - {path: include/configs/rk3588_common.h, license_from: spdx-line}
+        - {path: include/configs/rockchip-common.h, license_from: spdx-line}
+        - {path: arch/arm/mach-rockchip/sdram.c, license_from: spdx-line}
+      verified: 2026-10-09
+      fetch: ok
+      fetch_via: git
+      note: U-Boot v2026.10.
+    - name: u-boot-gpl2
+      url: https://github.com/u-boot/u-boot
+      commit: 5508406582f6f7120dce0c4b3059819a41788db2
+      license: GPL-2.0-only
+      role: source
+      status: merged
+      files:
+        - {path: arch/arm/mach-rockchip/rk3588/rk3588.c, license_from: spdx-line}
+      verified: 2026-10-09
+      fetch: ok
+      fetch_via: git
+      note: U-Boot v2026.10; rk3588.c carries SPDX GPL-2.0.
+    - name: tf-a
+      url: https://github.com/ARM-software/arm-trusted-firmware
+      commit: 1d5aa939bc8d3d892e2ed9945fa50e36a1a924cc
+      license: BSD-3-Clause
+      role: source
+      status: merged
+      files:
+        - {path: plat/rockchip/rk3588/include/platform_def.h, license_from: spdx-line}
+        - {path: plat/rockchip/rk3588/rk3588_def.h, license_from: spdx-line}
+      verified: 2026-10-09
+      fetch: ok
+      fetch_via: git
+      note: TF-A v2.14.
+assumptions:
+  - id: gic-is-gic600
+    text: >-
+      the RK3588's interrupt controller is an Arm GIC-600; the device tree says only
+      `arm,gic-v3`, and no public Rockchip document read states the IP
+    todo: {check: hardware, text: read GICD_IIDR's ProductID at 0xFE60_0000.}
+facts:
+  - id: dt-gic-node
+    section: quick-facts
+    title: GIC node
+    critical: true
+    claim: >-
+      `arm,gic-v3` with the distributor at `0xfe600000` (64 KB) and the redistributors at
+      `0xfe680000` (1 MB), two `arm,gic-v3-its` children at `0xfe640000` and `0xfe660000` (128 KB
+      each), maintenance interrupt PPI 9, `#interrupt-cells = <4>` (the fourth cell a PPI
+      partition: the A55s, and the A76s, are separate partitions), `mbi-alias` `0xfe610000` with
+      `mbi-ranges = <424 56>`, and `dma-noncoherent`.
+    support:
+      - class: DT
+        anchors:
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi, lines: [2587, 2627], node: interrupt-controller@fe600000}
+    relates:
+      - {fact: "rk3588@hardware-specs-docs#gic-instance", relation: qualifies}
+
+  - id: gic-frame-layout
+    section: quick-facts
+    title: GIC frame addresses
+    critical: true
+    claim: >-
+      The RK3588's GIC frames: distributor at `0xFE60_0000`, ITS0 at `0xFE64_0000`, ITS1 at
+      `0xFE66_0000`, and eight redistributors from `0xFE68_0000` at a 128 KB stride (an LPI page
+      then an SGI and PPI page each), so redistributor n is at `0xFE68_0000 + n × 0x2_0000` and
+      the last ends at `0xFE77_FFFF`, filling the device tree's 1 MB redistributor region.
+    support:
+      - class: inference
+        confidence: high
+        premises:
+          - fact: "#dt-gic-node"
+            uses: GICD at 0xfe600000, two ITS at 0xfe640000 and 0xfe660000, redistributors at 0xfe680000 for 1 MB
+          - fact: "#dt-cpus"
+            uses: eight cores, so eight redistributors
+          - fact: "rk3588@hardware-specs-docs#gic600-register-pages"
+            uses: ITS n at pages 4 + 2n, redistributors from page 4 + 2 × ITScount at two pages each
+          - assumption: gic-is-gic600
+        derivation: >-
+          with 2 ITS blocks the GIC-600 layout puts ITS0 at page 4 (0x4_0000), ITS1
+          at page 6 (0x6_0000) and redistributor 0 at page 8 (0x8_0000), which is where the tree
+          puts them; 8 × 128 KB is the tree's 1 MB
+    todo:
+      check: hardware
+      text: >-
+        read GICD_IIDR (product ID) at 0xFE60_0000 to confirm a GIC-600, and GICR_TYPER of each
+        frame (the Last bit set only on the eighth).
+
+  - id: dt-timer-node
+    section: quick-facts
+    title: Architected timer node
+    critical: true
+    claim: >-
+      `arm,armv8-timer` with `GIC_PPI` 13 (`sec-phys`), 14 (`phys`), 11 (`virt`), 10
+      (`hyp-phys`) and 12 (`hyp-virt`), each flagged `IRQ_TYPE_LEVEL_HIGH`. The node carries no
+      `clock-frequency`, so the kernel reads CNTFRQ_EL0.
+    support:
+      - class: DT
+        anchors:
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi, lines: [413, 421], node: timer}
+    relates:
+      - {fact: "rk3588@hardware-specs-docs#system-counter", relation: qualifies}
+
+  - id: dt-cpus
+    section: quick-facts
+    title: CPU nodes
+    critical: true
+    claim: >-
+      Eight CPU nodes with `enable-method = "psci"`: `cpu@0`–`cpu@300` are `arm,cortex-a55`
+      with `reg` `0x0`, `0x100`, `0x200`, `0x300`, and `cpu@400`–`cpu@700` are `arm,cortex-a76`
+      with `reg` `0x400`–`0x700`. The `cpu-map` groups the four A55s as cluster0 and the A76s in
+      pairs as cluster1 (`0x400`, `0x500`) and cluster2 (`0x600`, `0x700`).
+    support:
+      - class: DT
+        anchors:
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi, lines: [55, 96], node: cpus}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi, lines: [111, 115], node: cpu@100}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi, lines: [130, 134], node: cpu@200}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi, lines: [149, 153], node: cpu@300}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi, lines: [168, 172], node: cpu@400}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi, lines: [187, 191], node: cpu@500}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi, lines: [206, 210], node: cpu@600}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi, lines: [225, 229], node: cpu@700}
+
+  - id: mpidr-values
+    section: quick-facts
+    title: MPIDR values
+    critical: true
+    claim: >-
+      MPIDR_EL1 affinity of the cores is `0x000`, `0x100`, `0x200`, `0x300` for the four A55s and
+      `0x400`–`0x700` for the four A76s: Aff1 is the core number 0–7 within the one cluster and
+      Aff0 is 0. Boot CPU and PSCI `CPU_ON` target values follow from this.
+    support:
+      - class: inference
+        confidence: high
+        premises:
+          - fact: "#dt-cpus"
+            uses: the cpu nodes' reg values and compatibles
+          - states: on arm64 a cpu node's reg cell bits [23:0] are MPIDR_EL1 bits [23:0]
+            support:
+              - class: src
+                anchors:
+                  - {repo: linux-gpl2, path: Documentation/devicetree/bindings/arm/cpus.yaml, lines: [64, 79], symbol: reg}
+          - states: TF-A's RK3588 port has one cluster of eight cores and shifts the cluster bits by 8 to form a CPU id
+            support:
+              - class: src
+                anchors:
+                  - {repo: tf-a, path: plat/rockchip/rk3588/include/platform_def.h, lines: [42, 55], symbol: PLAT_RK_CLST_TO_CPUID_SHIFT}
+        derivation: >-
+          the reg values are the affinity fields; 0x100 steps put the core number in Aff1 with
+          Aff0 zero, consistent with TF-A's single eight-core cluster
+    todo:
+      check: hardware
+      text: read MPIDR_EL1 on each core after PSCI CPU_ON, including the MT bit (bit 24), which the device tree does not carry.
+    relates:
+      - {fact: "rk3588@hardware-specs-docs#cpu-mpidr", relation: refines}
+
+  - id: dt-psci
+    section: quick-facts
+    title: PSCI node
+    critical: true
+    claim: >-
+      The tree declares `arm,psci-1.0` with `method = "smc"`, so secondary cores are started with
+      PSCI calls through SMC. SCMI (clocks, including the CPU clocks) is also reached through SMC,
+      function ID `0x82000010`.
+    support:
+      - class: DT
+        anchors:
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi, lines: [401, 404], node: psci}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi, lines: [355, 359], node: scmi}
+    todo:
+      check: hardware
+      text: the tree states what a kernel should use, not what the firmware implements; call PSCI_VERSION through SMC on a board.
+    relates:
+      - {fact: "rk3588@hardware-specs-docs#psci-not-documented", relation: qualifies}
+
+  - id: dt-uart2-node
+    section: quick-facts
+    title: UART2 node
+    critical: true
+    claim: >-
+      `rockchip,rk3588-uart` and `snps,dw-apb-uart` at `0xfeb50000` (size `0x100`), interrupt
+      `GIC_SPI 333` level high, clocks `SCLK_UART2` (baud) and `PCLK_UART2` (APB), DMA channels
+      10 (TX) and 11 (RX) of `dmac0`, `reg-shift = <2>` and `reg-io-width = <4>`. The SoC file
+      selects the M1 pins; a board overrides that.
+    support:
+      - class: DT
+        anchors:
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi, lines: [2811, 2824], node: serial@feb50000}
+    relates:
+      - {fact: "rk3588@hardware-specs-docs#interrupt-map", relation: qualifies}
+      - {fact: "rk3588@hardware-specs-docs#uart-programming-model", relation: qualifies}
+
+  - id: dt-uart2-m0-pins
+    section: quick-facts
+    title: UART2 M0 pin group
+    claim: >-
+      `uart2m0_xfer` puts GPIO0_B6 (RX) and GPIO0_B5 (TX) in function 10 with pull-ups.
+    support:
+      - class: DT
+        anchors:
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-base-pinctrl.dtsi, lines: [3210, 3218], node: uart2m0-xfer}
+    relates:
+      - {fact: "rk3588@hardware-specs-docs#uart2-pinmux", relation: qualifies}
+
+  - id: linux-dw-uart-busy
+    section: gotchas
+    title: Linux treats the busy-detect interrupt as a quirk to clear.
+    claim: >-
+      The Linux driver's header comment says the DesignWare UART raises a busy-detect interrupt
+      when LCR is written while busy, after which LCR must be rewritten and USR read. Its
+      interrupt handler clears a busy-detect interrupt (IIR ID 7) by reading USR and returns.
+    support:
+      - class: src
+        anchors:
+          - {repo: linux, path: drivers/tty/serial/8250/8250_dw.c, lines: [8, 10], symbol: LCR, comment: true}
+          - {repo: linux, path: drivers/tty/serial/8250/8250_dw.c, lines: [418, 424], symbol: dw8250_handle_irq}
+    relates:
+      - {fact: "rk3588@hardware-specs-docs#uart-programming-model", relation: qualifies}
+
+  - id: dt-storage-nodes
+    section: quick-facts
+    title: Boot-storage nodes
+    critical: true
+    claim: >-
+      `sfc` (`rockchip,sfc`) at `0xfe2b0000`, `GIC_SPI 206`; `sdmmc` (`rockchip,rk3588-dw-mshc`,
+      `rockchip,rk3288-dw-mshc`) at `0xfe2c0000`, `GIC_SPI 203`, `fifo-depth = <0x100>`, up to
+      200 MHz, clocked through SCMI; `sdhci` (`rockchip,rk3588-dwcmshc`) at `0xfe2e0000`, `GIC_SPI
+      205`, 64 KB, with core, bus, AXI, block and timer clocks (core 200 MHz, timer 24 MHz) and
+      resets, and `supports-cqe`. `sfc` and `sdmmc` are given 16 KB (`0x4000`) register windows.
+    support:
+      - class: DT
+        anchors:
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi, lines: [2387, 2396], node: spi@fe2b0000}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi, lines: [2398, 2411], node: mmc@fe2c0000}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi, lines: [2428, 2448], node: mmc@fe2e0000}
+    relates:
+      - {fact: "rk3588@hardware-specs-docs#storage-controllers", relation: qualifies}
+
+  - id: dt-scmi-shmem
+    section: quick-facts
+    title: SCMI shared-memory reservation
+    claim: >-
+      The SoC file's only `reserved-memory` entry is the SCMI shared memory at physical `0x10f000`,
+      `0x100` bytes, `no-map`.
+    support:
+      - class: DT
+        anchors:
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi, lines: [437, 447], node: reserved-memory}
+
+  - id: tfa-memory-layout
+    section: quick-facts
+    title: TF-A memory layout
+    critical: true
+    claim: >-
+      TF-A's RK3588 port uses the first 1 MB of DRAM as trusted RAM (`0x0`–`0xFFFFF`) and places
+      BL31 at `0x40000` up to `0x100000`. From `0x100000` it keeps a shared-memory area: 15 pages
+      (60 KB) of shared memory, then the 4 KB SCMI shared memory at `0x10F000`.
+    support:
+      - class: src
+        anchors:
+          - {repo: tf-a, path: plat/rockchip/rk3588/include/platform_def.h, lines: [71, 82], symbol: BL31_BASE}
+          - {repo: tf-a, path: plat/rockchip/rk3588/rk3588_def.h, lines: [152, 165], symbol: SCMI_SHARE_MEM_BASE}
+    scope:
+      builds: [TF-A v2.14 (mainline)]
+
+  - id: uboot-reserves-first-2mb
+    section: quick-facts
+    title: U-Boot reports DRAM from 2 MB
+    critical: true
+    claim: >-
+      Mainline U-Boot starts the first DRAM bank it reports at 2 MB, treating `0x0`–`0x1FFFFF` as
+      reserved for BL31 even when the DRAM layout from the DDR blob includes it, and cuts holes for
+      the reserved ranges of its own memory map.
+    support:
+      - class: src
+        anchors:
+          - {repo: u-boot, path: arch/arm/mach-rockchip/sdram.c, lines: [182, 194], symbol: rockchip_dram_init_banksize, comment: true}
+          - {repo: u-boot, path: arch/arm/mach-rockchip/sdram.c, lines: [321, 323], symbol: dram_init_banksize}
+    scope:
+      builds: [U-Boot v2026.10 (mainline)]
+
+  - id: uboot-memory-map
+    section: quick-facts
+    title: U-Boot's RK3588 memory map
+    critical: true
+    claim: >-
+      U-Boot maps `0x0`–`0xEFFF_FFFF` as normal memory (`0x10F000`–`0x10FFFF` non-cacheable for
+      SCMI), `0xF000_0000`–`0xFFFF_FFFF` as device, then normal memory `0x1_0000_0000`–
+      `0x3_FBFF_FFFF`, `0x3_FC50_0000`–`0x3_FFEF_FFFF` and `0x4_0000_0000`–`0x7_FFFF_FFFF`, and
+      device `0x9_0000_0000`–`0xA_4FFF_FFFF`. DRAM below 4 GB is capped at `0xF000_0000`
+      (`SDRAM_MAX_SIZE`), and the map leaves out `0x3_FC00_0000`–`0x3_FC4F_FFFF`.
+    support:
+      - class: src
+        anchors:
+          - {repo: u-boot-gpl2, path: arch/arm/mach-rockchip/rk3588/rk3588.c, lines: [63, 119], symbol: rk3588_mem_map}
+          - {repo: u-boot, path: include/configs/rk3588_common.h, lines: [14, 15], symbol: SDRAM_MAX_SIZE}
+    scope:
+      builds: [U-Boot v2026.10 (mainline)]
+    relates:
+      - {fact: "rk3588@hardware-specs-docs#address-map", relation: qualifies}
+
+  - id: uboot-load-addresses
+    section: quick-facts
+    title: U-Boot load addresses
+    critical: true
+    claim: >-
+      Mainline U-Boot's RK3588 environment: `kernel_addr_r=0x02000000`, `fdt_addr_r=0x12000000`,
+      `fdtoverlay_addr_r=0x12100000`, `ramdisk_addr_r=0x12180000`, `kernel_comp_addr_r=0x0a000000`
+      with `kernel_comp_size=0x8000000`, `scriptaddr=0x00c00000` and `pxefile_addr_r=0x00e00000`.
+    support:
+      - class: src
+        anchors:
+          - {repo: u-boot, path: include/configs/rk3588_common.h, lines: [21, 31], symbol: ENV_MEM_LAYOUT_SETTINGS}
+    scope:
+      builds: [U-Boot v2026.10 (mainline)]
+
+  - id: uboot-boot-targets
+    section: quick-facts
+    title: U-Boot boot order
+    claim: >-
+      Mainline U-Boot's default `boot_targets` on Rockchip is `mmc1 mmc0 nvme scsi usb pxe dhcp
+      spi`: the SD card, then eMMC, NVMe, SCSI, USB, PXE, DHCP and SPI flash.
+    support:
+      - class: src
+        anchors:
+          - {repo: u-boot, path: include/configs/rockchip-common.h, lines: [16, 17], symbol: BOOT_TARGETS}
+    scope:
+      builds: [U-Boot v2026.10 (mainline)]
+
+  - id: uboot-debug-uart-pinmux
+    section: quick-facts
+    title: U-Boot's early console pin setup
+    claim: >-
+      Mainline U-Boot's `board_debug_uart_init` for the RK3588 selects UART2 M0 in two levels: in
+      `PMU2_IOC`'s `gpio0b_iomux_sel_h` it writes 8 ("refer to BUS_IOC") to the GPIO0_B5 field
+      (bits 7:4) and the GPIO0_B6 field (bits 11:8), then in `BUS_IOC`'s `gpio0b_iomux_sel_h` it
+      writes 10 to the same fields, selecting UART2_TX_M0 on GPIO0_B5 and UART2_RX_M0 on GPIO0_B6.
+    support:
+      - class: src
+        anchors:
+          - {repo: u-boot-gpl2, path: arch/arm/mach-rockchip/rk3588/rk3588.c, lines: [123, 134], symbol: GPIO0B5_UART2_TX_M0}
+          - {repo: u-boot-gpl2, path: arch/arm/mach-rockchip/rk3588/rk3588.c, lines: [136, 152], symbol: board_debug_uart_init}
+    relates:
+      - {fact: "rk3588@hardware-specs-docs#uart2-pinmux", relation: qualifies}
+    scope:
+      builds: [U-Boot v2026.10 (mainline)]
+
+  - id: uboot-spl-sets-cntfrq
+    section: quick-facts
+    title: U-Boot SPL programs CNTFRQ
+    claim: >-
+      Mainline U-Boot's SPL, unless the RK3588's high-precision timer is already enabled, writes
+      `CONFIG_COUNTER_FREQUENCY` to CNTFRQ_EL0 and starts that timer counting from all ones.
+    support:
+      - class: src
+        anchors:
+          - {repo: u-boot-gpl2, path: arch/arm/mach-rockchip/rk3588/rk3588.c, lines: [162, 174], symbol: rockchip_stimer_init}
+    scope:
+      builds: [U-Boot v2026.10 (mainline)]
+
+  - id: uboot-brom-boot-sources
+    section: quick-facts
+    title: Boot ROM boot sources as U-Boot reads them
+    claim: >-
+      Mainline U-Boot maps the RK3588 boot ROM's reported boot source to a device: eMMC to
+      `/mmc@fe2e0000`, SPI flash on FSPI pin groups M0, M1 or M2 (source IDs 3, 4 and 6) to
+      `/spi@fe2b0000/flash@0`, and SD to `/mmc@fe2c0000`. Its comment says the ID for SPI flash
+      depends on the FSPI pin group, not the flash type.
+    support:
+      - class: src
+        anchors:
+          - {repo: u-boot-gpl2, path: arch/arm/mach-rockchip/rk3588/rk3588.c, lines: [44, 48], symbol: BROM_BOOTSOURCE_FSPI_M0, comment: true}
+          - {repo: u-boot-gpl2, path: arch/arm/mach-rockchip/rk3588/rk3588.c, lines: [49, 61], symbol: boot_devices}
+    scope:
+      builds: [U-Boot v2026.10 (mainline)]
