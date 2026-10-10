@@ -50,6 +50,9 @@ resources:
         - {path: arch/arm/mach-rockchip/board.c, license_from: spdx-line}
         - {path: arch/arm/lib/bootm.c, license_from: notice, note: "the SPDX tag (GPL-2.0+) sits at line 12 of the copyright header, past the five-line SPDX rule"}
         - {path: arch/arm/cpu/armv8/transition.S, license_from: spdx-line}
+        - {path: common/Kconfig, license_from: license-file}
+        - {path: common/board_f.c, license_from: notice, note: "the SPDX tag (GPL-2.0+) sits at line 10 of the copyright header, past the five-line SPDX rule"}
+        - {path: arch/arm/mach-rockchip/sdram.c, license_from: spdx-line}
       verified: 2026-10-09
       fetch: ok
       fetch_via: git
@@ -72,6 +75,14 @@ resources:
       fetch_via: git
       note: param.c carries SPDX GPL-2.0; sizes.h a GPL-2.0-only notice.
 assumptions:
+  - id: uboot-net-commands-built
+    text: >-
+      the `dhcp` and `pxe` commands are built into the mainline `rock5b-rk3588` configuration;
+      the configuration does not set them, and they are enabled through U-Boot's default
+      boot-command options, a Kconfig chain not traced here
+    todo:
+      check: hardware
+      text: on a mainline U-Boot console for this configuration, run `help dhcp` and `help pxe`, or read `.config`.
   - id: stock-build-identity
     text: >-
       the ROCK 5T's stock loader is built from radxa/u-boot at the pinned commit with
@@ -191,8 +202,8 @@ facts:
     title: Netboot with mainline U-Boot
     claim: >-
       Mainline U-Boot (v2026.10) can most likely fetch a kernel over either onboard 2.5 GbE port
-      with `dhcp` or `pxe`, and tries PXE and DHCP in its default boot order after
-      the local media. The stock vendor loader is not covered.
+      with `dhcp` or `pxe`, and tries PXE and DHCP in its default boot order after `mmc1`,
+      `mmc0`, NVMe, SCSI and USB, and before SPI flash. The stock vendor loader is not covered.
     support:
       - class: inference
         confidence: medium
@@ -206,13 +217,17 @@ facts:
           - fact: "#dt-pcie"
             uses: the ROCK 5T tree enables the three PCIe 2.0 controllers
           - fact: "rk3588#uboot-boot-targets"
-            uses: pxe and dhcp are in the default boot targets
+            uses: the default boot targets are mmc1 mmc0 nvme scsi usb pxe dhcp spi
+          - assumption: uboot-net-commands-built
         derivation: >-
           a driver for the chip, the controllers behind it and network boot targets are all
-          present; nothing read shows them working together on this board
+          present, and the targets list puts pxe and dhcp after the local media mmc1, mmc0,
+          nvme, scsi and usb and before spi; nothing read shows them working together on this
+          board
     todo:
       check: hardware
       text: on mainline U-Boot, run `pci enum`, `dhcp` and `pxe get` with a cable in each port.
+    assumes: [uboot-net-commands-built]
     relates:
       - {fact: "rock5t@hardware-specs-docs#netboot-stock-loader", relation: qualifies}
 
@@ -401,8 +416,9 @@ facts:
       from 4 MB, kept clear of the shared memory at `0x100000`–`0x200000` per its comment),
       `kernel_addr_c=0x05480000` (compressed kernel), `fdt_addr_r=0x08300000`,
       `fdtoverlay_addr_r=0x08200000`, `ramdisk_addr_r=0x0a200000`, `scriptaddr=0x00500000` and
-      `pxefile_addr_r=0x00600000`; `CONFIG_SYS_LOAD_ADDR` is `0x00600800`, U-Boot itself runs
-      from `0x00200000`, and DRAM below 4 GB is capped at `0xF000_0000`.
+      `pxefile_addr_r=0x00600000`; `CONFIG_SYS_LOAD_ADDR` is `0x00600800`; U-Boot is linked and first
+      loaded at `0x00200000` (`CONFIG_SYS_TEXT_BASE`) and then relocates itself to the top of
+      usable RAM, which is capped at `0xF000_0000`.
     support:
       - class: src
         anchors:
@@ -410,6 +426,12 @@ facts:
           - {repo: radxa-u-boot, path: include/configs/rk3588_common.h, lines: [76, 83], symbol: ENV_MEM_LAYOUT_SETTINGS}
           - {repo: radxa-u-boot, path: include/configs/rk3588_common.h, lines: [27, 34], symbol: CONFIG_SYS_LOAD_ADDR}
           - {repo: radxa-u-boot, path: include/configs/rk3588_common.h, lines: [56, 57], symbol: SDRAM_MAX_SIZE}
+          - {repo: radxa-u-boot, path: common/Kconfig, lines: [673, 677], symbol: SKIP_RELOCATE_UBOOT}
+          - {repo: radxa-u-boot, path: common/board_f.c, lines: [424, 440], symbol: reserve_uboot}
+          - {repo: radxa-u-boot, path: arch/arm/mach-rockchip/sdram.c, lines: [196, 201], symbol: board_get_usable_ram_top}
+    todo:
+      check: hardware
+      text: read the "Relocation Addr" line of the stock loader's boot log (or `bdinfo`) to see where U-Boot actually runs.
     assumes: [stock-build-identity]
     scope:
       builds: [Radxa vendor U-Boot next-dev-v2024.10 (2017.09 base)]

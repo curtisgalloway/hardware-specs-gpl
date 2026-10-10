@@ -43,6 +43,18 @@ resources:
       fetch: ok
       fetch_via: git
       note: Linux v7.2.
+    - name: linux-timer
+      url: https://github.com/torvalds/linux
+      commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+      license: GPL-2.0-only
+      role: source
+      status: merged
+      files:
+        - {path: drivers/clocksource/arm_arch_timer.c, license_from: spdx-line}
+      verified: 2026-10-09
+      fetch: ok
+      fetch_via: git
+      note: Linux v7.2.
     - name: u-boot
       url: https://github.com/u-boot/u-boot
       commit: 5508406582f6f7120dce0c4b3059819a41788db2
@@ -143,13 +155,42 @@ facts:
     claim: >-
       `arm,armv8-timer` with `GIC_PPI` 13 (`sec-phys`), 14 (`phys`), 11 (`virt`), 10
       (`hyp-phys`) and 12 (`hyp-virt`), each flagged `IRQ_TYPE_LEVEL_HIGH`. The node carries no
-      `clock-frequency`, so the kernel reads CNTFRQ_EL0.
+      `clock-frequency` property.
     support:
       - class: DT
         anchors:
           - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi, lines: [413, 421], node: timer}
     relates:
       - {fact: "rk3588@hardware-specs-docs#system-counter", relation: qualifies}
+
+  - id: timer-rate-from-cntfrq
+    section: quick-facts
+    title: The kernel takes the timer rate from CNTFRQ_EL0
+    critical: true
+    claim: >-
+      With this device tree the Linux arm64 kernel's architected-timer driver takes its rate from
+      CNTFRQ_EL0, so the value firmware programs in that register is the timer frequency the
+      kernel uses.
+    support:
+      - class: inference
+        confidence: high
+        premises:
+          - fact: "#dt-timer-node"
+            uses: the timer node has no clock-frequency property
+          - states: the driver reads the clock-frequency property when present and otherwise uses the rate from CNTFRQ_EL0
+            support:
+              - class: src
+                anchors:
+                  - {repo: linux-timer, path: drivers/clocksource/arm_arch_timer.c, lines: [862, 870], symbol: arch_timer_of_configure_rate}
+                  - {repo: linux-timer, path: drivers/clocksource/arm_arch_timer.c, lines: [1187, 1188], symbol: arch_timer_of_init}
+        derivation: >-
+          the node lacks the property, so the driver's fallback branch applies and the rate is
+          the one read from CNTFRQ_EL0
+    todo:
+      check: hardware
+      text: compare the kernel's reported timer frequency in its boot log with CNTFRQ_EL0 read at kernel entry.
+    relates:
+      - {fact: "#dt-timer-node", relation: refines}
 
   - id: dt-cpus
     section: quick-facts
@@ -474,11 +515,14 @@ facts:
     title: U-Boot boot order
     claim: >-
       Mainline U-Boot's default `boot_targets` on Rockchip is `mmc1 mmc0 nvme scsi usb pxe dhcp
-      spi`: the SD card, then eMMC, NVMe, SCSI, USB, PXE, DHCP and SPI flash.
+      spi`, in that order. `mmc1` and `mmc0` are MMC device numbers, which each board's
+      device-tree aliases assign to its controllers; the header does not say which medium each
+      is. The RK3588 environment takes this list as `boot_targets`.
     support:
       - class: src
         anchors:
           - {repo: u-boot, path: include/configs/rockchip-common.h, lines: [16, 17], symbol: BOOT_TARGETS}
+          - {repo: u-boot, path: include/configs/rk3588_common.h, lines: [33, 37], symbol: CFG_EXTRA_ENV_SETTINGS}
     scope:
       builds: [U-Boot v2026.10 (mainline)]
 
