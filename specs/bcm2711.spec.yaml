@@ -1,0 +1,500 @@
+# SPDX-FileCopyrightText: 2026 contributors
+# SPDX-License-Identifier: GPL-2.0-only
+format: 2
+overlays: bcm2711
+resources:
+  repos:
+  - name: linux
+    url: https://github.com/torvalds/linux
+    license: GPL-2.0-only
+    status: merged
+    verified: '2026-10-07'
+    fetch: ok
+    fetch_via: git
+    files:
+    - path: arch/arm/boot/dts/broadcom/bcm2711.dtsi
+      license_from: spdx-line
+    - path: arch/arm/boot/dts/broadcom/bcm283x.dtsi
+      license_from: license-file
+    - path: arch/arm/boot/dts/broadcom/bcm2835-rpi.dtsi
+      license_from: license-file
+    - path: arch/arm/boot/dts/broadcom/bcm2711-rpi.dtsi
+      license_from: spdx-line
+    - path: arch/arm/boot/dts/broadcom/bcm2711-rpi-4-b.dts
+      license_from: license-file
+    - path: arch/arm/boot/dts/broadcom/bcm2711-rpi-cm4.dtsi
+      license_from: license-file
+    - path: Documentation/devicetree/bindings/arm/bcm/raspberrypi,bcm2835-firmware.yaml
+      license_from: spdx-line
+    - path: Documentation/devicetree/bindings/interrupt-controller/arm,gic.yaml
+      license_from: spdx-line
+    note: Linux v7.2. bcm2711.dtsi and bcm2711-rpi.dtsi carry SPDX GPL-2.0; bcm283x.dtsi and bcm2835-rpi.dtsi carry no SPDX line and fall under the tree's GPL-2.0 COPYING. The arm64 board files include these arm-tree files. The two bindings carry SPDX GPL-2.0.
+    commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+  - name: linux-pcie
+    url: https://github.com/torvalds/linux
+    license: GPL-2.0-or-later
+    status: merged
+    verified: '2026-10-08'
+    fetch: ok
+    fetch_via: git
+    files:
+    - path: drivers/pci/controller/pcie-brcmstb.c
+      license_from: spdx-line
+    note: the same Linux v7.2 tree; pcie-brcmstb.c carries SPDX GPL-2.0+, so it has its own entry
+    commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+kind: overlay
+facts:
+- id: address-translation-in-the-tree
+  critical: true
+  section: quick-facts
+  title: Address translation in the tree
+  claim: |-
+    The root uses two address cells and one size cell. The
+    `soc` bus maps legacy `0x7E00_0000` (24 MB) to `0xFE00_0000`, `0x7C00_0000` (32 MB) to
+    `0xFC00_0000`, and the ARM Local block, which the tree addresses as `0x4000_0000`, to
+    `0xFF80_0000` (8 MB). Its `dma-ranges` maps bus `0xC000_0000` to physical `0x0` for 1 GB.
+  support:
+  - class: DT
+    anchors:
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm2711.dtsi
+      lines:
+      - 10
+      - 11
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm2711.dtsi
+      lines:
+      - 34
+      - 45
+- id: tree-describes-low-peripheral-mode
+  critical: true
+  section: quick-facts
+  title: The tree describes Low Peripheral mode
+  claim: The tree describes Low Peripheral mode.
+  support:
+  - class: inference
+    premises:
+    - fact: '#address-translation-in-the-tree'
+      uses: the tree's physical targets
+    - fact: bcm2711@hardware-specs-docs#addressing-model
+      uses: Low Peripheral mode places Main peripherals at `0x0_FC00_0000`–`0x0_FF7F_FFFF` and ARM Local at `0x0_FF80_0000`
+    derivation: the targets fall in those ranges, not in the full-map ranges at `0x4_7C00_0000` and `0x4_C000_0000`
+  todo:
+    check: hardware
+    text: |-
+      compare the live tree on a board booted
+      with arm_peri_high=1.
+- id: gic-node
+  section: quick-facts
+  title: GIC node
+  claim: |-
+    `arm,gic-400`, `#interrupt-cells = <3>`, with distributor `0x4004_1000`
+    (4 KB), CPU interface `0x4004_2000` (8 KB), virtual interface control `0x4004_4000` and virtual
+    CPU interface `0x4004_6000` in the `soc` bus's ARM Local range, so `0xFF84_1000` and
+    `0xFF84_2000` for the first two; its maintenance interrupt is PPI 9 (ID 25), encoded with the
+    `IRQ_TYPE_LEVEL_HIGH` flag on all four CPUs.
+  support:
+  - class: DT
+    anchors:
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm2711.dtsi
+      lines:
+      - 56
+      - 66
+- id: ppi-flags-are-not-hardware-polarity
+  section: quick-facts
+  title: PPI flags are not hardware polarity
+  claim: |-
+    The tree's PPI trigger flags (level-high on the
+    maintenance interrupt, level-low on the timers) do not tell a driver the GIC-400's PPI input
+    polarity, and a driver should not expect writing them to change it.
+  support:
+  - class: inference
+    premises:
+    - states: the tree encodes the maintenance PPI as level-high and the timer PPIs as level-low
+      support:
+      - class: DT
+        anchors:
+        - repo: linux
+          path: arch/arm/boot/dts/broadcom/bcm2711.dtsi
+          lines:
+          - 64
+          - 65
+        - repo: linux
+          path: arch/arm/boot/dts/broadcom/bcm2711.dtsi
+          lines:
+          - 446
+          - 453
+    - fact: bcm2711@hardware-specs-docs#interrupt-ids-at-the-gic
+      uses: the GIC-400's PPI inputs are active-low level-sensitive
+    - states: the GIC binding says PPI configurability is implementation defined and often ignored, with the hardware default used
+      support:
+      - class: src
+        anchors:
+        - repo: linux
+          path: Documentation/devicetree/bindings/interrupt-controller/arm,gic.yaml
+          lines:
+          - 82
+          - 94
+          symbol: interrupt-cells
+    derivation: one tree gives the same inputs two different flags, so at least one flag cannot be the input's polarity, and the binding says the setting may have no effect
+  todo:
+    check: hardware
+    text: write the PPI configuration bits of GICD_ICFGR1 and read them back.
+- id: architected-timer-and-pmu
+  section: quick-facts
+  title: Architected timer and PMU
+  claim: |-
+    `arm,armv8-timer` with PPIs 13, 14, 11 and 10 (IDs 29, 30, 27,
+    26), all level-low on four CPUs; `arm,cortex-a72-pmu` on SPIs 16-19 (IDs 48-51), one per CPU.
+  support:
+  - class: DT
+    anchors:
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm2711.dtsi
+      lines:
+      - 435
+      - 454
+- id: cpu-nodes
+  section: quick-facts
+  title: CPU nodes
+  claim: |-
+    Four `arm,cortex-a72` CPUs with `reg` 0-3. Each CPU node carries
+    `enable-method = "spin-table"` with `cpu-release-addr` `0xD8`, `0xE0`, `0xE8` and `0xF0`; the
+    `cpus` node also carries `brcm,bcm2836-smp`, commented in the tree as for 32-bit Arm. The L1 data cache is described
+    as 32 KB with 64-byte lines, the L1 instruction cache 48 KB, the shared L2 1 MB.
+  support:
+  - class: DT
+    anchors:
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm2711.dtsi
+      lines:
+      - 456
+      - 542
+- id: reserved-stub-page
+  section: quick-facts
+  title: Reserved stub page
+  claim: |-
+    A `/memreserve/` covers physical `0x0`-`0xFFF`, commented as where the
+    firmware's startup stubs live and the secondary CPUs spin.
+  support:
+  - class: DT
+    anchors:
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm283x.dtsi
+      lines:
+      - 8
+      - 11
+- id: memory-node
+  section: quick-facts
+  title: Memory node
+  claim: |-
+    The board-level include carries `memory@0` with a zero placeholder `reg`
+    (`<0 0 0>`), commented as filled in by the bootloader; the CMA pool is limited to the first 1 GB, commented as needed
+    because some devices can address only the lower 1 GB.
+  support:
+  - class: DT
+    anchors:
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm2711-rpi.dtsi
+      lines:
+      - 6
+      - 11
+  - class: DT
+    anchors:
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm2711.dtsi
+      lines:
+      - 1125
+      - 1131
+- id: uart-nodes
+  critical: true
+  section: quick-facts
+  title: UART nodes
+  claim: |-
+    UART0 `serial@7e201000` and UART2-5 at `0x7E20_1400`-`0x7E20_1A00` are
+    `arm,pl011`, `arm,primecell`, `reg` size `0x200`, SPI 121 (ID 153) level-high, clocks
+    `uartclk` (the CPRMAN UART clock) and `apb_pclk` (the VPU clock), and BCM2711 overrides the
+    PrimeCell peripheral ID to `0x00341011`. UART2-5 are `disabled`. The mini UART
+    `serial@7e215040` is `brcm,bcm2835-aux-uart` on SPI 93 (ID 125), shared with SPI1 and SPI2.
+  support:
+  - class: DT
+    anchors:
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm283x.dtsi
+      lines:
+      - 304
+      - 312
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm283x.dtsi
+      lines:
+      - 385
+      - 391
+  - class: DT
+    anchors:
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm2711.dtsi
+      lines:
+      - 130
+      - 172
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm2711.dtsi
+      lines:
+      - 1159
+      - 1185
+- id: system-timer-and-gpio
+  section: quick-facts
+  title: System timer and GPIO
+  claim: |-
+    `brcm,bcm2835-system-timer` at `0x7E00_3000` with
+    `clock-frequency` 1 MHz, on SPIs 64-67 (IDs 96-99); GPIO `brcm,bcm2711-gpio` at `0x7E20_0000` on
+    SPIs 113-116 (IDs 145-148), 58 lines.
+  support:
+  - class: DT
+    anchors:
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm283x.dtsi
+      lines:
+      - 69
+      - 78
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm283x.dtsi
+      lines:
+      - 107
+      - 109
+  - class: DT
+    anchors:
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm2711.dtsi
+      lines:
+      - 655
+      - 662
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm2711.dtsi
+      lines:
+      - 1167
+      - 1172
+- id: firmware-mailbox-and-clocks
+  section: quick-facts
+  title: Firmware mailbox and clocks
+  claim: |-
+    The VideoCore mailbox is `brcm,bcm2835-mbox` at legacy
+    `0x7E00_B880` (`0x40` bytes) on SPI 33 (ID 65). The firmware node
+    `raspberrypi,bcm2835-firmware` talks through it, and its child `raspberrypi,firmware-clocks`
+    provides clocks through a one-cell clock specifier; the clock manager is
+    `brcm,bcm2711-cprman`.
+  support:
+  - class: DT
+    anchors:
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm283x.dtsi
+      lines:
+      - 100
+      - 105
+  - class: DT
+    anchors:
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm2835-rpi.dtsi
+      lines:
+      - 3
+      - 12
+  - class: DT
+    anchors:
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm2711.dtsi
+      lines:
+      - 637
+      - 639
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm2711.dtsi
+      lines:
+      - 1143
+      - 1145
+- id: firmware-clock-ids
+  section: quick-facts
+  title: Firmware clock IDs
+  claim: |-
+    The firmware binding defines the firmware clock provider's one cell as
+    the ID of a clock in the firmware's messages.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: Documentation/devicetree/bindings/arm/bcm/raspberrypi,bcm2835-firmware.yaml
+      lines:
+      - 39
+      - 43
+      symbol: clock-cells
+- id: emmc2
+  section: quick-facts
+  title: EMMC2
+  claim: |-
+    `brcm,bcm2711-emmc2` at `0x7E34_0000` on SPI 126 (ID 158), clocked by
+    `BCM2711_CLOCK_EMMC2`, sits on its own `emmc2bus`. The tree comments that EMMC2's DMA
+    constraints differ between SoC revisions and that Raspberry Pi 4 firmware edits that bus's
+    `dma-ranges` when the `emmc2bus` alias is defined, which `bcm2711-rpi.dtsi` does.
+  support:
+  - class: DT
+    anchors:
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm2711.dtsi
+      lines:
+      - 412
+      - 433
+  - class: DT
+    anchors:
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm2711-rpi.dtsi
+      lines:
+      - 14
+      - 14
+- id: genet
+  section: quick-facts
+  title: GENET
+  claim: |-
+    `brcm,bcm2711-genet-v5` at bus `0x7D58_0000` (64 KB) on SPIs 157 and 158 (IDs 189,
+    190), with an MDIO block at `+0xE14`; the node has no `clocks` property.
+  support:
+  - class: DT
+    anchors:
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm2711.dtsi
+      lines:
+      - 587
+      - 603
+- id: pcie-and-the-soc-s-xhci
+  section: quick-facts
+  title: PCIe and the SoC's xHCI
+  claim: |-
+    `brcm,bcm2711-pcie` at bus `0x7D50_0000` on SPIs 147 (`pcie`)
+    and 148 (`msi`), legacy INTA-INTD on SPIs 143-146 (IDs 175-178); outbound window CPU
+    `0x6_0000_0000` to PCI `0xF800_0000`, 64 MB; the unmodified tree's inbound `dma-ranges` is an
+    identity map of the first 3 GB, commented as a bug in the wrapper around the PCIe block. The
+    SoC's own `brcm,bcm2711-xhci` controller at `0x7E9C_0000` (SPI 176, ID 208) is `disabled`; the
+    tree comments that it shares a USB PHY with the DWC2 controller, that enabling both locks up,
+    and that the bootloader decides which to enable. It is not the separate PCIe-attached USB 3.0
+    controller of the Pi 4B and 400 boards, which the docs spec's USB bullet describes.
+  support:
+  - class: DT
+    anchors:
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm2711.dtsi
+      lines:
+      - 545
+      - 618
+  relates:
+  - {fact: 'bcm2711@hardware-specs-docs#usb-controllers', relation: qualifies}
+- id: the-3-gb-inbound-limit-is-a-default-tied-to-early-revisions
+  section: quick-facts
+  title: The 3 GB inbound limit is a default, tied to early revisions
+  claim: |-
+    The Linux driver's comment
+    says the restriction comes from a PCIe integration bug on early Raspberry Pi 4 revisions and
+    that firmware edits `dma-ranges` at run time; the driver checks the inbound window it reads
+    from the tree rather than assuming one, and rejects an offset between 2 GB and 4 GB.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-pcie
+      path: drivers/pci/controller/pcie-brcmstb.c
+      lines:
+      - 1023
+      - 1031
+      symbol: brcm_pcie_get_inbound_wins
+    - repo: linux-pcie
+      path: drivers/pci/controller/pcie-brcmstb.c
+      lines:
+      - 1056
+      - 1061
+      symbol: pci_offset
+- id: board-dependence
+  section: quick-facts
+  title: Board dependence
+  claim: |-
+    EMMC2 and GENET are `disabled` in the SoC file; the board files enable
+    them and add what the SoC file lacks, supplies for EMMC2 and a PHY handle and `rgmii-rxid` mode
+    for GENET, and the Pi 4B and CM4 files are separate. Take these from the board spec or the live
+    tree.
+  support:
+  - class: DT
+    anchors:
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm2711.dtsi
+      lines:
+      - 426
+      - 432
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm2711.dtsi
+      lines:
+      - 587
+      - 603
+  - class: DT
+    anchors:
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm2711-rpi-4-b.dts
+      lines:
+      - 191
+      - 201
+  - class: DT
+    anchors:
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm2711-rpi-cm4.dtsi
+      lines:
+      - 45
+      - 54
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm2711-rpi-cm4.dtsi
+      lines:
+      - 84
+      - 87
+- id: system-oscillator
+  section: quick-facts
+  title: System oscillator
+  claim: |-
+    The tree sets the `clk_osc` clock to 54 MHz. This is a declared value,
+    consistent with the stub's counter frequency in the permissive overlay, not a measurement.
+  support:
+  - class: DT
+    anchors:
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm2711.dtsi
+      lines:
+      - 632
+      - 634
+  relates:
+  - {fact: 'bcm2711@hardware-specs-permissive#generic-timer-frequency', relation: qualifies}
+- id: take-pcie-dma-bounds-from-the-live-tree
+  section: gotchas
+  title: Take PCIe DMA bounds from the live tree
+  claim: |-
+    The unmodified tree limits PCIe inbound DMA to the
+    first 3 GB, but firmware may rewrite `dma-ranges`, so derive the inbound window and the PCI bus
+    addresses from the live tree's `dma-ranges`, and keep buffers within what each endpoint can
+    address; assuming a fixed 3 GB can waste usable memory or give a device wrong addresses.
+  support:
+  - class: inference
+    premises:
+    - states: the tree's default window
+      support:
+      - class: DT
+        anchors:
+        - repo: linux
+          path: arch/arm/boot/dts/broadcom/bcm2711.dtsi
+          lines:
+          - 577
+          - 583
+    - fact: '#the-3-gb-inbound-limit-is-a-default-tied-to-early-revisions'
+      uses: the driver comment on firmware edits and early revisions
+    derivation: a window the firmware can change must be read where the firmware leaves it
+  todo:
+    check: hardware
+    text: |-
+      dump `dma-ranges` of the PCIe node from the live tree on boards of different
+      revisions and memory sizes.
+orientation: |-
+  Adds to the `bcm2711` spec in `hardware-specs-docs` the facts that only the Linux device trees
+  state. Every BCM2711 device-tree file in Linux is `GPL-2.0` only, so these facts live here. Each
+  fact's `support` anchors it to the file and lines of the `linux` entry above (Linux v7.2), and
+  `relates` entries link a fact to the facts it qualifies in the other roots. Interrupt
+  cells are the device tree's GIC cells: an SPI cell `n` is GIC interrupt ID `32 + n`, a PPI cell
+  `n` is ID `16 + n`, which the cross-checks against the datasheet's IDs below bear out.

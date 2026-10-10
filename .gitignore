@@ -4,3 +4,5 @@
 # Checkouts made by CI or scripts/checks.sh users beside the specs.
 /.driver-lab/
 /.hardware-specs-docs/
+/.hardware-specs-permissive/
+/.venv-spec/
