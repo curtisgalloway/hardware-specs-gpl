@@ -1,0 +1,558 @@
+# SPDX-FileCopyrightText: 2026 contributors
+# SPDX-License-Identifier: GPL-2.0-only
+format: 2
+spec: rk3588
+spec_file: rk3588.spec.yaml
+spec_sha256: 9f477dc20dd16398cdc4510bde06625cd3918dfeb69af874c640d6381625f277
+canonical: fact-v1
+sources:
+- name: linux-dts
+  commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+  url: https://github.com/torvalds/linux
+  fetch: ok
+- name: linux
+  commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+  url: https://github.com/torvalds/linux
+  fetch: ok
+- name: linux-gpl2
+  commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+  url: https://github.com/torvalds/linux
+  fetch: ok
+- name: linux-timer
+  commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+  url: https://github.com/torvalds/linux
+  fetch: ok
+- name: u-boot
+  commit: 5508406582f6f7120dce0c4b3059819a41788db2
+  url: https://github.com/u-boot/u-boot
+  fetch: ok
+- name: u-boot-gpl2
+  commit: 5508406582f6f7120dce0c4b3059819a41788db2
+  url: https://github.com/u-boot/u-boot
+  fetch: ok
+- name: tf-a
+  commit: 1d5aa939bc8d3d892e2ed9945fa50e36a1a924cc
+  url: https://github.com/ARM-software/arm-trusted-firmware
+  fetch: ok
+summary:
+  pass: 23
+  fail: 0
+  unverifiable: 0
+  gap: 0
+  adjudicate: 0
+verdicts:
+  dt-gic-node:
+    basis: c4bfe00776ae88da5d752bca12d32bb609e71a0bab835a0927f7f103a32e99d3
+    upstream:
+      rk3588@hardware-specs-docs#gic-instance: 36efed6661b6cc2cb9acab4f3ff0db09d572f6bfa9e40daea5c3aa18624be0ef
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
+    note: 'Mode DELTA (upstream changed: docs gic-instance). The upstream diff between the two docs
+      pins changes only that fact''s TODO wording (datasheet only if published without a confidential
+      or NDA marking, otherwise this overlay); its claim (not stated by any public document read)
+      is unchanged, so this claim and its qualifies relation still follow. The claim itself was re-read
+      against rk3588-base.dtsi:2587-2627: GICD 0xfe600000/0x10000 (64 KB), GICR 0xfe680000/0x100000
+      (1 MB), its0 0xfe640000 and its1 0xfe660000 at 0x20000 (128 KB), maintenance PPI 9, #interrupt-cells
+      4, two ppi-partitions (A55 cpu_l0-3, A76 cpu_b0-3), mbi-alias 0xfe610000, mbi-ranges <424 56>,
+      dma-noncoherent. All match.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-r2-second
+      verdict: PASS
+      date: 2026-10-09
+      note: 'DELTA reading. Upstream gic-instance changed only its TODO (datasheet conditioned on
+        non-confidential publication; base from the GPL overlay), and its claim text is unchanged,
+        so this qualification still follows. Rechecked rk3588-base.dtsi:2587-2627: GICD 0xfe600000
+        0x10000, GICR 0xfe680000 0x100000, ITS 0xfe640000 and 0xfe660000 0x20000 each, PPI 9, #interrupt-cells
+        4, A55 and A76 partitions, mbi-alias 0xfe610000, mbi-ranges <424 56>, dma-noncoherent. Contrary:
+        none-found in the node. Citation exact.'
+  gic-frame-layout:
+    basis: 309892f536d1b97f28c38d6f3937127a207431fab0b479056b928f1332d4df7d
+    upstream:
+      rk3588@hardware-specs-docs#gic-instance: 36efed6661b6cc2cb9acab4f3ff0db09d572f6bfa9e40daea5c3aa18624be0ef
+      rk3588@hardware-specs-docs#gic600-register-pages: 8877267e5a9fec4e4bab2a6979c93611416dc73b3447bea15a0fff84b58a1272
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
+    note: 'Mode DELTA (upstream changed: docs gic-instance, TODO wording only; its claim that the
+      instance is undocumented is unchanged, which is why this inference rests on the gic-is-gic600
+      assumption). Arithmetic rechecked: GIC-600 with 2 ITS puts ITS0 at page 4 (0x40000), ITS1 at
+      page 6 (0x60000) and redistributor 0 at page 8 (0x80000), giving 0xFE640000, 0xFE660000, 0xFE680000,
+      as in rk3588-base.dtsi:2589-2616. Eight cores (dt-cpus) at 0x20000 stride end at 0xFE680000
+      + 8 x 0x20000 - 1 = 0xFE77FFFF, the DT''s 1 MB. The premise fact gic600-register-pages (docs
+      base) states exactly those page rules (4 + 2n, 4 + 2 x ITScount) and was not changed. The TODO
+      (GICD_IIDR, GICR_TYPER Last bit) is readable from non-secure EL1/EL2, so the method can observe
+      the question.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-r2-second
+      verdict: PASS
+      date: 2026-10-09
+      note: 'DELTA reading. Upstream gic-instance changed only its TODO, and that TODO now points
+        to this overlay for the base, so the inference still follows. Arithmetic rechecked against
+        GIC-600 TRM Table 4-1 (4.1.1, pages 4-103 and 4-104): with ITScount 2, ITS0 page 4 (0x40000),
+        ITS1 page 6, GICR0 page 8 (0x80000); 8 x 0x20000 = 0x100000, ending at 0xFE77FFFF. The gic-is-gic600
+        assumption is declared. Contrary: none-found. Citation exact.'
+  dt-cpus:
+    basis: ea4a1caaca64ce0571e168e663a3b0807f32adb9a9af17100803ad3f5b0978fe
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-primary-gpl-rk3588
+    note: Read rk3588-base.dtsi:55-96 and the seven other cpu node anchors. cpu_l0..l3 are cpu@0/100/200/300,
+      compatible arm,cortex-a55, enable-method psci; cpu_b0..b3 are cpu@400/500/600/700, arm,cortex-a76,
+      psci. cpu-map has cluster0 with the four little cores, cluster1 with b0,b1 and cluster2 with
+      b2,b3, as claimed. Grep of the whole file finds exactly eight device_type = "cpu" nodes (lines
+      93, 112, 131, 150, 169, 188, 207, 226), so no other cpu node exists in the SoC file.
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-second-gpl-rk3588
+      verdict: PASS
+      date: 2026-10-09
+      note: 'rk3588-base.dtsi:55-96 and the seven cpu node anchors (111-229): cpu@0..cpu@300 arm,cortex-a55
+        reg 0x0-0x300, cpu@400..cpu@700 arm,cortex-a76 reg 0x400-0x700, all enable-method psci; cpu-map
+        cluster0 = cpu_l0-l3, cluster1 = cpu_b0,b1, cluster2 = cpu_b2,b3. Matches. Contrary search:
+        no other cpus node in rk3588* DT files. contrary_evidence none-found; citation exact.'
+  mpidr-values:
+    basis: 30ac8daccf65be78c252e7b0c5e10d23c872fc0bc4470d3d0956c6da138f3034
+    upstream:
+      rk3588@hardware-specs-docs#cpu-mpidr: 711b27ac18a667a698138b363141dfa57ece24ff5a63cb539f0eea601271e23a
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
+    note: 'Mode DELTA (upstream changed: docs cpu-mpidr). The diff changes that fact''s TODO from
+      a document check to a hardware check and explains that Arm manuals only decode the field layout;
+      the claim (no public document states the values) is unchanged and this overlay''s reading is
+      what the new TODO text says to compare against, so the dependent claim still follows. Re-read
+      the claim: Documentation/devicetree/bindings/arm/cpus.yaml :64-79 says with #address-cells 1
+      the reg cell bits [23:0] are MPIDR_EL1 bits [23:0]; the cpus node has #address-cells 1 (rk3588-base.dtsi:56),
+      and reg values 0x0-0x300 and 0x400-0x700 give Aff1 = 0..7, Aff0 = Aff2 = 0. TF-A plat/rockchip/rk3588/include/
+      platform_def.h:42-55 has one cluster of 8 cores and PLAT_RK_CLST_TO_CPUID_SHIFT 8, consistent.
+      Note the DT cpu-map names three clusters while TF-A models one; the claim''s "one cluster" follows
+      TF-A''s model. Precision: the cited TF-A lines show the shift define but not its use (plat/rockchip/common/plat_topology.c:33,
+      and the aarch64 plat_helpers.S LSR uses); add that anchor.'
+    contrary_evidence: none-found
+    citation_precision: imprecise
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-r2-second
+      verdict: PASS
+      date: 2026-10-09
+      note: 'DELTA reading. Upstream cpu-mpidr changed only its TODO (now hardware, naming this overlay
+        as the expected values), and its claim is unchanged, so this refinement still follows. Rechecked
+        cpus.yaml:64-79 (reg = MPIDR[23:0]) and TF-A platform_def.h:42-55 (one cluster of 8, shift
+        8) against the dt-cpus reg values 0x0-0x700. MT bit left to the TODO. Contrary: none-found.
+        Citation exact.'
+  dt-psci:
+    basis: f2364d1d7a8d356aafa400970047f20019fa9df35f8f3f77b620b463d9cef773
+    upstream:
+      rk3588@hardware-specs-docs#psci-not-documented: 08c10c669ea9ce477eec56a1ab72131d657dad889347706b303c6116ea744524
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
+    note: 'Mode DELTA (upstream changed: docs psci-not-documented, TODO wording only; the claim that
+      no document states PSCI version or conduit is unchanged, so the qualifies relation holds). Re-read:
+      rk3588-base.dtsi:401-404 psci arm,psci-1.0 method smc; 356-372 scmi arm,scmi-smc with arm,smc-id
+      0x82000010, clock protocol 0x14 and reset 0x16; 94-98 cpu@0 enable-method psci and clocks from
+      scmi_clk SCMI_CLK_CPUL. The claim says what the tree declares, which it matches; the in-file
+      TODO already notes firmware behavior is unobserved.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-r2-second
+      verdict: PASS
+      date: 2026-10-09
+      note: 'DELTA reading. Upstream psci-not-documented changed only its TODO (adds PSCI_FEATURES
+        and conduit checks), and its claim is unchanged, so the qualification still follows. Rechecked
+        rk3588-base.dtsi:401-404 (arm,psci-1.0, smc), 356-372 (arm,scmi-smc, smc-id 0x82000010) and
+        94-98 (cpu@0 clock from scmi_clk). Contrary: none-found. Citation exact.'
+  dt-uart2-node:
+    basis: 5ccb4deff9deb4da2791a42fe0238807aac9b3d5c5f478042f6c0d6b89132928
+    upstream:
+      rk3588@hardware-specs-docs#interrupt-map: 78c270d71eb7dc7fc64b6907338dcbfa62ee0765185fe3f5d31635bb1e3c5436
+      rk3588@hardware-specs-docs#uart-programming-model: 69dd999ed7d469aa7a4e2ba51eaa3cd1a8af175e6f148a7b42593b2e518a44a1
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
+    note: 'Mode DELTA (upstream changed: docs interrupt-map and uart-programming-model, TODO wording
+      only; both claims of absence are unchanged). Re-read rk3588-base.dtsi:2811-2824: compatible
+      rockchip,rk3588-uart + snps,dw-apb-uart, reg 0xfeb50000 size 0x100, GIC_SPI 333 level high,
+      clocks SCLK_UART2 (baudclk) and PCLK_UART2 (apb_pclk), dmas dmac0 10 (tx) and 11 (rx), pinctrl
+      uart2m1_xfer, reg-io-width 4, reg-shift 2, status disabled. All match. Precision: the final
+      sentence "a board overrides that" is not in the cited lines (the ROCK 5T override is a separate
+      overlay fact); either drop it or cite a board file.'
+    contrary_evidence: none-found
+    citation_precision: imprecise
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-r2-second
+      verdict: PASS
+      date: 2026-10-09
+      note: 'DELTA reading. Upstream interrupt-map and uart-programming-model changed only their TODOs,
+        with unchanged claims, so this qualification still follows. Rechecked rk3588-base.dtsi:2811-2824:
+        compatibles, 0xfeb50000 size 0x100, GIC_SPI 333 level high, SCLK_UART2/PCLK_UART2, dmac0 10/11,
+        reg-shift 2, reg-io-width 4, pinctrl uart2m1_xfer. Contrary: none-found. Citation exact.'
+  dt-intids:
+    basis: 41f555c75748d038b23d91fc44351b3f2e1ac8731434df189c12128034e2b120
+    upstream:
+      rk3588@hardware-specs-docs#gic-instance: 36efed6661b6cc2cb9acab4f3ff0db09d572f6bfa9e40daea5c3aa18624be0ef
+      rk3588@hardware-specs-docs#interrupt-map: 78c270d71eb7dc7fc64b6907338dcbfa62ee0765185fe3f5d31635bb1e3c5436
+      rk3588@hardware-specs-docs#storage-controllers: 4694134795b1964ed0ab033d80596f7d347d1c8de378f1b885fb9c2909976b81
+      rk3588@hardware-specs-docs#system-counter: c82e986f0f3c6c9ff9aa1950c2170fb264b5e00c194596e9df6ca36a583b8376
+      rk3588@hardware-specs-docs#uart-programming-model: 69dd999ed7d469aa7a4e2ba51eaa3cd1a8af175e6f148a7b42593b2e518a44a1
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
+    note: 'Mode FULL. drivers/irqchip/irq-gic-v3.c:1604-1614 (gic_irq_domain_translate, OF path) maps
+      SPI n to hwirq n + 32 and PPI n to n + 16. Arithmetic checked: 333+32=365, 206+32=238, 203+32=235,
+      205+32=237; PPIs 13,14,11,10,12 give 29,30,27,26,28; PPI 9 gives 25. The SPI numbers match rk3588-base.dtsi
+      (sfc 206 at 2390, sdmmc 203 at 2401, sdhci 205 at 2431, uart2 333 at 2814). Read the rest of
+      the function: ESPI/EPPI/LPI cases use other types, so they do not affect these cells. That hwirq
+      equals the INTID is architectural and not cited; it is a small gap in the derivation, not a
+      contradiction.'
+    contrary_evidence: none-found
+    citation_precision: exact
+  dt-uart2-m0-pins:
+    basis: c9a29bfc6382c9d709058d2320ac7e15351b69ef06d574fa6ef3f3561329cb63
+    upstream:
+      rk3588@hardware-specs-docs#uart2-pinmux: f32cdddc96b87ce8be8146ef3acab83c56094e57fbcef213a9c7eceab203ea10
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
+    note: 'Mode DELTA (upstream changed: docs uart2-pinmux, TODO wording only; the claim that no public
+      document gives the register fields is unchanged). Re-read rk3588-base-pinctrl.dtsi:3212-3218:
+      uart2m0_xfer has <0 RK_PB6 10 &pcfg_pull_up> (rx) and <0 RK_PB5 10 &pcfg_pull_up> (tx). Matches
+      the claim exactly.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-r2-second
+      verdict: PASS
+      date: 2026-10-09
+      note: 'DELTA reading. Upstream uart2-pinmux changed only its TODO (register fields from this
+        overlay or an IOC probe), and its claim is unchanged, so this still follows. Rechecked rk3588-base-pinctrl.dtsi:3212-3218:
+        GPIO0 RK_PB6 and RK_PB5, function 10, pcfg_pull_up. Contrary: none-found. Citation exact.'
+  linux-dw-uart-busy:
+    basis: 0bbd64587d7dc6681714a465afe05c626d535a3cb989139858afc7dedf788e9f
+    upstream:
+      rk3588@hardware-specs-docs#uart-programming-model: 69dd999ed7d469aa7a4e2ba51eaa3cd1a8af175e6f148a7b42593b2e518a44a1
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
+    note: 'Mode DELTA (upstream changed: docs uart-programming-model, TODO wording only, which now
+      says the busy behavior cannot be observed from register experiments; this claim only attributes
+      behavior to a Linux comment and handler, so it still follows). Re-read drivers/tty/serial/8250/8250_dw.c:8-10
+      (header comment: LCR written while busy raises a busy detect interrupt; LCR must be rewritten
+      and the UART status register read) and 418-424 (case UART_IIR_BUSY reads usr_reg, resets no_int_count,
+      returns 1). The dispatch is on FIELD_GET(DW_UART_IIR_IID, iir) at line 406. Comment attribution
+      is correct (comment: true). Precision: the value 7 for UART_IIR_BUSY is defined in include/uapi/linux/serial_reg.h:42,
+      which is not cited.'
+    contrary_evidence: none-found
+    citation_precision: imprecise
+  dt-storage-nodes:
+    basis: e887b617eb2e870d10912f6f8bb79ea873035415c9cb87d035b255904865370b
+    upstream:
+      rk3588@hardware-specs-docs#storage-controllers: 4694134795b1964ed0ab033d80596f7d347d1c8de378f1b885fb9c2909976b81
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
+    note: 'Mode DELTA (upstream changed: docs storage-controllers, TODO wording only; the absence
+      claim is unchanged). Re-read rk3588-base.dtsi:2387-2448: sfc rockchip,sfc 0xfe2b0000 size 0x4000
+      SPI 206; sdmmc 0xfe2c0000 size 0x4000 SPI 203, fifo-depth 0x100, max-frequency 200 MHz, biu/ciu
+      from scmi_clk (ciu-drive and ciu-sample come from the CRU, so "clocked through SCMI" holds for
+      the bus and card clocks only); sdhci rockchip,rk3588-dwcmshc 0xfe2e0000 size 0x10000 (64 KB)
+      SPI 205, clocks core/bus/axi/block/timer, assigned rates 200/24/200 MHz, resets, supports-cqe.
+      All match.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-r2-second
+      verdict: PASS
+      date: 2026-10-09
+      note: 'DELTA reading. Upstream storage-controllers changed only its TODO, and its claim is unchanged,
+        so this qualification still follows. Rechecked rk3588-base.dtsi:2387-2396, 2398-2411 and 2428-2448:
+        all addresses, SPIs, sizes, fifo-depth, 200 MHz, clocks, assigned rates, resets and supports-cqe
+        match. Should-fix: "clocked through SCMI" for sdmmc covers biu and ciu only; ciu-drive and
+        ciu-sample come from the CRU (lines 2402-2403). Contrary otherwise none-found. Citation exact.'
+  dt-scmi-shmem:
+    basis: a50b4872348b722e819fd5896b6acff421747f28f1174790d0cab9e33d3d18e3
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-primary-gpl-rk3588
+    note: 'rk3588-base.dtsi:437-447: reserved-memory with one child, scmi_shmem arm,scmi-shmem, reg
+      <0x0 0x0010f000 0x0 0x100>, no-map. A search of the whole file finds a single reserved-memory
+      node (line 437), supporting "only reserved-memory entry".'
+    contrary_evidence: none-found
+    citation_precision: exact
+  tfa-memory-layout:
+    basis: c46805afcd9665fa1526c5ea18297de9bf12ad080173ee19d4dd61b0db153f92
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-primary-gpl-rk3588
+    note: 'TF-A plat/rockchip/rk3588/include/platform_def.h:71-82: TZRAM_BASE 0x0, TZRAM_SIZE 0x100000,
+      BL31_BASE = TZRAM_BASE + 0x40000, BL31_LIMIT = TZRAM_BASE + TZRAM_SIZE. rk3588_def.h:10 SIZE_K(n)
+      = n * 1024; :152-165 "share mem region allocation: 1M~2M", DDR_SHARE_MEM = SIZE_K(1024), SHARE_MEM_PAGE_NUM
+      15, SHARE_MEM_SIZE = SIZE_K(15 * 4), SCMI_SHARE_MEM_BASE = SHARE_MEM_BASE + SHARE_MEM_SIZE,
+      SCMI_SHARE_MEM_SIZE = SIZE_K(4). All as claimed. Searched plat/rockchip/rk3588/platform.mk for
+      a BL31_BASE or SCMI address override; none. Wording note: BL31_LIMIT is a limit, so "from base
+      up to" describes the region available to BL31, not the image size. One conflicting item: the
+      comment at platform_def.h:71 says "Size: 512KB" while TZRAM_SIZE is 0x100000; the macros govern
+      and the claim follows them.'
+    contrary_evidence: found
+    citation_precision: exact
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-second-gpl-rk3588
+      verdict: PASS
+      date: 2026-10-09
+      note: 'TF-A platform_def.h:71-82 TZRAM_BASE 0x0, TZRAM_SIZE 0x100000, BL31_BASE TZRAM_BASE+0x40000,
+        BL31_LIMIT TZRAM_BASE+TZRAM_SIZE; rk3588_def.h:10 SIZE_K(n) = n*1024; 152-165 comment "1M~2M",
+        DDR_SHARE_MEM SIZE_K(1024), SHARE_MEM_PAGE_NUM 15, SHARE_MEM_SIZE SIZE_K(15*4), SCMI_SHARE_MEM_BASE
+        = base + size, SCMI size SIZE_K(4). All match. Contrary search: grep of plat/rockchip/rk3588
+        for these symbols finds no other definition; the line-71 comment "Size: 512KB" disagrees with
+        TZRAM_SIZE 0x100000 but the claim follows the define, not the comment. contrary_evidence none-found;
+        citation exact.'
+  tfa-scmi-shmem-address:
+    basis: 62734f49bd5506695a77b1631a783d5fe79f3e0418a1fa6e953b3a885007877f
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-primary-gpl-rk3588
+    note: 'Inference. Premises hold (tfa-memory-layout and dt-scmi-shmem as read above). Arithmetic:
+      BL31_LIMIT = 0 + 0x100000, so the last byte of the region is 0xFFFFF; SHARE_MEM_BASE = 1024
+      * 1024 = 0x100000; SHARE_MEM_SIZE = 15 * 4 KB = 0xF000; SCMI_SHARE_MEM_BASE = 0x10F000; 4 KB
+      ends at 0x10FFFF; the tree''s scmi_shmem is at 0x10f000 (reserved only 0x100 bytes of it, which
+      the claim does not contradict). Scope is stated as TF-A v2.14. One wording caution: "BL31 occupies
+      0x40000-0xFFFFF" and "BL31 ends at TZRAM_BASE + TZRAM_SIZE" describe the region BL31 is placed
+      in and bounded by (BL31_BASE to BL31_LIMIT), not the loaded image''s size; the address conclusion
+      is unaffected. TODO (SCMI clock-rate read from Linux under mainline TF-A) can observe it.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-second-gpl-rk3588
+      verdict: PASS
+      date: 2026-10-09
+      note: 'Inference checked against premises tfa-memory-layout and dt-scmi-shmem (rk3588-base.dtsi:442-445
+        shmem@10f000 reg 0x10f000 size 0x100). 0x0+0x100000 limit gives last byte 0xFFFFF; SIZE_K(1024)=0x100000;
+        15*4 KB=0xF000 so SCMI base 0x10F000, 4 KB to 0x10FFFF; matches the tree. Wording note: BL31_BASE..BL31_LIMIT
+        is BL31''s linked window; "occupies" reads as if the image fills it ("is confined to" is more
+        exact). TODO (SCMI clock read under mainline TF-A) can observe it. contrary_evidence none-found
+        (SMT_BUFFER_BASE = SCMI_SHARE_MEM_BASE, rk3588_def.h:165); citation exact.'
+  uboot-reserves-first-2mb:
+    basis: 62960f5e94bcabbab1e8d7f4f88317b687bf0c1c89444aaf70b96316c8118678
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-primary-gpl-rk3588
+    note: 'arch/arm/mach-rockchip/sdram.c at the pin. Lines 182-189 (inside rockchip_dram_init_banksize,
+      which gets its layout from the DDR_MEM atag): the comment says BL31 reserves the first 2MB and
+      the code moves any start below CFG_SYS_SDRAM_BASE + SZ_2M up to that value and shrinks the size.
+      Lines 191-222 and following cut holes for mem_map regions whose attributes are not Normal WB
+      inner-shareable (mem_map is rk3588_mem_map, rk3588.c:121). Lines 321-323 (dram_init_banksize
+      fallback after the atag path fails or is unsupported) set gd->dram[0].start = CFG_SYS_SDRAM_BASE
+      + SZ_2M with the comment "Reserve 2M for ATF bl31". rk3588_common.h:14 defines CFG_SYS_SDRAM_BASE
+      0. Matches the claim including "even when the blob''s layout includes them". Minor: the atag
+      path requires CONFIG_ROCKCHIP_EXTERNAL_TPL and arm64, otherwise the fallback runs, which the
+      claim covers.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-second-gpl-rk3588
+      verdict: PASS
+      date: 2026-10-09
+      note: 'U-Boot sdram.c:182-189 (ATAG DDR_MEM path in rockchip_dram_init_banksize, under CONFIG_ARM64
+        lines 39-290): comment that BL31 reserves the first 2 MB and the tag may not have it; start
+        clamped to CFG_SYS_SDRAM_BASE + SZ_2M. 191-222: holes for mem_map regions whose attributes
+        are not normal inner-shareable. 321-323: fallback after a failed ATAG parse sets dram[0].start
+        = base + SZ_2M. rk3588_common.h:14 CFG_SYS_SDRAM_BASE 0. All match. Contrary search: read
+        sdram.c 104-330 for other bank paths; none starts below 2 MB on ARM64. Consistent with TF-A''s
+        BL31 plus shared memory ending at 0x110000. contrary_evidence none-found; citation exact.'
+  uboot-memory-map:
+    basis: a0929cfeb8724583cb14c64614f74c227ab8ac2875ea83e7fe00c02d64f09c00
+    upstream:
+      rk3588@hardware-specs-docs#address-map: b7bc03bda83e2e76af68955c278513f380373cb93e7a9a0c09fa463f386034f1
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
+    note: 'Mode DELTA (upstream changed: docs address-map, TODO wording only). Re-read arch/arm/mach-rockchip/rk3588/rk3588.c:63-119:
+      regions 0x0+0x10f000 normal; 0x10f000 +0x1000 MT_NORMAL_NC with the comment on SCMI shared memory;
+      0x110000+0xefef0000; 0xf0000000+0x10000000 device; 0x100000000+0x2fc000000; 0x3fc500000+0x3a00000;
+      0x400000000+0x400000000; 0x900000000+0x150000000 device. include/configs/ rk3588_common.h:14-15
+      CFG_SYS_SDRAM_BASE 0, SDRAM_MAX_SIZE 0xf0000000; sdram.c:297-303 caps usable_top at min(base
+      + max, 4 GB). All match. mem_map is assigned once at rk3588.c:121 and not modified elsewhere
+      in that file. The checker''s warning about 0x0 and 0x1000 is textual (the source writes 0x0UL
+      and 0x1000UL).'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-r2-second
+      verdict: PASS
+      date: 2026-10-09
+      note: 'DELTA reading. Upstream address-map changed only its TODO, and its claim is unchanged,
+        so this qualification still follows. Rechecked u-boot 5508406 rk3588.c:63-119 (all eight regions
+        and attributes), rk3588_common.h:14-15 and sdram.c:297-303. The resolver''s hex warning (0x0,
+        0x1000) is suffix-only: the source writes 0x0UL and 0x1000UL. Contrary: none-found. Citation
+        exact.'
+  uboot-memory-map-ranges:
+    basis: c472933ab14afc9c45fb082b231391934d497a89d2a0338a57865c45a9d21dec
+    upstream:
+      rk3588@hardware-specs-docs#address-map: b7bc03bda83e2e76af68955c278513f380373cb93e7a9a0c09fa463f386034f1
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
+    note: 'Mode DELTA (upstream changed: docs address-map, TODO wording only). Recomputed every range
+      from base+size-1: 0x0-0xEFFF_FFFF (contiguous 0x10F000, 0x1000, 0xEFEF0000); 0xF000_0000-0xFFFF_FFFF;
+      0x1_0000_0000-0x3_FBFF_FFFF; 0x3_FC50_0000-0x3_FFEF_FFFF; 0x4_0000_0000-0x7_FFFF_FFFF; 0x9_0000_0000-0xA_4FFF_FFFF;
+      gap 0x3_FC00_0000-0x3_FC4F_FFFF; cap 0xF000_0000. All correct. The map also has other unmapped
+      spans (for example 0x8_0000_0000-0x8_FFFF_FFFF); the claim names only the gap inside the DRAM
+      ranges, which is accurate as written.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-r2-second
+      verdict: PASS
+      date: 2026-10-09
+      note: 'DELTA reading. Upstream address-map changed only its TODO, so the inference still follows.
+        Arithmetic rechecked: ends 0xEFFFFFFF, 0xFFFFFFFF, 0x3_FBFF_FFFF, 0x3_FFEF_FFFF, 0x7_FFFF_FFFF,
+        0xA_4FFF_FFFF all correct. Should-fix: the map also omits 0x3_FFF0_0000-0x3_FFFF_FFFF and
+        0x8_0000_0000-0x8_FFFF_FFFF. The listed ranges show both, but the sentence naming only one
+        hole could read as the only one. Citation exact.'
+  uboot-load-addresses:
+    basis: bcdfdcdcdcdde42d49280d081421ab744357dfe4d4a68dbd7a552bc775bc6cc0
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-primary-gpl-rk3588
+    note: include/configs/rk3588_common.h:21-31 ENV_MEM_LAYOUT_SETTINGS lists scriptaddr=0x00c00000,
+      pxefile_addr_r=0x00e00000, kernel_addr_r=0x02000000, kernel_comp_addr_r=0x0a000000, fdt_addr_r=0x12000000,
+      fdtoverlay_addr_r=0x12100000, ramdisk_addr_r=0x12180000, kernel_comp_size=0x8000000, as claimed.
+      The same file includes it in CFG_EXTRA_ENV_SETTINGS, so it is the RK3588 environment. Scope
+      is mainline rk3588_common.h; board configs could override but the claim is scoped to that header.
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-second-gpl-rk3588
+      verdict: PASS
+      date: 2026-10-09
+      note: 'rk3588_common.h:21-31 ENV_MEM_LAYOUT_SETTINGS: scriptaddr 0x00c00000, pxefile_addr_r
+        0x00e00000, kernel_addr_r 0x02000000, kernel_comp_addr_r 0x0a000000, fdt_addr_r 0x12000000,
+        fdtoverlay_addr_r 0x12100000, ramdisk_addr_r 0x12180000, kernel_comp_size 0x8000000. All match.
+        Scoped to the SoC common header; board configs could add settings, outside this claim. contrary_evidence
+        none-found; citation exact.'
+  uboot-boot-targets:
+    basis: 2f22c03a2b79cc199d5b0fe0e3a6323e1009f1dbc4af5dd11cbb55ab28a1a438
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
+    note: 'Mode FULL. include/configs/rockchip-common.h:16-17 defines BOOT_TARGETS as "mmc1 mmc0 nvme
+      scsi usb pxe dhcp spi" (inside #ifndef CONFIG_XPL_BUILD and guarded by #ifndef BOOT_TARGETS,
+      so overridable); include/configs/rk3588_common.h:33-37 puts it into boot_targets. Checked the
+      RK3588 board headers (rock5b-rk3588.h, rock-5-itx-rk3588.h, evb_rk3588.h, rock5a-rk3588s.h):
+      they define only ROCKCHIP_DEVICE_SETTINGS (stdout and stderr), no BOOT_TARGETS override. The
+      statement that the header does not say which medium mmc0 or mmc1 is holds.'
+    contrary_evidence: none-found
+    citation_precision: exact
+  uboot-debug-uart-pinmux:
+    basis: 4f1b5596a3bb9837467c84020a05da18f351554c06f59ed68422e0446c6a4822
+    upstream:
+      rk3588@hardware-specs-docs#uart2-pinmux: f32cdddc96b87ce8be8146ef3acab83c56094e57fbcef213a9c7eceab203ea10
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
+    note: 'Mode DELTA (upstream changed: docs uart2-pinmux, TODO wording only). Re-read rk3588.c :123-152:
+      GPIO0B5 mask bits 7:4, GPIO0B6 mask bits 11:8, REFER = 8, UART2 M0 = 10; board_debug_uart_init
+      writes 8 to both fields of pmu2_ioc->gpio0b_iomux_sel_h, then 10 to the same fields of bus_ioc->gpio0b_iomux_sel_h.
+      Matches the claim, and agrees with dt-uart2-m0-pins (function 10 on RK_PB5 tx and RK_PB6 rx).
+      arch/arm/Kconfig under ARCH_ROCKCHIP has imply DEBUG_UART_BOARD_INIT, so the function is reachable
+      in boards with DEBUG_UART=y.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-r2-second
+      verdict: PASS
+      date: 2026-10-09
+      note: 'DELTA reading. Upstream uart2-pinmux changed only its TODO, which now says the register
+        fields come from this overlay, so the qualification still follows. Rechecked rk3588.c:123-134
+        (shifts 4 and 8, masks 7:4 and 11:8, REFER 8, function 10) and 136-152 (PMU2_IOC then BUS_IOC
+        writes). Scoped to mainline builds; a claim about code behavior. Contrary: none-found. Citation
+        exact.'
+  uboot-spl-sets-cntfrq:
+    basis: dc9312735fbfaea995d5620daa924c39802751fd6d15efc6653e0d67a92bb17a
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-primary-gpl-rk3588
+    note: 'rk3588.c:162-174 rockchip_stimer_init: returns early if TIMER_EN is set in the timer control
+      register; otherwise writes CONFIG_COUNTER_FREQUENCY to cntfrq_el0, loads both load-count registers
+      with 0xffffffff and sets TIMER_EN. Matches. The "SPL" attribution rests on lines outside the
+      cited range: the function is under #ifdef CONFIG_XPL_BUILD (rk3588.c:154-175) and is called
+      from board_init_f in arch/arm/mach-rockchip/spl.c:123. CONFIG_XPL_BUILD also covers TPL, so
+      "SPL" is slightly narrow but accurate for the normal SPL path. Precision finding: widen the
+      anchor to include line 154 (and add the spl.c call site) so the SPL-only scope is evidenced.'
+    contrary_evidence: none-found
+    citation_precision: imprecise
+  uboot-brom-boot-sources:
+    basis: 21c750be3c4db29a6b8e1dc3af02dac2c1b39d1f40cb819ddd7005d37b40f598
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-primary-gpl-rk3588
+    note: 'rk3588.c:44-61: the comment says boot-device identifiers used by the BROM from SPI flash,
+      and the IOMUX used affects the value, not the flash type; BROM_BOOTSOURCE_FSPI_M0/M1/M2 = 3/4/6;
+      boot_devices maps EMMC to "/mmc@fe2e0000", all three FSPI sources to "/spi@fe2b0000/flash@0",
+      SD to "/mmc@fe2c0000". Matches and is consistent with the dt-storage-nodes addresses (sdhci
+      0xfe2e0000, sfc 0xfe2b0000, sdmmc 0xfe2c0000).'
+    contrary_evidence: none-found
+    citation_precision: exact
+  dt-timer-node:
+    basis: 8fa7175558c9cf3ff898afd1b72f69095a239c65202eb4903cddfc9e276b7543
+    upstream:
+      rk3588@hardware-specs-docs#system-counter: c82e986f0f3c6c9ff9aa1950c2170fb264b5e00c194596e9df6ca36a583b8376
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
+    note: 'Mode FULL. arch/arm64/boot/dts/rockchip/rk3588-base.dtsi:413-421 at the Linux pin has compatible
+      arm,armv8-timer, GIC_PPI 13/14/11/10/12 each IRQ_TYPE_LEVEL_HIGH with interrupt-names sec-phys,
+      phys, virt, hyp-phys, hyp-virt in that order, and no clock-frequency property. Searched the
+      same file for clock-frequency: the only hits (lines 408, 425, 432) are the spll, xin24m and
+      xin32k fixed-clock nodes, not the timer node. Board files could add the property; none of the
+      SoC file''s timer node does.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-r2-second
+      verdict: PASS
+      date: 2026-10-09
+      note: 'FULL reading. linux 8d3ae59 rk3588-base.dtsi:413-421 matches every value: arm,armv8-timer,
+        PPIs 13/14/11/10/12 with the names in that order, all IRQ_TYPE_LEVEL_HIGH, no clock-frequency
+        in the node. Contrary search: no other armv8-timer or timer-mem node and no &timer override
+        in rk3588-base.dtsi, rk3588-rock-5b-5bp-5t.dtsi or rk3588-rock-5t.dts; the clock-frequency
+        lines 408, 425 and 432 belong to other nodes; none-found. Citation exact.'
+  timer-rate-from-cntfrq:
+    basis: 612a6eb4367209e81613a41d180b48cf3b15d3f1d041a871a60ae5fcdc08f136
+    upstream:
+      rk3588@hardware-specs-docs#system-counter: c82e986f0f3c6c9ff9aa1950c2170fb264b5e00c194596e9df6ca36a583b8376
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
+    note: 'Mode FULL (new inference). Premise 1 holds (dt-timer-node: no clock-frequency). Premise
+      2: drivers/clocksource/arm_arch_timer.c:864-871 arch_timer_of_configure_rate returns early if
+      arch_timer_rate is already set, else reads clock-frequency and on failure assigns arch_timer_rate
+      = rate; arch_timer_of_init (1187-1188) passes rate = arch_timer_get_cntfrq(). arch/arm64/include/asm/arch_timer.h:154-157
+      defines arch_timer_get_cntfrq() as read_sysreg(cntfrq_el0). The derivation follows. Contrary
+      search: the early-return branch (rate already set by an earlier node) cannot apply with one
+      timer node; validate_timer_rate only warns for rates under 1 MHz or zero, it does not replace
+      the value. The TODO method (compare the boot log rate with CNTFRQ_EL0 read at kernel entry)
+      is observable from EL1/EL2, so it is valid. Precision: anchor 862-870 ends before line 871 (the
+      fallback assignment) and the anchors never show that arch_timer_get_cntfrq reads CNTFRQ_EL0;
+      narrow by extending the first anchor to 871 and adding arch/arm64/include/asm/arch_timer.h:154-157
+      (a repo entry for it is needed).'
+    contrary_evidence: none-found
+    citation_precision: imprecise
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-r2-second
+      verdict: PASS
+      date: 2026-10-09
+      note: 'FULL reading. Inference, high confidence. Premise #dt-timer-node verified (no clock-frequency).
+        arm_arch_timer.c at 8d3ae59: arch_timer_of_init (1187-1188) passes arch_timer_get_cntfrq()
+        to arch_timer_of_configure_rate, which uses the property if present, else that rate. arch/arm64/include/asm/arch_timer.h:154-157
+        shows arch_timer_get_cntfrq reads cntfrq_el0. Contrary search: the early return when arch_timer_rate
+        is already set (867-868) needs a prior probe, and the ROCK 5T tree has no other timer node;
+        the ACPI path (1247) also reads CNTFRQ; none-found. Citation imprecise: the fallback assignment
+        is at line 871, one past the anchor''s 862-870; widen it to 871 and add the arm64 arch_timer.h:154-157
+        anchor for the register read.'
