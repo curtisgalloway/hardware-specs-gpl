@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 contributors
+# SPDX-License-Identifier: GPL-2.0-only
+#
+# Format 2 root marker for hardware-specs-gpl (driver-lab, docs/SPEC-FORMAT-V2.md). A draft
+# root beside the format 1 root in specs/: a format 2 marker there would fail the format 1
+# bcm2711.spec.md, so format 2 drafts live here until the repository cuts over (SF2-11).
+# accepts: as specs/board-specs.yaml (GPL-2.0-only or -or-later trees, plus everything
+# hardware-specs-permissive accepts).
+format: 2
+layer: public
+name: hardware-specs-gpl
+license: GPL-2.0-only
+accepts: [GPL-2.0-only, GPL-2.0-or-later, Apache-2.0, MIT, BSD-2-Clause, BSD-3-Clause, ISC, 0BSD]

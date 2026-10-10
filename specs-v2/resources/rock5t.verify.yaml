@@ -1,0 +1,504 @@
+# SPDX-FileCopyrightText: 2026 contributors
+# SPDX-License-Identifier: GPL-2.0-only
+format: 2
+spec: rock5t
+spec_file: rock5t.spec.yaml
+spec_sha256: 180c61f259b2de436a6ca2ba12d93f73a574f1c4045ba742cc2b15e9fcc6261a
+canonical: fact-v1
+sources:
+- name: linux-dts
+  commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+  url: https://github.com/torvalds/linux
+  fetch: ok
+- name: u-boot
+  commit: 5508406582f6f7120dce0c4b3059819a41788db2
+  url: https://github.com/u-boot/u-boot
+  fetch: ok
+- name: radxa-u-boot
+  commit: 39cd993e5d6296635438e84f4576b3a9bf76f86e
+  url: https://github.com/radxa/u-boot
+  fetch: ok
+- name: radxa-u-boot-gpl2
+  commit: 39cd993e5d6296635438e84f4576b3a9bf76f86e
+  url: https://github.com/radxa/u-boot
+  fetch: ok
+summary:
+  pass: 18
+  fail: 0
+  unverifiable: 0
+  gap: 0
+  adjudicate: 0
+verdicts:
+  dt-console:
+    basis: 7794929838252cb4d2cc04fff0cb7d5a9e653ab9faaa0bd527f417bd32c679d7
+    upstream:
+      rock5t@hardware-specs-docs#debug-console-is-uart2-m0: 1febfa371e03ba19a8e6269bca4ba2e250969cb620d8993825fa9ebd59f5c0b7
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r3-primary
+    note: 'DELTA reading. Upstream change (diff 42b3ea8..6faf782): debug-console-is-uart2-m0 only
+      gained a relates entry to #debug-console; its claim and support are unchanged, and I re-read
+      it against the schematic and brief (UART2 M0 on header pins 8, 10), so the same-as relation
+      still holds. Re-resolved the cited lines at the linux-dts pin (rk3588-rock-5b-5bp-5t.dtsi:18-20
+      stdout-path "serial2:1500000n8"; 976-980 &uart2 pinctrl-0 = <&uart2m0_xfer>); both match the
+      claim. Contrary search: no other stdout-path or uart2 pinctrl override in the 5t dts.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-r3-second
+      verdict: PASS
+      date: 2026-10-09
+      note: 'DELTA reading. The upstream change to rock5t@hardware-specs-docs#debug-console-is-uart2-m0
+        (42b3ea8..6faf782) only adds a relates entry to #debug-console; its claim and support are
+        unchanged and still agree with this fact (header console on UART2 M0 pins). Anchors re-read
+        at the Linux pin: rk3588-rock-5t.dts:5 includes the shared dtsi, :7-9 give compatible radxa,rock-5t;
+        rk3588-rock-5b-5bp-5t.dtsi:18-20 stdout-path "serial2:1500000n8", :976-980 &uart2 pinctrl-0
+        = <&uart2m0_xfer>. Contrary-evidence search: rk3588-rock-5t.dts overrides (no chosen, &uart2
+        or delete directives); none found. Citation precision exact.'
+  dt-storage:
+    basis: c6258adabc2b733cb21753a5d1ce7eb20e0ab25039672c4b5ae0e2e2c763b90e
+    upstream:
+      rock5t@hardware-specs-docs#boot-storage: f3a45a0b42a4295bee6ca41c7eabf8a5b13575f48b3bf3c60d6f056b29000250
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r3-primary
+    note: 'DELTA reading. Upstream change: boot-storage was reworded (the ROM-does-not-read-NVMe clause
+      became ''the schematic boot-mode table does not list NVMe''), schematic page 13 was added and
+      a qualifies relation to #boot-order-strap was added. The media the claim refines (eMMC, microSD,
+      SPI NOR) are unchanged, and the DT claim does not depend on the reworded clause. Re-read rk3588-rock-5b-5bp-5t.dtsi
+      at the pin: aliases (12-16); &sdhci 8-bit, non-removable, mmc-hs400-1_8v, enhanced-strobe (606-614);
+      &sdmmc 4-bit, cd-gpios GPIO0_A4 active low, sd-uhs-sdr104, vmmc vcc_3v3_s3 (616-630); &sfc flash@0
+      jedec,spi-nor, fspim2_pins, 104 MHz, rx 4 / tx 1 (632-645). All match.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-r3-second
+      verdict: PASS
+      date: 2026-10-09
+      note: 'DELTA reading. The upstream change to rock5t@hardware-specs-docs#boot-storage rewords
+        the NVMe clause to the schematic boot-mode table, adds sheet 13 and a relates to #boot-order-strap;
+        the media list this fact refines is unchanged and still consistent (8-bit eMMC with data strobe,
+        microSD with card detect, SPI NOR on FSPI). Anchors re-read at the Linux pin, rk3588-rock-5b-5bp-5t.dtsi:
+        12-16 aliases mmc0=&sdhci, mmc1=&sdmmc; 606-614 sdhci bus-width 8, non-removable, mmc-hs400-1_8v,
+        enhanced strobe; 616-630 sdmmc bus-width 4, sd-uhs-sdr104, cd-gpios gpio0 RK_PA4 active low,
+        vmmc-supply vcc_3v3_s3; 632-645 sfc on fspim2_pins, jedec,spi-nor at reg 0, 104 MHz, rx width
+        4, tx width 1. Contrary-evidence search: rk3588-rock-5t.dts overrides (no &sdhci, &sdmmc or
+        &sfc); none found. Citation precision exact.'
+  dt-pcie:
+    basis: 332ae044dac8df0b4559562cd8bc219682cf1040dc6f7e852710e65cfedb6e50
+    verdict: PASS
+    date: '2026-10-09'
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-primary-gpl-rock5t
+    note: 'dtsi:475-482 pcie2x1l0 okay and dtsi:484-491 pcie2x1l2 okay; 5T dts:73-79 pcie2x1l1 okay;
+      dtsi:493-495 pcie30phy okay with 5T dts:81-83 data-lanes = <1 1 2 2>; dtsi:497-503 pcie3x4 okay
+      with 5T dts:93-95 num-lanes = <2>; 5T dts:85-91 pcie3x2 okay. The negative part (tree does not
+      say which PCIe 2.0 controller serves which RTL8125B) holds: grepped the dtsi and read the whole
+      5T .dts for ethernet, rtl, 8125 and pci10ec child nodes, none exist. The 2.0 x1 and 3.0 labels
+      come from the controller node names, which the anchors show. The TODO method (pci enum, lspci)
+      can settle the open question.'
+    contrary_evidence: none-found
+    citation_precision: exact
+  uboot-config:
+    basis: ea6accbc7b5666400f580193625ef802efc34aab294edecdcb8fc418c98cd1f8
+    upstream:
+      rock5t@hardware-specs-docs#mainline-boot-chain: abad0a2e6fd2b55c2035c65f3b01d86685dc0874460ccf34ee67ec470dc5e9ca
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
+    note: 'Mode DELTA (upstream changed: docs mainline-boot-chain, which now says BL31 may be TF-A
+      or the rkbin binary and no longer states the TPL/SPL/BL31 packaging order). This claim says
+      only that the configuration sets CONFIG_SPL_ATF; that option makes the SPL load a BL31 and does
+      not say whose, so it still follows, though "TF-A loading" is the older wording. Re-read configs/rock5b-rk3588_defconfig:
+      line 4 COUNTER_FREQUENCY 24000000; 13 SYS_LOAD_ADDR 0xc00800; 15-16 debug UART 0xFEB50000 at
+      24 MHz; 33-34 SYS_SPI_U_BOOT_OFFS 0x60000 and SPL_ATF; 42 CMD_ROCKUSB; 49 OF_LIST including
+      rk3588-rock-5t; 19, 72-77 PCI, RTL8169, NVME_PCI, PCIE_DW_ROCKCHIP, combo PHY; 83-85 BAUDRATE
+      1500000, shift 2, MEM32. board/radxa/rock5b-rk3588/rock5b-rk3588.c:25-28 has the LPDDR5 926-1106
+      rock-5t row. Precision: "ADC channel 5" (HW_ID_CHANNEL at line 16, adc_channel_single_shot at
+      37) and the run-time selection logic (30-51, 53-71) are not in the cited lines 25-28; extend
+      the anchor to the whole file region 13-71. License: the defconfig is license-file via Licenses/README
+      (GPL v2, later for most files).'
+    contrary_evidence: none-found
+    citation_precision: imprecise
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-r2-second
+      verdict: PASS
+      date: 2026-10-09
+      note: 'DELTA reading. Upstream mainline-boot-chain added the rkbin BL31 option and dropped the
+        stage order; nothing here depends on either, so the refinement still follows. Rechecked defconfig
+        lines 4, 13-16, 19, 33-34, 42, 49, 72-77 and 83-85: every value matches. Contrary: none-found.
+        Citation imprecise: "hardware-ID ADC channel 5" and the run-time choice are at rock5b-rk3588.c:16
+        (HW_ID_CHANNEL 5) and 30-71 (get_board_model, rk_board_late_init, board_fit_config_name_match),
+        outside the cited 25-28.'
+  uboot-rtl8125b:
+    basis: e4d522e3a0a76c6e6d977374e6c70ea2170f4a435727b63e13c3b84615cd5fbc
+    verdict: PASS
+    date: '2026-10-09'
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-primary-gpl-rock5t
+    note: 'u-boot drivers/net/rtl8169.c:272-289 rtl_chip_info[] ends with {"RTL-8125B", 0x64, ...};
+      lines 375-376 supported[] begins with PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x8125). Both halves
+      of the claim match. File has SPDX GPL-2.0+, matching the declared license. Contrary search:
+      grepped the file for 8125 and 0x64; the comment at lines 776-777 says RTL8125B is deliberately
+      left out of an extra setup path for newer chips, which is a quirk note and does not remove support.'
+    contrary_evidence: none-found
+    citation_precision: exact
+  mainline-netboot:
+    basis: be856115639da942d337c38afb277b0112936a3eef586fb581653c2c36e47015
+    upstream:
+      rock5t@hardware-specs-docs#ethernet: 655a77b27b255e1e8b1fba22ea21b23a96ead47555cba1546de13fd0f433169e
+      rock5t@hardware-specs-docs#mainline-boot-chain: abad0a2e6fd2b55c2035c65f3b01d86685dc0874460ccf34ee67ec470dc5e9ca
+      rock5t@hardware-specs-docs#netboot-stock-loader: fa4e0a40c907f16c25726d77010383469fb2b338f4c6ca5e98212ead7f3306b2
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
+    note: 'Mode FULL. Premises checked: docs ethernet (two RTL8125B on PCIE20_0 and PCIE20_2); configs/rock5b-rk3588_defconfig:19,72-77
+      PCI, RTL8169, NVME_PCI, PCIE_DW_ROCKCHIP, combo PHY; drivers/net/rtl8169.c:289 and 376 (RTL-8125B
+      0x64, PCI id 0x8125); Linux DT pcie2x1l0 and pcie2x1l2 enabled (rk3588-rock-5b-5bp-5t.dtsi:475-491);
+      boot order from rockchip-common.h:17. Assumption uboot-net-commands-built checked as far as
+      plausible: arch/arm/Kconfig ARCH_ROCKCHIP imply BOOTSTD_DEFAULTS, which selects BOOT_DEFAULTS,
+      and boot/Kconfig BOOT_DEFAULTS_CMDS selects CMD_DHCP and CMD_PXE when CMD_NET and NET are set;
+      that CMD_NET/NET are on for this build was not traced. The boot-order wording holds: boot/bootstd-uclass.c:116
+      reads env boot_targets and boot/bootdev-uclass.c:402-406 recognizes the labels pxe and dhcp.
+      The claim is hedged (most likely, medium) and the derivation says nothing read shows the pieces
+      working together; a real link bring-up with the RTL8125B is not evidenced, which the TODO covers.'
+    contrary_evidence: none-found
+    citation_precision: exact
+  mainline-console-at-handoff:
+    basis: 71f91ee4a33fd41c8b9f4369430a62fa28b9f518ae2a56c10814d22e6a73a1c9
+    upstream:
+      rk3588@hardware-specs-docs#uart2-pinmux: f32cdddc96b87ce8be8146ef3acab83c56094e57fbcef213a9c7eceab203ea10
+      rock5t@hardware-specs-docs#debug-console-is-uart2-m0: 1febfa371e03ba19a8e6269bca4ba2e250969cb620d8993825fa9ebd59f5c0b7
+      rock5t@hardware-specs-docs#mainline-boot-chain: abad0a2e6fd2b55c2035c65f3b01d86685dc0874460ccf34ee67ec470dc5e9ca
+      rock5t@hardware-specs-docs#uart2-state-at-handoff: eec313134247beed7dbac994da3f4dd02c875f001cc0dd2ae1fc85ef5b8e0cc1
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r3-primary
+    note: 'DELTA reading. The only upstream change reaching this inference is the added relates entry
+      on debug-console-is-uart2-m0; its claim is unchanged and I confirmed it (UART2 M0 pins, schematic
+      sheet 36 and brief section 6.1.1). The premise #dt-console is re-confirmed at the pin (stdout-path
+      serial2:1500000n8, uart2m0_xfer). The conclusion remains hedged (''very likely'', mainline only,
+      clock caveat named, stock loader excluded) and its hardware TODO is a legitimate observation.
+      No change to the derivation is needed.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-r3-second
+      verdict: PASS
+      date: 2026-10-09
+      note: 'DELTA reading. The upstream change to rock5t@hardware-specs-docs#debug-console-is-uart2-m0
+        adds only a relates entry; the M0 wiring this inference relies on (through the #dt-console
+        premise) is unchanged, so the derivation still follows at medium confidence, with the 24 MHz
+        clock condition and the stock-loader exclusion stated. Contrary-evidence search at the U-Boot
+        pin: drivers/serial/ns16550.c and serial_rockchip.c declare no remove hook or OS-prepare flag
+        (only DM_FLAG_PRE_RELOC), and arch/arm/lib/bootm.c has no device-removal call, so nothing
+        read tears the console down before the jump; none found. The TODO (read both IOMUX registers
+        and the divisor, write THR at kernel entry) can observe the question. Citation precision exact.'
+  mainline-cntfrq:
+    basis: ce7e9cd91a66f34c3075a8e64de3862a8fae27ce5dbcabe7071a94048be45e72
+    upstream:
+      rk3588@hardware-specs-docs#system-counter: c82e986f0f3c6c9ff9aa1950c2170fb264b5e00c194596e9df6ca36a583b8376
+      rock5t@hardware-specs-docs#mainline-boot-chain: abad0a2e6fd2b55c2035c65f3b01d86685dc0874460ccf34ee67ec470dc5e9ca
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
+    note: 'Mode DELTA (upstream changed: docs system-counter, TODO wording only, and mainline-boot-chain,
+      which now allows BL31 from rkbin). Premises: rk3588.c:162-174 writes CONFIG_COUNTER_FREQUENCY
+      to CNTFRQ_EL0 unless the timer is already enabled (call sites arch/arm/mach-rockchip/spl.c:123
+      and tpl.c:49); the defconfig sets 24000000. Corroboration found while looking for contrary evidence:
+      TF-A plat/rockchip/rk3588/rk3588_def.h:178 SYS_COUNTER_FREQ_IN_TICKS is 24000000. A BL31 from
+      rkbin was not read, and the claim is hedged ("very likely"), as is the derivation''s note about
+      the DDR blob starting the timer first. Follows.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-r2-second
+      verdict: PASS
+      date: 2026-10-09
+      note: 'DELTA reading. Upstream system-counter changed only its TODO. mainline-boot-chain now
+        allows a TF-A or rkbin BL31, which runs after the SPL at EL3 and could rewrite CNTFRQ. Contrary
+        search: TF-A 1d5aa93 lib/psci/psci_setup.c:312-316 (psci_arch_setup) writes plat_get_syscnt_freq2(),
+        and plat/rockchip/rk3588/rk3588_def.h:178 sets SYS_COUNTER_FREQ_IN_TICKS 24000000, so a TF-A
+        BL31 also yields 24 MHz; the rkbin BL31 is unread. The medium-confidence conclusion still
+        follows. Should-fix: add a BL31 premise (TF-A writes 24 MHz; rkbin unknown); the derivation
+        names only the DDR blob. Citation exact.'
+  stock-uboot-config:
+    basis: 655439d74a0465d725cfe3df475f482cd52e0ed94b32bb2c91bd33d6ff50aaef
+    upstream:
+      rock5t@hardware-specs-docs#stock-loader: 83487c9fa8f98cf29c7e5a32c803d952457b44c6f528e579b8527109e15a5fdd
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
+    note: 'Mode DELTA (upstream changed: docs stock-loader, now "Radxa''s shared page lists rock-5t
+      with the rk2410 profile; the ROCK 5T wrapper page passes rknext, unexplained"). This claim is
+      about the vendor tree''s defconfig and is conditional on the declared stock-build-identity assumption,
+      which already allows a different commit or fragments; the unexplained rknext profile does not
+      contradict it but leaves the assumption open (the resource note that the BSP builds from this
+      branch with profile rk2410 is more definite than the docs now are). Re-read configs/rock-5t-rk3588_defconfig
+      in the vendor tree: 23, 28 (device tree rk3588-rock-5t), 37 BOOTDELAY 0, 40-41 ANDROID_BOOTLOADER
+      and AVB, 51 SPL_ATF, 142-150 (DWC_ETH_QOS, GMAC_ROCKCHIP, NVME, PCI, PCIE_DW_ROCKCHIP), 172-175
+      (1500000 baud, UART 0xFEB50000, 24 MHz, shift 2). Read the whole file: no other Ethernet driver,
+      so "only" holds. board/rockchip/evb_rk3588/Kconfig:9-10 and include/configs/evb_rk3588.h:21-22
+      give RKIMG_BOOTCOMMAND. Precision: "a 2017.09 base" has no anchor; Makefile:5-6 at the pin has
+      VERSION = 2017, PATCHLEVEL = 09, add it.'
+    contrary_evidence: none-found
+    citation_precision: imprecise
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-r2-second
+      verdict: PASS
+      date: 2026-10-09
+      note: 'DELTA reading. Upstream stock-loader now hedges (rk2410 row versus the wrapper''s rknext).
+        This fact rests on the declared assumption stock-build-identity, so the refinement still follows
+        conditionally. Rechecked defconfig 23-29, 37-41, 51, 142-150 and 172-175, evb_rk3588 Kconfig
+        9-10 and evb_rk3588.h:21-22 (inside #ifndef CONFIG_SPL_BUILD). "Only the GMAC": the defconfig
+        has no other Ethernet driver line; none-found. Citation imprecise: "a 2017.09 base" is uncited;
+        anchor the Makefile:5-6 (VERSION 2017, PATCHLEVEL 09).'
+  stock-debug-uart-pinmux:
+    basis: 29d6e5412aa73ca829ca367eebb687251a9d1f478aebcfaa497b3a05f602372e
+    verdict: PASS
+    date: '2026-10-09'
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-primary-gpl-rock5t
+    note: 'radxa-u-boot arch/arm/mach-rockchip/rk3588/rk3588.c:64-66 PMU2_IOC_BASE 0xfd5f4000, BUS_IOC_BASE
+      0xfd5f8000; lines 558-575 (UART base 0xfeb50000, mux select 0) write GPIO0B6/GPIO0B5 REFER to
+      pmu2_ioc->gpio0b_iomux_sel_h, then UART2_RX_M0/TX_M0 to bus_ioc->gpio0b_iomux_sel_h; the enum
+      at rk3588.c:171-182 gives REFER = 8 and UART2_*_M0 = 10. Kconfig:1080-1083 ROCKCHIP_UART_MUX_SEL_M
+      default 0 depends on TPL; Kconfig:531-544 ROCKCHIP_RK3588 implies TPL (selects SUPPORT_TPL);
+      the defconfig has CONFIG_TPL_RAM=y and no ''TPL is not set''. Contrary search: read the other
+      UART/mux branches of board_debug_uart_init, none apply to 0xfeb50000 mux 0. Precision: the values
+      8 and 10 are in the enum at lines 171-182, which no anchor covers; add that range (symbols GPIO0B5_REFER,
+      GPIO0B6_UART2_RX_M0).'
+    contrary_evidence: none-found
+    citation_precision: imprecise
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-second-gpl-rock5t
+      verdict: PASS
+      date: 2026-10-09
+      note: 'radxa-u-boot rk3588.c at the pin: :64-66 PMU2_IOC_BASE 0xfd5f4000, BUS_IOC_BASE 0xfd5f8000;
+        :558-575 the 0xfeb50000, mux 0 branch writes REFER then UART2_RX_M0/TX_M0 to gpio0b_iomux_sel_h
+        of each; mach-rockchip Kconfig:1080-1083 mux default 0 depends on TPL, :541 imply TPL. Contrary
+        search: earlier #if branches (:483, :519) key on other UART bases; defconfig has no ROCKCHIP_UART_MUX_SEL_M
+        or TPL override; none found. Citation imprecise: the values 8 and 10 come from the enum at
+        rk3588.c:172-181 (GPIO0B5/B6 REFER = 8, UART2_TX_M0/RX_M0 = 10), which no anchor cites; add
+        it.'
+  stock-console-at-handoff:
+    basis: c336956f3c992e8999916c7ffbe49719a49b847a72e06d945c7029b9a9f0876d
+    upstream:
+      rock5t@hardware-specs-docs#stock-loader: 83487c9fa8f98cf29c7e5a32c803d952457b44c6f528e579b8527109e15a5fdd
+      rock5t@hardware-specs-docs#uart2-state-at-handoff: eec313134247beed7dbac994da3f4dd02c875f001cc0dd2ae1fc85ef5b8e0cc1
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
+    note: 'Mode DELTA (upstream changed: docs stock-loader and uart2-state-at-handoff; the second
+      adds a TODO to run the byte test under both loaders, consistent with this claim''s own scope).
+      The stated premises follow as before. Contrary search found a condition the derivation does
+      not name: in the vendor tree arch/arm/mach-rockchip/Kconfig:1060-1064 ROCKCHIP_PRELOADER_SERIAL
+      defaults to y with ATAGs, and param.c:418-443 plus board.c:520-525 mean that when the preloader
+      (a Rockchip binary, not read) supplies a serial ATAG, U-Boot takes the console address and baud
+      from it, skips debug_uart_init(), and disables the console if the ATAG says so. So the UART
+      the stock loader leaves running is set by that unread binary as well as the defconfig; the premise
+      "debug UART at 0xFEB50000" does not by itself fix it. The conclusion stays plausible and is
+      hedged (very likely, medium, hardware TODO), so PASS, but the derivation should name this dependency.
+      If the author treats it as an undeclared dependency, a declared assumption is the fix.'
+    contrary_evidence: found
+    citation_precision: exact
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-r2-second
+      verdict: PASS
+      date: 2026-10-09
+      note: 'DELTA reading. Upstream stock-loader''s hedge bears on stock-build-identity, which this
+        inference declares as a premise. uart2-state-at-handoff changed only its TODO, which now asks
+        for this same stock-loader byte test. The medium-confidence conclusion still follows. Contrary:
+        none-found. Citation exact.'
+  stock-kernel-jump:
+    basis: cade5b415a71870c480200456228d0e40de271871072f08fce0983ee7b782288
+    verdict: PASS
+    date: '2026-10-09'
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-primary-gpl-rock5t
+    note: 'radxa-u-boot arch/arm/lib/bootm.c:409-423: with CONFIG_ARMV8_SWITCH_TO_EL1 the call targets
+      switch_to_el1, otherwise armv8_switch_to_el2(ft_addr, 0, 0, es_flag, ep, ES_TO_AARCH64). arch/arm/cpu/armv8/transition.S:14-33:
+      switch_el (macro.h:71-79: el3 label first) at EL3 goes to armv8_switch_to_el2_m (eret to the
+      entry in x4 at EL2, x0-x3 untouched); at EL2 it falls to ''br x4''. CONFIG_ARMV8_SWITCH_TO_EL1
+      is absent from the defconfig, rk3588_common.h, evb_rk3588.h, rockchip-common.h, config_defaults.h,
+      arch/arm/Kconfig, mach-rockchip/Kconfig and armv8/Kconfig (I searched those). Licenses: transition.S,
+      rk3588 headers SPDX GPL-2.0+; bootm.c has SPDX GPL-2.0+ at line 12 in its copyright comment,
+      matching the declared notice evidence. Precision: the fourth argument (x3) is es_flag, not a
+      literal 0; it is 0 only because es_flag starts at 0 (bootm.c:385-391) and neither CONFIG_AMP
+      nor CONFIG_ARM64_SWITCH_TO_AARCH32 (arch/arm/mach-rockchip/Kconfig:731-736, default n) is set.
+      Add anchors bootm.c:385-391 and that Kconfig range.'
+    contrary_evidence: none-found
+    citation_precision: imprecise
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-second-gpl-rock5t
+      verdict: PASS
+      date: 2026-10-09
+      note: 'radxa-u-boot bootm.c:401-423 calls armv8_switch_to_el2(ft_addr, 0, 0, es_flag, ep, ES_TO_AARCH64)
+        unless ARMV8_SWITCH_TO_EL1; transition.S:14-33 branches to x4 at EL2 (and EL1) and runs armv8_switch_to_el2_m
+        at EL3, which (asm/macro.h) erets to EL2h without touching x0-x3. Searches repeated: no ARMV8_SWITCH_TO_EL1
+        in the defconfig, rk3588_common.h, evb_rk3588.h or rockchip-common.h; it appears only in bootm.c
+        and transition.S of the files read. Citation imprecise: the fourth argument is es_flag, which
+        is 0 only because bootm.c:385-390 initialises it to 0 and neither CONFIG_AMP (drivers/cpu/Kconfig:10,
+        no default) nor ARM64_SWITCH_TO_AARCH32 (mach-rockchip Kconfig:731-733, default n) is set;
+        anchor those to support "the next three arguments 0".'
+  stock-entry-el:
+    basis: 9bbbcadbf763486d6ade8064db3cadd237bd549409f41cc8a600744c83ce953b
+    upstream:
+      rock5t@hardware-specs-docs#kernel-entry-contract: 025acd83584a31ce95d49c7bbf4aeed9829e1d0b966465203694351f7d3e7ef2
+    verdict: PASS
+    date: '2026-10-09'
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-primary-gpl-rock5t
+    note: 'Premise stock-kernel-jump verified above. The derivation is sound: transition.S:14-33 branches
+      straight to the entry at EL2, and the EL3 path (armv8_switch_to_el2_m) erets to EL2; at EL1
+      the same routine would stay at EL1, which the assumption bl31-runs-u-boot-at-el2 (EL2 or EL3,
+      not EL1) rules out and which is named with a hardware TODO. x1-x3 = 0 follows from stock-kernel-jump
+      (x3 = es_flag = 0 as noted there). The claim is hedged ''most likely'', medium, which fits an
+      unread Rockchip BL31 binary. Contrary search: armv8_setup_psci and do_nonsec_virt_switch are
+      guarded by CONFIG_ARMV8_PSCI (not set in the defconfig); no other EL change on the bootm path
+      found. The TODO (read CurrentEL in the shim) can observe the answer.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-second-gpl-rock5t
+      verdict: PASS
+      date: 2026-10-09
+      note: 'Premises #stock-kernel-jump (PASS here) and assumption bl31-runs-u-boot-at-el2 give EL2
+        in both cases; x0 = fdt and x1-x3 = 0 follow given es_flag 0 (see stock-kernel-jump note).
+        Medium confidence is right given the unread BL31. Contrary search: transition.S:15 also branches
+        straight to the kernel at EL1, which the assumption excludes; none found beyond that. TODO
+        (CurrentEL in the shim) observes it. Citation exact through premises.'
+  stock-load-addresses:
+    basis: 14b59eb44e0bc512ed275726d4b3877dce008d831f29112f798316b1de3a9f1c
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
+    note: 'Mode FULL. Environment values match include/configs/rk3588_common.h:76-83 in the vendor
+      tree (scriptaddr 0x00500000, pxefile_addr_r 0x00600000, fdtoverlay_addr_r 0x08200000, fdt_addr_r
+      0x08300000, kernel_addr_r 0x00400000, kernel_addr_c 0x05480000, ramdisk_addr_r 0x0a200000);
+      the comment at 68-75 gives the 4 MB start and the 0x100000-0x200000 shared-memory reason; CONFIG_SYS_LOAD_ADDR
+      0x00600800 and CONFIG_SYS_TEXT_BASE 0x00200000 (USBPLUG branch not set in the defconfig) at
+      27-34; CONFIG_SYS_SDRAM_BASE 0 and SDRAM_MAX_SIZE 0xf0000000 at 56-57; sdram.c:196-201 caps
+      the usable top at 0xf0000000. Contrary search found a wording issue, not a wrong value: the
+      last sentence says U-Boot "relocates itself to the top of usable RAM". In common/board_f.c:313-317
+      relocaddr starts at the capped ram_top, but reserve_round_4k, reserve_mmu (page tables), reserve_video
+      (CONFIG_DM_VIDEO=y in the defconfig) and reserve_trace at 347-415 lower it before reserve_uboot
+      (424-440), so U-Boot lands below the top, by the size of those reservations. Also "first loaded
+      at 0x00200000" rests on the link address; the load address in the SPL FIT comes from the build
+      scripts (arch/arm/mach-rockchip/fit_nodes.sh UBOOT_LOAD_ADDR), not read. Suggested wording:
+      "is linked at 0x00200000 and relocates to just below the top of usable RAM (capped at 0xF000_0000),
+      under the page-table and framebuffer reservations". The TODO (read the Relocation Addr line)
+      covers it. License: common/board_f.c notice (SPDX GPL-2.0+ at line 10) matches; common/Kconfig
+      is license-file via the tree''s Licenses/README, which says GPL v2 and later for most files,
+      so "or-later" for untagged files is plausible but not stated for every file.'
+    contrary_evidence: found
+    citation_precision: imprecise
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-r2-second
+      verdict: PASS
+      date: 2026-10-09
+      note: 'FULL reading. radxa/u-boot 39cd993 rk3588_common.h:68-83 matches every environment value
+        and the 0x100000-0x200000 comment; 27-34 TEXT_BASE 0x00200000 (unless CONFIG_SUPPORT_USBPLUG)
+        and SYS_LOAD_ADDR 0x00600800; 56-57 and sdram.c:196-201 cap at 0xF0000000; common/Kconfig:673-677
+        defaults SKIP_RELOCATE_UBOOT off on ARM64, and the defconfig does not set it (no select found
+        in Kconfig files or mach-rockchip). stock-build-identity is declared. Contrary: none-found.
+        Citation imprecise: (a) the values reach the environment through CONFIG_EXTRA_ENV_SETTINGS
+        at rk3588_common.h:87-94, uncited; (b) "first loaded at 0x00200000" is a FIT load address,
+        and no cited line states it (TEXT_BASE is the link address); (c) relocaddr starting at ram_top
+        is in board_f.c setup_dest_addr, uncited. Add those anchors or reword (b) to "linked at".'
+  stock-boot-flow:
+    basis: 0ca34bebcb0df6b02f253649dd0f6f6add66230e620c1707d26d941137c2ddce
+    upstream:
+      rock5t@hardware-specs-docs#kernel-image-format: 7005ce56cff1e17780acb9a35eb17a127be6b3648ef00ee930b61abe31f5fb74
+    verdict: PASS
+    date: '2026-10-09'
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-primary-gpl-rock5t
+    note: 'include/configs/rockchip-common.h:199-210: with neither CONFIG_AVB_VBMETA_PUBLIC_KEY_VALIDATE
+      nor CONFIG_FIT_SIGNATURE, RKIMG_BOOTCOMMAND = "run distro_bootcmd; boot_fit; bootrkp;"; evb_rk3588.h:21-22
+      makes it CONFIG_BOOTCOMMAND. Lines 103-130 BOOT_TARGET_DEVICES order is USB, SD (mmc 1), NVMe,
+      SCSI, eMMC (mmc 0), MTD (mtd 2,1,0), RKNAND, PXE, DHCP, each wrapped in its CMD_* test (lines
+      58-101). Kconfig:62-72 DISTRO_DEFAULTS default y for ARCH_ROCKCHIP, selects CMD_BOOTI (ARM64)
+      and CMD_DHCP, implies CMD_PXE. The defconfig has no FIT_SIGNATURE or AVB public-key line (the
+      search anchor holds; FIT_SIGNATURE and the AVB symbol are not selected by the Rockchip Kconfig
+      I read). Contrary search: no later override of bootcommand found. Precision: the parenthetical
+      about extlinux or boot scripts and booti is generic distro_bootcmd behavior from config_distro_bootcmd.h,
+      which no anchor cites; add it, and note MTD means mtd_blk devices, which include SPI flash.'
+    contrary_evidence: none-found
+    citation_precision: imprecise
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-second-gpl-rock5t
+      verdict: PASS
+      date: 2026-10-09
+      note: 'rockchip-common.h:199-210 gives "run distro_bootcmd; boot_fit; bootrkp;" without AVB_VBMETA_PUBLIC_KEY_VALIDATE
+        or FIT_SIGNATURE; :121-130 orders USB, SD, NVMe, SCSI, eMMC, MTD, RKNAND, PXE, DHCP; Kconfig:62-72
+        DISTRO_DEFAULTS default y for ARCH_ROCKCHIP selects CMD_BOOTI and CMD_DHCP and implies CMD_PXE.
+        Searches repeated: the defconfig has no FIT_SIGNATURE, AVB key-validate, DISTRO_DEFAULTS,
+        CMD_PXE or CMD_DHCP line. Contrary search: ROCKCHIP_FIT_IMAGE (mach-rockchip Kconfig:919-923)
+        selects CMD_BOOT_FIT, not FIT_SIGNATURE; FIT_SIGNATURE (Kconfig:224) has no default; none
+        found. Citation imprecise: the SD, eMMC, NVMe, SCSI, MTD and RKNAND conditionals are at rockchip-common.h:66-102,
+        not in the cited 103-130, and MTD there is devices 2, 1, 0 (not only SPI flash); anchor them.'
+  stock-memory-reservations:
+    basis: 01cd15246618accdcf6e8ba28a6c9b2c8cbd38897fc7d46912f687c1b750e4b5
+    upstream:
+      rock5t@hardware-specs-docs#ram-map-and-reservations: 082e25df0a5fbed45c0e2f1820030b31da909bc66064ec8b898b5ea30973ff9d
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
+    note: 'Mode DELTA (upstream changed: docs ram-map-and-reservations, TODO wording only, adding
+      that BL31/OP-TEE writes outside their reservations stay unknown). Re-read arch/arm/mach-rockchip/board.c:828-852
+      (three bidram_reserve calls: MEM_ATF, MEM_SHM, MEM_OPTEE) and param.c:55-97 (ATAG region; if
+      base + size > SDRAM_OFFSET(SZ_1M) it prints "not within 0-1MB" and returns it; else legacy base
+      0 size SZ_1M on ARM64), 99-144 (ATAG TOS memory, else the legacy parameter block at SDRAM_OFFSET(SZ_32M
+      + SZ_2M) with checksum and flags == 1), 146-165 (ARM64: SDRAM_OFFSET(SZ_1M), SZ_1M). The vendor
+      sizes.h:33-38 has SZ_1M 0x00100000; rk3588_common.h:56 CONFIG_SYS_SDRAM_BASE 0. Searched arch/arm/mach-rockchip,
+      lib and common for other bidram_reserve callers: only these three. Matches. License: sizes.h
+      notice grants GPL version 2 only, matching the declared GPL-2.0-only repo entry.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-r2-second
+      verdict: PASS
+      date: 2026-10-09
+      note: 'DELTA reading. Upstream ram-map-and-reservations changed only its TODO (writes outside
+        reservations unknowable from the tree), which this fact does not contradict. Rechecked param.c:17-20,
+        55-97 (ATAG region returned even past 1 MB; legacy SZ_1M from 0 on ARM64), 99-144, 146-165,
+        board.c:828-852 and sizes.h:33-38. The ATAG paths depend on CONFIG_ROCKCHIP_PRELOADER_ATAGS,
+        which the claim''s "from the preloader''s ATAGs" implies. Contrary: none-found. Citation exact.'
+  stock-reserved-ranges:
+    basis: fe75339788251913a4f25a589934eab47b5784d4c7348407341e30b9aab9c008
+    upstream:
+      rock5t@hardware-specs-docs#ram-map-and-reservations: 082e25df0a5fbed45c0e2f1820030b31da909bc66064ec8b898b5ea30973ff9d
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
+    note: 'Mode DELTA (upstream changed: docs ram-map-and-reservations, TODO wording only). Arithmetic:
+      1 MB from 0 ends at 0xFFFFF; 1 MB from 0x100000 ends at 0x1FFFFF; SZ_32M + SZ_2M = 0x02000000
+      + 0x00200000 = 0x02200000 (34 MB), from sizes.h:34 and 38. The premise fact stock-memory-reservations
+      was re-read in this round and holds. Contrary note: the comment at param.c:68-70 calls the legacy
+      TF-A region "2MB size" while the code at 87-91 uses SZ_1M; the claim follows the code, which
+      is the right authority, and it is worth a mention for readers.'
+    contrary_evidence: found
+    citation_precision: exact
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader rock5t-r2-second
+      verdict: PASS
+      date: 2026-10-09
+      note: 'DELTA reading. Upstream changed only the ram-map TODO, so the inference still follows.
+        Arithmetic rechecked: 0x0-0xFFFFF, 0x100000-0x1FFFFF, and 0x2000000 + 0x200000 = 0x2200000,
+        from sizes.h:34-38 and param.c:18-20. Contrary: none-found. Citation exact.'
+  stock-netboot:
+    basis: bd954ab58a96d4a378126ab692c134f374eccfcca05e3cc7a9d8cf6b25a4c53a
+    upstream:
+      rock5t@hardware-specs-docs#ethernet: 655a77b27b255e1e8b1fba22ea21b23a96ead47555cba1546de13fd0f433169e
+      rock5t@hardware-specs-docs#netboot-stock-loader: fa4e0a40c907f16c25726d77010383469fb2b338f4c6ca5e98212ead7f3306b2
+      rock5t@hardware-specs-docs#stock-loader: 83487c9fa8f98cf29c7e5a32c803d952457b44c6f528e579b8527109e15a5fdd
+    verdict: PASS
+    date: 2026-10-09
+    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
+    note: 'Mode DELTA (upstream changed: docs netboot-stock-loader, TODO now says the command list
+      shows only whether a fastboot command exists, and that the stock loader is a 2017.09-based build;
+      and stock-loader). The claim is already hedged to match. Re-read the full vendor defconfig:
+      78-80 CMD_TFTPPUT, CMD_TFTP_BOOTM, CMD_TFTP_FLASH; 144-145 the only Ethernet drivers; no RTL8169,
+      USB_HOST_ETHER, USB_ETHER, or fastboot function lines. The defconfig does contain FASTBOOT_BUF_ADDR/SIZE
+      and FASTBOOT_FLASH lines (52-55), which looked contrary; cmd/fastboot/Kconfig:3-7 and 70-75
+      shows they are inert unless FASTBOOT and a USB or UDP fastboot function are on, and none of
+      the Rockchip Kconfig files select them, so "not enabled by the defconfig" holds. "Only the SoC
+      GMAC driver, which no ROCK 5T port uses" depends on the docs ethernet fact (both ports RTL8125B),
+      which is unchanged.'
+    contrary_evidence: none-found
+    citation_precision: exact
