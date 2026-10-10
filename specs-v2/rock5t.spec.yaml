@@ -48,7 +48,7 @@ resources:
         - {path: include/configs/evb_rk3588.h, license_from: spdx-line}
         - {path: arch/arm/mach-rockchip/rk3588/rk3588.c, license_from: spdx-line}
         - {path: arch/arm/mach-rockchip/board.c, license_from: spdx-line}
-        - {path: arch/arm/lib/bootm.c, license_from: spdx-line}
+        - {path: arch/arm/lib/bootm.c, license_from: notice, note: "the SPDX tag (GPL-2.0+) sits at line 12 of the copyright header, past the five-line SPDX rule"}
         - {path: arch/arm/cpu/armv8/transition.S, license_from: spdx-line}
       verified: 2026-10-09
       fetch: ok
@@ -66,10 +66,11 @@ resources:
       status: merged
       files:
         - {path: arch/arm/mach-rockchip/param.c, license_from: spdx-line}
+        - {path: include/linux/sizes.h, license_from: notice, note: no SPDX line; the header notice grants GPL version 2 only}
       verified: 2026-10-09
       fetch: ok
       fetch_via: git
-      note: param.c carries SPDX GPL-2.0.
+      note: param.c carries SPDX GPL-2.0; sizes.h a GPL-2.0-only notice.
 assumptions:
   - id: stock-build-identity
     text: >-
@@ -97,9 +98,10 @@ facts:
     support:
       - class: DT
         anchors:
-          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5t.dts, lines: [5, 9], node: /}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5t.dts, lines: [5, 5]}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5t.dts, lines: [7, 9], node: /}
           - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5b-5bp-5t.dtsi, lines: [18, 20], node: chosen}
-          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5b-5bp-5t.dtsi, lines: [976, 980], node: uart2}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5b-5bp-5t.dtsi, lines: [976, 980]}
     relates:
       - {fact: "rock5t@hardware-specs-docs#debug-console-is-uart2-m0", relation: same-as}
 
@@ -117,9 +119,9 @@ facts:
       - class: DT
         anchors:
           - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5b-5bp-5t.dtsi, lines: [12, 16], node: aliases}
-          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5b-5bp-5t.dtsi, lines: [606, 614], node: sdhci}
-          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5b-5bp-5t.dtsi, lines: [616, 630], node: sdmmc}
-          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5b-5bp-5t.dtsi, lines: [632, 645], node: sfc}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5b-5bp-5t.dtsi, lines: [606, 614]}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5b-5bp-5t.dtsi, lines: [616, 630]}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5b-5bp-5t.dtsi, lines: [632, 645]}
     relates:
       - {fact: "rock5t@hardware-specs-docs#boot-storage", relation: refines}
 
@@ -134,8 +136,8 @@ facts:
     support:
       - class: DT
         anchors:
-          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5b-5bp-5t.dtsi, lines: [475, 491], node: pcie2x1l0}
-          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5t.dts, lines: [73, 95], node: pcie2x1l1}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5b-5bp-5t.dtsi, lines: [475, 503]}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-rock-5t.dts, lines: [73, 95]}
     todo:
       check: hardware
       text: run `pci enum` and `pci` in U-Boot, or lspci under Linux, and match each RTL8125B to its controller.
@@ -248,6 +250,7 @@ facts:
   - id: mainline-cntfrq
     section: quick-facts
     title: CNTFRQ under mainline U-Boot
+    critical: true
     claim: >-
       Under mainline U-Boot the generic timer frequency the kernel reads from CNTFRQ_EL0 is very
       likely 24 MHz.
@@ -298,6 +301,7 @@ facts:
   - id: stock-debug-uart-pinmux
     section: quick-facts
     title: Stock loader's early console pin setup
+    critical: true
     claim: >-
       For a debug UART at `0xfeb50000` and mux selection 0 (the default, available when TPL is
       built, which the RK3588 implies), the vendor `board_debug_uart_init` writes 8 ("refer to
@@ -402,7 +406,7 @@ facts:
     support:
       - class: src
         anchors:
-          - {repo: radxa-u-boot, path: include/configs/rk3588_common.h, lines: [68, 75], symbol: ENV_MEM_LAYOUT_SETTINGS, comment: true}
+          - {repo: radxa-u-boot, path: include/configs/rk3588_common.h, lines: [68, 76], symbol: ENV_MEM_LAYOUT_SETTINGS, comment: true}
           - {repo: radxa-u-boot, path: include/configs/rk3588_common.h, lines: [76, 83], symbol: ENV_MEM_LAYOUT_SETTINGS}
           - {repo: radxa-u-boot, path: include/configs/rk3588_common.h, lines: [27, 34], symbol: CONFIG_SYS_LOAD_ADDR}
           - {repo: radxa-u-boot, path: include/configs/rk3588_common.h, lines: [56, 57], symbol: SDRAM_MAX_SIZE}
@@ -439,14 +443,19 @@ facts:
     title: Stock loader memory reservations
     critical: true
     claim: >-
-      The stock loader reserves three regions through `bidram_reserve`: the TF-A region
-      (from the preloader's ATAGs, required to lie within the first 1 MB; otherwise
-      `0x0`–`0xFFFFF`), a shared region `0x100000`–`0x1FFFFF` (pstore, ATAGs and shared memory),
-      and the OP-TEE region the preloader reports (from ATAGs, or a parameter block at DRAM
-      offset 34 MB), when one is reported.
+      The stock loader reserves three regions through `bidram_reserve`. The TF-A region comes
+      from the preloader's ATAGs; when it ends past DRAM offset `SZ_1M` U-Boot prints that it is
+      not within 0–1 MB but still returns it. Without an ATAG it is `SZ_1M` from DRAM offset 0.
+      The second, marked pstore, ATAGs and shared memory, is `SZ_1M` from DRAM offset `SZ_1M`.
+      The third is the OP-TEE region the preloader reports, from ATAGs or from a parameter block
+      at DRAM offset `SZ_32M + SZ_2M`, when one is reported. `CONFIG_SYS_SDRAM_BASE` is 0 and
+      `SZ_1M` is `0x00100000`.
     support:
       - class: src
         anchors:
+          - {repo: radxa-u-boot, path: include/configs/rk3588_common.h, lines: [56, 56], symbol: CONFIG_SYS_SDRAM_BASE}
+          - {repo: radxa-u-boot-gpl2, path: include/linux/sizes.h, lines: [33, 38], symbol: SZ_1M}
+          - {repo: radxa-u-boot-gpl2, path: arch/arm/mach-rockchip/param.c, lines: [17, 20], symbol: PARAM_OPTEE_INFO_OFFSET}
           - {repo: radxa-u-boot-gpl2, path: arch/arm/mach-rockchip/param.c, lines: [55, 97], symbol: param_parse_atf_mem}
           - {repo: radxa-u-boot-gpl2, path: arch/arm/mach-rockchip/param.c, lines: [99, 144], symbol: param_parse_optee_mem}
           - {repo: radxa-u-boot-gpl2, path: arch/arm/mach-rockchip/param.c, lines: [146, 165], symbol: param_parse_common_resv_mem}
@@ -462,6 +471,37 @@ facts:
         reserved regions are kept out of the kernel's memory.
     relates:
       - {fact: "rock5t@hardware-specs-docs#ram-map-and-reservations", relation: qualifies}
+
+  - id: stock-reserved-ranges
+    section: quick-facts
+    title: Stock loader reserved ranges as addresses
+    critical: true
+    claim: >-
+      Under the stock loader, without a TF-A ATAG, `0x0`–`0xFFFFF` is reserved for TF-A; the
+      shared region is `0x100000`–`0x1FFFFF`; and the legacy OP-TEE parameter block is read at
+      `0x2200000` (34 MB).
+    support:
+      - class: inference
+        confidence: high
+        premises:
+          - fact: "#stock-memory-reservations"
+            uses: SDRAM_OFFSET(0) and SDRAM_OFFSET(SZ_1M) with size SZ_1M, PARAM_OPTEE_INFO_OFFSET = SZ_32M + SZ_2M, CONFIG_SYS_SDRAM_BASE 0, SZ_1M = 0x00100000
+          - states: SZ_2M is 0x00200000 and SZ_32M is 0x02000000
+            support:
+              - class: src
+                anchors:
+                  - {repo: radxa-u-boot-gpl2, path: include/linux/sizes.h, lines: [34, 38], symbol: SZ_32M}
+          - assumption: stock-build-identity
+        derivation: >-
+          SDRAM_OFFSET(x) is CONFIG_SYS_SDRAM_BASE + x = x; a region of SZ_1M from 0 ends at
+          0xFFFFF and one from 0x100000 ends at 0x1FFFFF; 0x2000000 + 0x200000 = 0x2200000
+    todo:
+      check: hardware
+      text: >-
+        dump the stock loader's `bidram` reservations (its boot log with debug, or the memory node
+        and reserved-memory entries in the tree it passes) and compare.
+    scope:
+      builds: [Radxa vendor U-Boot next-dev-v2024.10 (2017.09 base)]
 
   - id: stock-netboot
     section: gotchas

@@ -38,6 +38,7 @@ resources:
       status: merged
       files:
         - {path: Documentation/devicetree/bindings/arm/cpus.yaml, license_from: spdx-line}
+        - {path: drivers/irqchip/irq-gic-v3.c, license_from: spdx-line}
       verified: 2026-10-09
       fetch: ok
       fetch_via: git
@@ -216,7 +217,8 @@ facts:
       - class: DT
         anchors:
           - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi, lines: [401, 404], node: psci}
-          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi, lines: [355, 359], node: scmi}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi, lines: [356, 372], node: scmi}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi, lines: [94, 98], node: cpu@0}
     todo:
       check: hardware
       text: the tree states what a kernel should use, not what the firmware implements; call PSCI_VERSION through SMC on a board.
@@ -240,15 +242,52 @@ facts:
       - {fact: "rk3588@hardware-specs-docs#interrupt-map", relation: qualifies}
       - {fact: "rk3588@hardware-specs-docs#uart-programming-model", relation: qualifies}
 
+  - id: dt-intids
+    section: quick-facts
+    title: GIC INTIDs of the tree's interrupts
+    claim: >-
+      The device-tree interrupt numbers above are relative to their type, not INTIDs. Adding 32
+      to SPIs and 16 to PPIs gives INTID 365 for UART2 (`GIC_SPI 333`); 238, 235 and 237 for
+      `sfc`, `sdmmc` and `sdhci` (SPIs 206, 203, 205); 29, 30, 27, 26 and 28 for the secure
+      physical, physical, virtual, hypervisor physical and hypervisor virtual timers (PPIs 13,
+      14, 11, 10, 12); and 25 for the GIC maintenance interrupt (PPI 9).
+    support:
+      - class: inference
+        confidence: high
+        premises:
+          - fact: "#dt-uart2-node"
+            uses: GIC_SPI 333
+          - fact: "#dt-storage-nodes"
+            uses: GIC_SPI 206, 203, 205
+          - fact: "#dt-timer-node"
+            uses: GIC_PPI 13, 14, 11, 10, 12
+          - fact: "#dt-gic-node"
+            uses: maintenance interrupt PPI 9
+          - states: Linux's GICv3 driver turns a device-tree SPI number n into hwirq n + 32 and a PPI number n into hwirq n + 16
+            support:
+              - class: src
+                anchors:
+                  - {repo: linux-gpl2, path: drivers/irqchip/irq-gic-v3.c, lines: [1604, 1614], symbol: gic_irq_domain_translate}
+        derivation: >-
+          the GICv3 driver's hwirq is the INTID it programs into the distributor and
+          redistributors, so each INTID is the tree's number plus the type's base (32 for SPI,
+          16 for PPI)
+    todo:
+      check: hardware
+      text: >-
+        on a board, enable UART2's transmit-empty interrupt and read GICD_ISPENDR11 bit 13 (INTID
+        365), and read the virtual timer's pending bit in GICR_ISPENDR0 (bit 27).
+
   - id: dt-uart2-m0-pins
     section: quick-facts
     title: UART2 M0 pin group
+    critical: true
     claim: >-
       `uart2m0_xfer` puts GPIO0_B6 (RX) and GPIO0_B5 (TX) in function 10 with pull-ups.
     support:
       - class: DT
         anchors:
-          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-base-pinctrl.dtsi, lines: [3210, 3218], node: uart2m0-xfer}
+          - {repo: linux-dts, path: arch/arm64/boot/dts/rockchip/rk3588-base-pinctrl.dtsi, lines: [3212, 3218], node: uart2m0-xfer}
     relates:
       - {fact: "rk3588@hardware-specs-docs#uart2-pinmux", relation: qualifies}
 
@@ -302,14 +341,45 @@ facts:
     title: TF-A memory layout
     critical: true
     claim: >-
-      TF-A's RK3588 port uses the first 1 MB of DRAM as trusted RAM (`0x0`–`0xFFFFF`) and places
-      BL31 at `0x40000` up to `0x100000`. From `0x100000` it keeps a shared-memory area: 15 pages
-      (60 KB) of shared memory, then the 4 KB SCMI shared memory at `0x10F000`.
+      TF-A's RK3588 port defines trusted RAM as `TZRAM_BASE` 0 with `TZRAM_SIZE` `0x100000` (the
+      first 1 MB of DRAM) and places BL31 from `TZRAM_BASE + 0x40000` up to `TZRAM_BASE +
+      TZRAM_SIZE`. Its DDR shared-memory region starts at `SIZE_K(1024)` (the comment calls it
+      "1M~2M"): 15 pages of 4 KB (`SHARE_MEM_PAGE_NUM`), then the 4 KB SCMI shared memory at
+      `SHARE_MEM_BASE + SHARE_MEM_SIZE`, where `SIZE_K(n)` is `n * 1024`.
     support:
       - class: src
         anchors:
           - {repo: tf-a, path: plat/rockchip/rk3588/include/platform_def.h, lines: [71, 82], symbol: BL31_BASE}
+          - {repo: tf-a, path: plat/rockchip/rk3588/rk3588_def.h, lines: [10, 10], symbol: SIZE_K}
           - {repo: tf-a, path: plat/rockchip/rk3588/rk3588_def.h, lines: [152, 165], symbol: SCMI_SHARE_MEM_BASE}
+    scope:
+      builds: [TF-A v2.14 (mainline)]
+
+  - id: tfa-scmi-shmem-address
+    section: quick-facts
+    title: Where TF-A puts the SCMI shared memory
+    critical: true
+    claim: >-
+      Mainline TF-A's RK3588 BL31 occupies `0x40000`–`0xFFFFF`, its shared memory starts at
+      `0x100000`, and its SCMI shared memory is the 4 KB page at `0x10F000`–`0x10FFFF`, the
+      address the device tree's `scmi_shmem` reservation gives.
+    support:
+      - class: inference
+        confidence: high
+        premises:
+          - fact: "#tfa-memory-layout"
+            uses: TZRAM 0 + 0x100000, BL31 from 0x40000, SHARE_MEM_BASE = SIZE_K(1024), 15 pages of SIZE_K(4), SCMI after them, SIZE_K(n) = n * 1024
+          - fact: "#dt-scmi-shmem"
+            uses: the tree's SCMI shared memory at 0x10f000
+        derivation: >-
+          BL31 ends at TZRAM_BASE + TZRAM_SIZE = 0x100000, so its last byte is 0xFFFFF;
+          SIZE_K(1024) = 0x100000; 15 × 4 KB = 0xF000, so SCMI_SHARE_MEM_BASE = 0x10F000 and its
+          4 KB ends at 0x10FFFF, matching the tree's 0x10f000
+    todo:
+      check: hardware
+      text: >-
+        under mainline TF-A, confirm the SCMI channel works with the tree's shmem at 0x10f000 (an
+        SCMI clock rate read from Linux succeeds).
     scope:
       builds: [TF-A v2.14 (mainline)]
 
@@ -318,14 +388,19 @@ facts:
     title: U-Boot reports DRAM from 2 MB
     critical: true
     claim: >-
-      Mainline U-Boot starts the first DRAM bank it reports at 2 MB, treating `0x0`–`0x1FFFFF` as
-      reserved for BL31 even when the DRAM layout from the DDR blob includes it, and cuts holes for
-      the reserved ranges of its own memory map.
+      Mainline U-Boot starts the first DRAM bank it reports at `CFG_SYS_SDRAM_BASE + SZ_2M`, and
+      `CFG_SYS_SDRAM_BASE` is 0 on the RK3588, so the first 2 MB of DRAM are kept out as reserved
+      for BL31 even when the DRAM layout from the DDR blob includes them. Its comment says BL31
+      reserves the first 2 MB. It also cuts holes for the reserved (non-DRAM) ranges of its own
+      memory map. The fallback path without the blob's layout also starts at 2 MB.
     support:
       - class: src
         anchors:
-          - {repo: u-boot, path: arch/arm/mach-rockchip/sdram.c, lines: [182, 194], symbol: rockchip_dram_init_banksize, comment: true}
+          - {repo: u-boot, path: arch/arm/mach-rockchip/sdram.c, lines: [182, 185], symbol: rockchip_dram_init_banksize, comment: true}
+          - {repo: u-boot, path: arch/arm/mach-rockchip/sdram.c, lines: [186, 189], symbol: CFG_SYS_SDRAM_BASE}
+          - {repo: u-boot, path: arch/arm/mach-rockchip/sdram.c, lines: [191, 222], symbol: tmp_mem_map}
           - {repo: u-boot, path: arch/arm/mach-rockchip/sdram.c, lines: [321, 323], symbol: dram_init_banksize}
+          - {repo: u-boot, path: include/configs/rk3588_common.h, lines: [14, 14], symbol: CFG_SYS_SDRAM_BASE}
     scope:
       builds: [U-Boot v2026.10 (mainline)]
 
@@ -334,20 +409,50 @@ facts:
     title: U-Boot's RK3588 memory map
     critical: true
     claim: >-
-      U-Boot maps `0x0`–`0xEFFF_FFFF` as normal memory (`0x10F000`–`0x10FFFF` non-cacheable for
-      SCMI), `0xF000_0000`–`0xFFFF_FFFF` as device, then normal memory `0x1_0000_0000`–
-      `0x3_FBFF_FFFF`, `0x3_FC50_0000`–`0x3_FFEF_FFFF` and `0x4_0000_0000`–`0x7_FFFF_FFFF`, and
-      device `0x9_0000_0000`–`0xA_4FFF_FFFF`. DRAM below 4 GB is capped at `0xF000_0000`
-      (`SDRAM_MAX_SIZE`), and the map leaves out `0x3_FC00_0000`–`0x3_FC4F_FFFF`.
+      U-Boot's `rk3588_mem_map` lists these regions as base and size: normal memory `0x0` +
+      `0x10_F000`; normal non-cacheable `0x10_F000` + `0x1000` (its comment: the SCMI shared
+      memory); normal `0x11_0000` + `0xEFEF_0000`; device `0xF000_0000` + `0x1000_0000`; normal
+      `0x1_0000_0000` + `0x2_FC00_0000`, `0x3_FC50_0000` + `0x3A0_0000` and `0x4_0000_0000` +
+      `0x4_0000_0000`; and device `0x9_0000_0000` + `0x1_5000_0000`. `CFG_SYS_SDRAM_BASE` is 0 and
+      `SDRAM_MAX_SIZE` is `0xf0000000`, and `board_get_usable_ram_top` keeps U-Boot below the
+      lower of `CFG_SYS_SDRAM_BASE + SDRAM_MAX_SIZE` and 4 GB.
     support:
       - class: src
         anchors:
           - {repo: u-boot-gpl2, path: arch/arm/mach-rockchip/rk3588/rk3588.c, lines: [63, 119], symbol: rk3588_mem_map}
           - {repo: u-boot, path: include/configs/rk3588_common.h, lines: [14, 15], symbol: SDRAM_MAX_SIZE}
+          - {repo: u-boot, path: arch/arm/mach-rockchip/sdram.c, lines: [297, 303], symbol: board_get_usable_ram_top}
     scope:
       builds: [U-Boot v2026.10 (mainline)]
     relates:
       - {fact: "rk3588@hardware-specs-docs#address-map", relation: qualifies}
+
+  - id: uboot-memory-map-ranges
+    section: quick-facts
+    title: U-Boot's RK3588 memory map as address ranges
+    critical: true
+    claim: >-
+      Mainline U-Boot maps `0x0`–`0xEFFF_FFFF` as normal memory (`0x10F000`–`0x10FFFF`
+      non-cacheable), `0xF000_0000`–`0xFFFF_FFFF` as device, normal memory `0x1_0000_0000`–
+      `0x3_FBFF_FFFF`, `0x3_FC50_0000`–`0x3_FFEF_FFFF` and `0x4_0000_0000`–`0x7_FFFF_FFFF`, and
+      device `0x9_0000_0000`–`0xA_4FFF_FFFF`. The map leaves out `0x3_FC00_0000`–`0x3_FC4F_FFFF`,
+      and U-Boot's use of DRAM below 4 GB is capped at `0xF000_0000`.
+    support:
+      - class: inference
+        confidence: high
+        premises:
+          - fact: "#uboot-memory-map"
+            uses: each region's base and size, CFG_SYS_SDRAM_BASE 0 and SDRAM_MAX_SIZE
+        derivation: >-
+          each range runs from base to base + size - 1; the first three normal regions are
+          contiguous (0x10F000 + 0x1000 = 0x110000, 0x110000 + 0xEFEF0000 = 0xF0000000); the
+          region ending at 0x3_FC00_0000 and the one starting at 0x3_FC50_0000 leave the gap
+          between them; DRAM below 4 GB ends at CFG_SYS_SDRAM_BASE (0) + SDRAM_MAX_SIZE
+    todo:
+      check: hardware
+      text: run `bdinfo` and `meminfo` in mainline U-Boot on an RK3588 board and compare the printed regions.
+    scope:
+      builds: [U-Boot v2026.10 (mainline)]
 
   - id: uboot-load-addresses
     section: quick-facts
@@ -380,6 +485,7 @@ facts:
   - id: uboot-debug-uart-pinmux
     section: quick-facts
     title: U-Boot's early console pin setup
+    critical: true
     claim: >-
       Mainline U-Boot's `board_debug_uart_init` for the RK3588 selects UART2 M0 in two levels: in
       `PMU2_IOC`'s `gpio0b_iomux_sel_h` it writes 8 ("refer to BUS_IOC") to the GPIO0_B5 field
@@ -419,7 +525,7 @@ facts:
     support:
       - class: src
         anchors:
-          - {repo: u-boot-gpl2, path: arch/arm/mach-rockchip/rk3588/rk3588.c, lines: [44, 48], symbol: BROM_BOOTSOURCE_FSPI_M0, comment: true}
+          - {repo: u-boot-gpl2, path: arch/arm/mach-rockchip/rk3588/rk3588.c, lines: [44, 50], symbol: BROM_BOOTSOURCE_FSPI_M0, comment: true}
           - {repo: u-boot-gpl2, path: arch/arm/mach-rockchip/rk3588/rk3588.c, lines: [49, 61], symbol: boot_devices}
     scope:
       builds: [U-Boot v2026.10 (mainline)]
