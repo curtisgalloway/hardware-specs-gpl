@@ -5,9 +5,18 @@ spec: bcm2711
 spec_file: bcm2711.spec.yaml
 spec_sha256: 41b74cf65f855fe514fc803837672dff5605843738e7866f4f7db7e1b06a9b03
 canonical: fact-v1
-sources: []
+sources:
+- name: linux
+  commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+  fetch: ok
+  note: bcm2711.dtsi, bcm283x.dtsi and the other BCM2711 board files read at the pin
+- name: bcm2711-peripherals
+  url: https://datasheets.raspberrypi.com/bcm2711/bcm2711-peripherals.pdf
+  sha256: d6e16ea089a1716e80621f99a26e130a2379f0a81d945dc22e4f80dc49dcdc78
+  fetch: ok
+  note: hash matches declared; section 1.2.3 read for the docs premise
 summary:
-  pass: 17
+  pass: 19
   fail: 0
   unverifiable: 0
   gap: 0
@@ -183,6 +192,19 @@ verdicts:
       path: specs/resources/bcm2711.verify.md
       key: Quick-facts/8 "UART nodes"
       format: 1
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader bcm2711-sf2-10b-second
+      verdict: PASS
+      date: '2026-10-09'
+      note: 'bcm283x.dtsi 304-312: uart0 serial@7e201000, arm,pl011 + arm,primecell, reg size 0x200,
+        clocks BCM2835_CLOCK_UART and BCM2835_CLOCK_VPU from cprman (line 86) named uartclk and apb_pclk;
+        385-391 uart1 serial@7e215040 brcm,bcm2835-aux-uart. bcm2711.dtsi 130-172: uart2-5 at 7e201400-7e201a00,
+        same compatibles, reg 0x200, GIC_SPI 121 level-high, periphid 0x00341011, status disabled;
+        1159-1185: spi1, spi2 and uart1 on GIC_SPI 93, uart0 overridden to periphid 0x00341011 and
+        GIC_SPI 121. 121+32 = 153 and 93+32 = 125. Matches. Licenses: bcm2711.dtsi SPDX GPL-2.0; bcm283x.dtsi
+        has no SPDX line and the tree COPYING at the pin gives GPL-2.0 only, matching the declared
+        GPL-2.0-only for this license-file entry. Contrary search: arm and arm64 bcm2711 board files
+        override only pinctrl and status on uart0/uart1; none found.'
   system-timer-and-gpio:
     basis: b84fe3c5377503947bad668901e37cf3dff76635cfd1bd5803c5f72176c1b335
     verdict: PASS
@@ -385,3 +407,58 @@ verdicts:
       path: specs/resources/bcm2711.verify.md
       key: Gotchas/1 "Take PCIe DMA bounds from the live tree"
       format: 1
+  address-translation-in-the-tree:
+    basis: aa728e6ead4401440bb15f0a8c9061e3d6719bd9d8f6a6d1d04e345a3d85496d
+    verdict: PASS
+    date: '2026-10-09'
+    verifier: Claude Code, claude-sonnet-5-5, reader bcm2711-sf2-10b-primary-src
+    note: 'arch/arm/boot/dts/broadcom/bcm2711.dtsi at the pin: lines 10-11 #address-cells = <2>, #size-cells
+      = <1>. Lines 41-43 soc ranges (soc has one address and one size cell in bcm283x.dtsi, so entries
+      are child, 2-cell parent, size): 0x7e000000 to 0x0_fe000000 size 0x01800000 (24 MB), 0x7c000000
+      to 0xfc000000 size 0x02000000 (32 MB), 0x40000000 to 0xff800000 size 0x00800000 (8 MB). Line
+      45 dma-ranges <0xc0000000 0x0 0x00000000 0x40000000>: bus 0xC000_0000 to physical 0, 1 GB. The
+      tree addresses ARM Local at 0x40000000 (local_intc reg, line 53). All values and units match
+      the claim. Contrary search: grep of the other BCM2711 files at the pin (bcm2711-rpi.dtsi, -rpi-4-b.dts,
+      -rpi-400.dts, -rpi-cm4.dtsi, -rpi-cm4-io.dts, bcm2835-rpi.dtsi, bcm283x.dtsi) for ranges overrides,
+      0x4c bases or a high-peripheral variant: only unrelated empty ranges; nothing overrides the
+      soc ranges. SPDX line of bcm2711.dtsi is GPL-2.0, consistent with the declared GPL-2.0-only.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader bcm2711-sf2-10b-second
+      verdict: PASS
+      date: '2026-10-09'
+      note: 'arch/arm/boot/dts/broadcom/bcm2711.dtsi at Linux 8d3ae592 lines 10-11 (#address-cells
+        2, #size-cells 1) and 41-45: ranges 0x7e000000 -> 0x0 0xfe000000 size 0x01800000 (24 MB),
+        0x7c000000 -> 0xfc000000 size 0x02000000 (32 MB), 0x40000000 -> 0xff800000 size 0x00800000
+        (8 MB); dma-ranges 0xc0000000 -> 0x0 size 0x40000000. Matches. SPDX GPL-2.0 line 1. Contrary
+        search: board files under arch/arm and arch/arm64 for overriding ranges, and the emmc2bus
+        (line 423) and scb-bus (line 550) ranges; they use the same 0xfe/0xfc targets; none found.'
+  tree-describes-low-peripheral-mode:
+    basis: dbf6d8c83e7fb277a6c37680a7d0be435196d98e890355b52fc00e400ed009ae
+    upstream:
+      bcm2711@hardware-specs-docs#addressing-model: bdb6cd64a8704e9266c360b47346c7b32b863049a2008ccc0204013123814bb9
+    verdict: PASS
+    date: '2026-10-09'
+    verifier: Claude Code, claude-sonnet-5-5, reader bcm2711-sf2-10b-primary-src
+    note: 'Declared inference from #address-translation-in-the-tree (verified above) and the docs
+      fact addressing-model, whose text I checked against bcm2711-peripherals section 1.2.3 printed
+      page 5: Low Peripheral mode gives the Arm Main peripherals at 0x0_FC00_0000-0x0_FF7F_FFFF and
+      ARM Local at 0x0_FF80_0000-0x0_FFFF_FFFF, full map 0x4_7C00_0000 and 0x4_C000_0000. The tree''s
+      physical targets 0xFC00_0000-0xFDFF_FFFF, 0xFE00_0000-0xFF7F_FFFF and 0xFF80_0000-0xFFFF_FFFF
+      fall in the Low Peripheral ranges and none in the full-map ranges, so the derivation holds.
+      The GIC node (reg 0x40041000 inside the third range, so 0xFF84_1000) is consistent. The claim
+      is about what the tree describes, not what a booted board does; the hardware TODO (compare the
+      live tree with arm_peri_high=1) can observe that. No premise carries a citation-pass TODO.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: Claude Code, claude-opus-5-5, reader bcm2711-sf2-10b-second
+      verdict: PASS
+      date: '2026-10-09'
+      note: 'The soc targets 0xFE00_0000, 0xFC00_0000 and 0xFF80_0000 lie in the docs root''s Low
+        Peripheral ranges (datasheet p6), not the full-map 0x4_7C00_0000 and 0x4_C000_0000; the derivation
+        is sound and both premises are declared. Contrary search: every ranges property in bcm2711.dtsi
+        and the arm64 board files; emmc2bus and scb-bus also target 0xFE/0xFC, and the PCIe window
+        at 0x6_0000_0000 is the same in both maps; none found. The TODO only corroborates (a high-peripheral
+        DTB should differ); it does not cover an unsupported part.'
