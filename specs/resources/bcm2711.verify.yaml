@@ -15,6 +15,10 @@ sources:
   sha256: d6e16ea089a1716e80621f99a26e130a2379f0a81d945dc22e4f80dc49dcdc78
   fetch: ok
   note: hash matches declared; section 1.2.3 read for the docs premise
+- name: rpi-tools
+  commit: 439b6198a9b340de5998dd14a26a0d9d38a6bcac
+  fetch: ok
+  note: armstubs/armstub8.S read for the related timer-frequency fact only.
 summary:
   pass: 19
   fail: 0
@@ -301,32 +305,26 @@ verdicts:
       key: Quick-facts/13 "GENET"
       format: 1
   pcie-and-the-soc-s-xhci:
-    basis: f962de20f8cc8ec6dba41cbd8564ed9d8ba27eade72f1ba64c6fe68759c6053c
+    basis: 70af57097f892758a9bc7a145a7e93048e0b74fa4993bd1848c9dc25476d011a
+    upstream:
+      bcm2711@hardware-specs-docs#usb-controllers: bf582b754128810b366a96a73975cdbb13f49bbe5cca47e31a9d8dd50b3cdc33
     verdict: PASS
-    date: '2026-10-08'
-    verifier: Claude Opus 5.5, Claude Code subagent (delta verification of d4721e5 against the 89557f7
-      record; second reader run separately)
-    note: 'lines 553-585: `brcm,bcm2711-pcie` at
-
-      0x7d500000, GIC_SPI 147 and 148 named pcie and msi, interrupt-map INTA-INTD to GIC_SPI 143-146
-
-      (IDs 175-178); ranges maps PCI 0xf8000000 to CPU 0x6_0000_0000 for 0x04000000 (64 MB), which
-
-      the scb-bus (line 551) maps identically to the parent; dma-ranges is PCI 0x0 to CPU 0x0 for
-
-      0xc0000000 (3 GB), with the wrapper-bug comment (lines 577-581) attributed. Lines 605-618: xhci
-
-      `brcm,bcm2711-xhci` at 0x7e9c0000, GIC_SPI 176 (ID 208), disabled, with the shared-PHY comment
-
-      attributed. The docs spec''s USB bullet does describe a separate PCIe-attached USB 3.0 controller
-
-      on the 4B and 400. No board file overrides the pcie0 dma-ranges.'
-    carried_from:
-      repo: hardware-specs-gpl
-      commit: ee658356abb8527b90bf8000cfca9f07f2657553
-      path: specs/resources/bcm2711.verify.md
-      key: Quick-facts/14 "PCIe and the SoC's xHCI"
-      format: 1
+    date: '2026-10-09'
+    verifier: Claude Code, claude-sonnet-5-5, reader bcm2711-sf2-11-primary
+    note: 'linux 8d3ae592 arch/arm/boot/dts/broadcom/bcm2711.dtsi lines 545-618: pcie@7d500000 compatible
+      brcm,bcm2711-pcie, SPIs 147 (pcie) and 148 (msi), interrupt-map SPIs 143-146 (IDs 175-178),
+      ranges 0x02000000 0x0 0xf8000000 0x6 0x0 size 0x04000000 (64 MB), dma-ranges identity 0..0xc0000000
+      (3 GB) under the comment about a wrapper bug; xhci@7e9c0000 compatible brcm,bcm2711-xhci, SPI
+      176 (ID 208), status disabled, with the shared-PHY lockup comment and bootloader-decides text.
+      All values match. The relation (qualifies bcm2711@hardware-specs-docs#usb-controllers) fits:
+      that docs fact says the main USB ports are a separate PCIe-attached USB 3.0 controller and the
+      SoC''s xHCI is the otg_mode=1 host option; this claim adds that the SoC xHCI node is a different,
+      disabled-by-default controller, and the xhci node sits on the SoC bus, not under the PCIe node.
+      The negative "not the PCIe-attached controller" is supported by that placement together with
+      the related docs fact. Read neighboring nodes (genet, v3d) and the scb-bus ranges; no conflicting
+      statement. Resolve: 37 anchors resolved, 0 skipped.'
+    contrary_evidence: none-found
+    citation_precision: exact
   the-3-gb-inbound-limit-is-a-default-tied-to-early-revisions:
     basis: 0a288397ce558806cb736eb45ee57f1628f924b523123e06d4da67b745204b5f
     verdict: PASS
@@ -369,22 +367,21 @@ verdicts:
       key: Quick-facts/16 "Board dependence"
       format: 1
   system-oscillator:
-    basis: 4b54c1cf8357f51fbccaa9d8e2aea28e92f70b521e0e9ce453ddf635285be351
+    basis: 2b76cb800fd936569d2f390640ade3a79e02d84881c48cf5f05bd87b77f41dcb
+    upstream:
+      bcm2711@hardware-specs-permissive#generic-timer-frequency: b4dcb97cd4491cb5c4302f34ec140b3a26a970ba5e6d3921db235268d3ac639c
     verdict: PASS
-    date: '2026-10-08'
-    verifier: Claude Opus 5.5, Claude Code subagent (delta verification of d4721e5 against the 89557f7
-      record; second reader run separately)
-    note: 'bcm2711.dtsi lines 633-635 set clk_osc
-
-      clock-frequency to 54000000; the permissive overlay''s "Generic timer frequency" bullet gives
-
-      54000000 for CNTFRQ_EL0, so "consistent with" holds; the bullet does not claim a measurement.'
-    carried_from:
-      repo: hardware-specs-gpl
-      commit: ee658356abb8527b90bf8000cfca9f07f2657553
-      path: specs/resources/bcm2711.verify.md
-      key: Quick-facts/17 "System oscillator"
-      format: 1
+    date: '2026-10-09'
+    verifier: Claude Code, claude-sonnet-5-5, reader bcm2711-sf2-11-primary
+    note: 'linux 8d3ae592 arch/arm/boot/dts/broadcom/bcm2711.dtsi lines 633-635: "&clk_osc { clock-frequency
+      = <54000000>; };" (cited 632-634 includes the property line; the node''s closing brace is one
+      line past the range). clk_osc is defined in bcm283x.dtsi:506. The claim is correctly limited
+      to a declared value. Relation (qualifies bcm2711@hardware-specs-permissive#generic-timer-frequency)
+      fits: armstubs/armstub8.S at the rpi-tools pin defines OSC_FREQ 54000000 (line 54, under a conditional
+      with a 19200000 alternative at line 56) and loads it at line 111, matching 54 MHz. Searched
+      bcm2711.dtsi and bcm283x.dtsi for other clk_osc overrides; none.'
+    contrary_evidence: none-found
+    citation_precision: exact
   take-pcie-dma-bounds-from-the-live-tree:
     basis: 400b7b890386387db27b342c46da7debb9a03c2b6684ef1905b07f53a9cad583
     verdict: PASS

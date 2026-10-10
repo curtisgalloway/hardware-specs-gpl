@@ -23,7 +23,7 @@ document with a page or section, or lines of a source tree at a pinned commit, a
 has a verification record holding each fact's verdict. Every push and pull request runs
 driver-lab's `spec.py` over the whole repository: a malformed record, a citation that does not
 resolve, a source whose license this repository does not accept, or a fact without a current
-verdict fails the build.
+verdict fails the build (on `main`, a verdict staled only by another repository's change warns instead; see the checks below).
 
 **Terms.** A *spec* is a hardware description that driver authors, people or AI agents, read
 instead of the original sources. A *fact* is one record in it: a claim with a stable id and its
@@ -95,7 +95,7 @@ dependencies from its hash-pinned `skills/spec-format/requirements.txt`, and run
 
 1. `check`: `spec.py check specs --require-license --require-verified <mode>`. The root
    marker, every spec and record against the schemas, names and references, composition, the
-   license gate (every repos entry, cited or not) and each fact's verdict. The other spec repositories' `specs/` (hardware-specs-docs, then hardware-specs-permissive, at their `main`) are read as context roots (`--context-root`) so that overlays and root-qualified fact references resolve: their own errors are warnings here and fail only in their own repository's checks. On pull
+   license gate (every repos entry, cited or not) and each fact's verdict. The other spec repositories' `specs/` (hardware-specs-docs, then hardware-specs-permissive, at their `main`) are read as context roots (`--context-root`) so that overlays and root-qualified fact references resolve: a context root's own errors make that root untrusted, and a reference into an untrusted root then fails here, so fix the root first. On pull
    requests the mode is `pr`: a fact with no verdict, a stale one, or one staled by a change in
    another repository it references fails, so nothing merges unverified. On `main` the mode is
    `main`: a fact staled only by another repository's change is a warning, so an upstream merge
@@ -137,6 +137,8 @@ script needs bash and a Python with exactly the pinned packages (the interpreter
 Exit codes: 0 passed, 1 a check failed, 2 usage error, 3 missing precondition.
 
 Check out the driver-lab commit that `.github/workflows/checks.yml` pins for an identical run.
+
+The driver-lab pins (`TOOL_COMMIT` and the driver-lab checkout in `checks.yml` and `publish.yml`) should be bumped dependents-first or together: a repository that other spec repositories read as a context root must not move to a newer driver-lab than the repositories reading it, or those repositories may reject it.
 
 ## License
 

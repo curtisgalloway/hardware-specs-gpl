@@ -382,6 +382,8 @@ facts:
       lines:
       - 545
       - 618
+  relates:
+  - {fact: 'bcm2711@hardware-specs-docs#usb-controllers', relation: qualifies}
 - id: the-3-gb-inbound-limit-is-a-default-tied-to-early-revisions
   section: quick-facts
   title: The 3 GB inbound limit is a default, tied to early revisions
@@ -459,6 +461,8 @@ facts:
       lines:
       - 632
       - 634
+  relates:
+  - {fact: 'bcm2711@hardware-specs-permissive#generic-timer-frequency', relation: qualifies}
 - id: take-pcie-dma-bounds-from-the-live-tree
   section: gotchas
   title: Take PCIe DMA bounds from the live tree
@@ -490,6 +494,7 @@ facts:
 orientation: |-
   Adds to the `bcm2711` spec in `hardware-specs-docs` the facts that only the Linux device trees
   state. Every BCM2711 device-tree file in Linux is `GPL-2.0` only, so these facts live here. Each
-  `[DT]` parenthetical names the file and lines in the `linux` entry above (Linux v7.2). Interrupt
+  fact's `support` anchors it to the file and lines of the `linux` entry above (Linux v7.2), and
+  `relates` entries link a fact to the facts it qualifies in the other roots. Interrupt
   cells are the device tree's GIC cells: an SPI cell `n` is GIC interrupt ID `32 + n`, a PPI cell
   `n` is ID `16 + n`, which the cross-checks against the datasheet's IDs below bear out.
