@@ -88,8 +88,9 @@ facts:
 - id: addressing
   section: identity
   claim: The register table uses byte offsets for UART2 reg-shift 2. U-Boot scales each logical slot by
-    1 << reg_shift, adds reg_offset, and defaults reg_offset to zero. Its dynamic reg_width 4 path uses
-    32-bit accesses. Linux dw8250_serial_in32/out32 use readl/writel at membase + (index << regshift).
+    1 << reg_shift, adds reg_offset, and defaults reg_offset to zero. With CONFIG_NS16550_DYNAMIC and
+    NS16550_FLAG_IO clear, its reg_width == 4 branch uses 32-bit accesses; IO mode takes the preceding
+    byte-access branch. Linux dw8250_serial_in32/out32 use readl/writel at membase + (index << regshift).
     Extended DLF/CPR/UCV offsets bypass regshift. Width means observed transaction size, not proved silicon
     width.
   requirement: as-implemented
@@ -120,13 +121,13 @@ facts:
     - repo: uboot
       path: drivers/serial/ns16550.c
       lines:
-      - 109
+      - 103
       - 116
       symbol: serial_out_dynamic
     - repo: uboot
       path: drivers/serial/ns16550.c
       lines:
-      - 129
+      - 125
       - 136
       symbol: serial_in_dynamic
     - repo: linux-uart
@@ -531,6 +532,12 @@ facts:
           - 138
           symbol: UART_FCR_CLEAR_RCVR
           comment: true
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 147
+          - 147
+          symbol: UART_FCR_RXSR
       requirement: as-implemented
     - id: txclear
       name: UART_FCR_CLEAR_XMIT
@@ -548,6 +555,12 @@ facts:
           - 139
           symbol: UART_FCR_CLEAR_XMIT
           comment: true
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 148
+          - 148
+          symbol: UART_FCR_TXSR
       requirement: as-implemented
     - id: dma
       name: UART_FCR_DMA_SELECT
@@ -1310,6 +1323,30 @@ facts:
       - 350
       - 350
       symbol: dw8250_serial_in32
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dwlib.h
+      lines:
+      - 98
+      - 110
+      symbol: dw8250_readl_ext
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 132
+      - 132
+      symbol: dw8250_idle_enter
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 167
+      - 167
+      symbol: dw8250_idle_enter
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 844
+      - 846
+      symbol: dw8250_dw_apb
   critical: true
   relates:
   - fact: rk3588@hardware-specs-gpl#dt-uart2-node
@@ -1409,6 +1446,12 @@ facts:
           - 70
           - 70
           symbol: DW_UART_CPR_FIFO_MODE
+        - repo: linux-uart
+          path: drivers/tty/serial/8250/8250_dwlib.h
+          lines:
+          - 73
+          - 73
+          symbol: DW_UART_CPR_FIFO_SIZE
   support:
   - class: src
     anchors:
@@ -1997,8 +2040,10 @@ facts:
       symbol: dw8250_reset_control_assert
 - id: linux-busy-divisor
   section: sequences
-  claim: Linux integer-divisor path uses an idle transition; discard/flush operations make this unsuitable
-    as a lossless runtime reconfiguration recipe.
+  claim: Linux dw8250.c integer-divisor callback with uart_16550_compatible false uses this idle transition.
+    Discard/flush operations make this unsuitable as a lossless runtime reconfiguration recipe. Fractional
+    callback installation replaces this callback, as described in fractional-baud; this sequence does
+    not concatenate those two paths.
   requirement: as-implemented
   data:
     sequence:
@@ -2085,8 +2130,8 @@ facts:
             symbol: default_serial_dl_write
         requirement: as-implemented
       - id: restore
-        action: On either DLAB failure or completion, idle exit restores FCR when FIFO-capable, MCR and
-          IER; resumes TX DMA when configured.
+        action: On either DLAB failure or completion, when uart_16550_compatible is false, idle_exit restores
+          FCR if FIFO-capable, MCR and IER, and resumes TX DMA if configured.
         support:
         - class: src
           anchors:
@@ -2100,7 +2145,7 @@ facts:
             path: drivers/tty/serial/8250/8250_dw.c
             lines:
             - 107
-            - 119
+            - 117
             symbol: dw8250_idle_exit
         requirement: as-implemented
   critical: true
@@ -2161,6 +2206,27 @@ facts:
       - 107
       - 119
       symbol: dw8250_idle_exit
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 107
+      - 108
+      symbol: dw8250_idle_exit
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 139
+      - 140
+      symbol: dw8250_idle_enter
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 107
+      - 117
+      symbol: dw8250_idle_exit
+  relates:
+  - fact: '#fractional-baud'
+    relation: qualifies
 - id: linux-fractional-probe
   section: sequences
   claim: Linux optional fractional-divisor detection actively writes DLF; it preserves the original DLF

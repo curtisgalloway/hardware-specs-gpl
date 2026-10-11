@@ -4,7 +4,7 @@
 format: 2
 spec: rk3588-uart
 spec_file: rk3588-uart.spec.yaml
-spec_sha256: dec46424ac1a8ebd5452e9a9c543bd90be21108ddba129a7af0cb55eec30e72e
+spec_sha256: 05b0453c3eb9c6308d67ae88d424f0e634eb316ddaf1d5f421f89db76a3fe434
 canonical: fact-v1
 sources:
 - name: uboot
@@ -42,11 +42,11 @@ sources:
   note: Fetched exact URL and matched SHA256. Printed page 8 is PDF page 9; section 6.1.1 identifies connector
     pins 8/10 and GPIO0_B5/B6 UART2 M0 functions.
 summary:
-  pass: 101
+  pass: 108
   fail: 0
   unverifiable: 0
   gap: 6
-  adjudicate: 7
+  adjudicate: 0
 verdicts:
   reg-ier.rdi:
     basis: 3528999249a76c50112d62a74eb942b4dce62694a1aba28737a5ffd9b5e131a8
@@ -139,70 +139,83 @@ verdicts:
         137]. Parent scope and effective as-implemented requirement retained. Adjacent definitions/performing
         alternatives checked; no contrary value found.
   reg-fcr.rxclear:
-    basis: e869954779b1b5335509380bf6256dbb999111809c07fe829e0e050d19a24845
-    verdict: ADJUDICATE
+    basis: e4f382c2174fcef15930363e5db36c32912f7ba36543d2df608f0d7de37afbd8
+    verdict: PASS
     date: '2026-10-11'
-    verifier: GPT-6.1 Sol / Codex / verify_m1_uart primary
-    note: Independent primary and critical-reader verdicts differ at this original basis. Both readings
-      are retained verbatim below; user adjudication is pending.
+    verifier: Independent reader A; GPT-6.1 Sol Codex; session uart_delta_reader_a
+    note: U-Boot ns16550.h:138 comments CLEAR_RCVR 0x02 as receiver FIFO clear; line147 defines RXSR as
+      0x02. Adjacent register aliases/layout and transmitter/DMA definitions read; claim attributes naming
+      and equal masks only, without asserting silicon reset behavior.
     contrary_evidence: none-found
-    citation_precision: imprecise
+    citation_precision: exact
     readings:
     - verifier: GPT-6.1 Sol / Codex / verify_m1_uart primary
       verdict: FAIL
-      reasoning: 'uboot:include/ns16550.h:138-138. The cited line defines CLEAR_RCVR as 0x02 but does
-        not define the asserted RXSR alias. Full-header contrary search finds RXSR at :147 with the same
-        mask; no mask conflict exists, but the independently supported field citation omits part of its
-        meaning. Proposed correction: Add include/ns16550.h:147 for UART_FCR_RXSR or remove the RXSR equality
-        clause.'
+      reasoning: 'uboot:include/ns16550.h:138-138. The cited line defines CLEAR_RCVR as 0x02 but does not
+        define the asserted RXSR alias. Full-header contrary search finds RXSR at :147 with the same mask;
+        no mask conflict exists, but the independently supported field citation omits part of its meaning.
+        Proposed correction: Add include/ns16550.h:147 for UART_FCR_RXSR or remove the RXSR equality clause.'
     - verifier: GPT-6.1 Sol/Codex critical_m1_uart
       verdict: PASS
-      reasoning: Independently compared Header names this receiver FIFO clear; RXSR has the same mask
-        (U-Boot definition). against uboot:include/ns16550.h:[138, 138]. Parent scope and effective as-implemented
-        requirement retained. Adjacent definitions/performing alternatives checked; no contrary value
-        found. Alias-mask statement is correct at ns16550.h 147-148, but child anchor includes only clear-mask
+      reasoning: Independently compared Header names this receiver FIFO clear; RXSR has the same mask (U-Boot
+        definition). against uboot:include/ns16550.h:[138, 138]. Parent scope and effective as-implemented
+        requirement retained. Adjacent definitions/performing alternatives checked; no contrary value found.
+        Alias-mask statement is correct at ns16550.h 147-148, but child anchor includes only clear-mask
         definition; add the corresponding RXSR/TXSR definition to make entire claim repeatable.
+    adjudication:
+      decision: Apply the stricter correction and reverify. Fresh independent primary and second readings
+        support the corrected claim.
+      by: user
+      date: '2026-10-11'
+      rule: User selected option 1; preserve original dissent and settle only the freshly read corrected
+        basis.
     readers:
-    - verifier: GPT-6.1 Sol/Codex critical_m1_uart
+    - verifier: GPT-6.1 Sol, Codex, uart_delta_reader_c
       verdict: PASS
       date: '2026-10-11'
-      note: Independently compared Header names this receiver FIFO clear; RXSR has the same mask (U-Boot
-        definition). against uboot:include/ns16550.h:[138, 138]. Parent scope and effective as-implemented
-        requirement retained. Adjacent definitions/performing alternatives checked; no contrary value
-        found. Alias-mask statement is correct at ns16550.h 147-148, but child anchor includes only clear-mask
-        definition; add the corresponding RXSR/TXSR definition to make entire claim repeatable.
+      note: U-Boot ns16550.h 138 defines CLEAR_RCVR 0x02 with receiver FIFO clear comment; 147 gives RXSR
+        the same 0x02 mask. Bit 1 and attribution are exact. Adjacent definitions 134-151 distinguish transmitter
+        clear, trigger and device-specific enable. No contrary definition found; no silicon reset behavior
+        inferred.
   reg-fcr.txclear:
-    basis: 449da670a0a1b847ba482c77947e927b51d82bf300c96cd385e456b1a494ab0a
-    verdict: ADJUDICATE
+    basis: 4ab4053382c3121a9393fb2d0381cdddabd13bfe204a96db51a9afceb2a92774
+    verdict: PASS
     date: '2026-10-11'
-    verifier: GPT-6.1 Sol / Codex / verify_m1_uart primary
-    note: Independent primary and critical-reader verdicts differ at this original basis. Both readings
-      are retained verbatim below; user adjudication is pending.
+    verifier: Independent reader A; GPT-6.1 Sol Codex; session uart_delta_reader_a
+    note: U-Boot ns16550.h:139 comments CLEAR_XMIT 0x04 as transmitter FIFO clear; line148 defines TXSR
+      as 0x04. Adjacent receiver/DMA definitions and software layout read; claim attributes header naming
+      and mask equality only.
     contrary_evidence: none-found
-    citation_precision: imprecise
+    citation_precision: exact
     readings:
     - verifier: GPT-6.1 Sol / Codex / verify_m1_uart primary
       verdict: FAIL
-      reasoning: 'uboot:include/ns16550.h:139-139. The cited line defines CLEAR_XMIT as 0x04 but does
-        not define the asserted TXSR alias. Full-header search finds TXSR at :148 with the same mask;
-        no value conflict exists, but the independent field citation omits that equality. Proposed correction:
-        Add include/ns16550.h:148 for UART_FCR_TXSR or remove the TXSR equality clause.'
+      reasoning: 'uboot:include/ns16550.h:139-139. The cited line defines CLEAR_XMIT as 0x04 but does not
+        define the asserted TXSR alias. Full-header search finds TXSR at :148 with the same mask; no value
+        conflict exists, but the independent field citation omits that equality. Proposed correction: Add
+        include/ns16550.h:148 for UART_FCR_TXSR or remove the TXSR equality clause.'
     - verifier: GPT-6.1 Sol/Codex critical_m1_uart
       verdict: PASS
       reasoning: Independently compared Header names this transmitter FIFO clear; TXSR has the same mask
         (U-Boot definition). against uboot:include/ns16550.h:[139, 139]. Parent scope and effective as-implemented
-        requirement retained. Adjacent definitions/performing alternatives checked; no contrary value
-        found. Alias-mask statement is correct at ns16550.h 147-148, but child anchor includes only clear-mask
+        requirement retained. Adjacent definitions/performing alternatives checked; no contrary value found.
+        Alias-mask statement is correct at ns16550.h 147-148, but child anchor includes only clear-mask
         definition; add the corresponding RXSR/TXSR definition to make entire claim repeatable.
+    adjudication:
+      decision: Apply the stricter correction and reverify. Fresh independent primary and second readings
+        support the corrected claim.
+      by: user
+      date: '2026-10-11'
+      rule: User selected option 1; preserve original dissent and settle only the freshly read corrected
+        basis.
     readers:
-    - verifier: GPT-6.1 Sol/Codex critical_m1_uart
+    - verifier: GPT-6.1 Sol, Codex, uart_delta_reader_c
       verdict: PASS
       date: '2026-10-11'
-      note: Independently compared Header names this transmitter FIFO clear; TXSR has the same mask (U-Boot
-        definition). against uboot:include/ns16550.h:[139, 139]. Parent scope and effective as-implemented
-        requirement retained. Adjacent definitions/performing alternatives checked; no contrary value
-        found. Alias-mask statement is correct at ns16550.h 147-148, but child anchor includes only clear-mask
-        definition; add the corresponding RXSR/TXSR definition to make entire claim repeatable.
+      note: U-Boot ns16550.h 139 defines CLEAR_XMIT 0x04 with transmitter FIFO clear comment; 148 gives
+        TXSR the same 0x04 mask. Bit 2 and attribution are exact. Adjacent definitions 134-151 distinguish
+        receiver clear, trigger and device-specific enable. No contrary definition found; no silicon reset
+        behavior inferred.
   reg-fcr.dma:
     basis: eab3de023e3e36b020f24dcf01d94a6d69c595385ef71569e4d73696e97b301a
     verdict: PASS
@@ -696,37 +709,45 @@ verdicts:
         62]. Parent scope and effective as-implemented requirement retained. Adjacent definitions/performing
         alternatives checked; no contrary value found.
   reg-cpr.fifo:
-    basis: 007f577380f0f9de6c466883bd5850588e35c6fe8695b44f1b5a006b5fadbf51
-    verdict: ADJUDICATE
+    basis: 478d1f0682794f60a4321802a205c88adddbd728f794486d88e272ed7a5d60d9
+    verdict: PASS
     date: '2026-10-11'
-    verifier: GPT-6.1 Sol / Codex / verify_m1_uart primary
-    note: Independent primary and critical-reader verdicts differ at this original basis. Both readings
-      are retained verbatim below; user adjudication is pending.
+    verifier: Independent reader A; GPT-6.1 Sol Codex; session uart_delta_reader_a
+    note: dwlib.h:70 gives FIFO_MODE bits23:16 and line73 extracts the field then multiplies by16. dwlib.c:229-244
+      checks CPR/platform fallback and nonzero FIFO mode before applying decoded size. Contrary zero/fallback
+      cases do not contradict this narrowly stated Linux helper definition; actual silicon FIFO depth is
+      not claimed.
     contrary_evidence: none-found
-    citation_precision: imprecise
+    citation_precision: exact
     readings:
     - verifier: GPT-6.1 Sol / Codex / verify_m1_uart primary
       verdict: FAIL
       reasoning: 'linux-uart:drivers/tty/serial/8250/8250_dwlib.h:70-70. GENMASK(23,16) supports the bits
-        but the meaning also asserts the helper multiplies by 16. That performing helper is defined at
-        :73, outside this independently supported field citation. Full-header/library search confirms
-        the helper rather than contradicting the multiplication. Proposed correction: Add 8250_dwlib.h:73
-        for DW_UART_CPR_FIFO_SIZE, or remove the helper multiplication from this independently supported
-        field meaning.'
+        but the meaning also asserts the helper multiplies by 16. That performing helper is defined at :73,
+        outside this independently supported field citation. Full-header/library search confirms the helper
+        rather than contradicting the multiplication. Proposed correction: Add 8250_dwlib.h:73 for DW_UART_CPR_FIFO_SIZE,
+        or remove the helper multiplication from this independently supported field meaning.'
     - verifier: GPT-6.1 Sol/Codex critical_m1_uart
       verdict: PASS
       reasoning: Independently compared Linux FIFO-size parameter; helper multiplies extracted value by
         16 against linux-uart:drivers/tty/serial/8250/8250_dwlib.h:[70, 70]. Parent scope and effective
-        as-implemented requirement retained. Adjacent definitions/performing alternatives checked; no
-        contrary value found.
+        as-implemented requirement retained. Adjacent definitions/performing alternatives checked; no contrary
+        value found.
+    adjudication:
+      decision: Apply the stricter correction and reverify. Fresh independent primary and second readings
+        support the corrected claim.
+      by: user
+      date: '2026-10-11'
+      rule: User selected option 1; preserve original dissent and settle only the freshly read corrected
+        basis.
     readers:
-    - verifier: GPT-6.1 Sol/Codex critical_m1_uart
+    - verifier: GPT-6.1 Sol, Codex, uart_delta_reader_c
       verdict: PASS
       date: '2026-10-11'
-      note: Independently compared Linux FIFO-size parameter; helper multiplies extracted value by 16
-        against linux-uart:drivers/tty/serial/8250/8250_dwlib.h:[70, 70]. Parent scope and effective as-implemented
-        requirement retained. Adjacent definitions/performing alternatives checked; no contrary value
-        found.
+      note: dwlib.h 70 declares GENMASK(23,16), and 73 multiplies FIELD_GET of that mask by 16. Parent CPR
+        offset 0xf4 uses direct extension accessor 98-110. Contrary scope dwlib.c 229-243 permits CPR fallback
+        and skips size assignment for zero FIFO mode; claim is only the Linux mask/helper and does not assert
+        a particular hardware FIFO size.
   integer-baud.calculate:
     basis: 29adc5fcf8f36a31e937b07e1d50f61b31b03c8997412f4f46e2306b08e27c40
     verdict: PASS
@@ -1196,14 +1217,16 @@ verdicts:
         requirement retained. Adjacent definitions/performing alternatives checked; no contrary value
         found.
   linux-busy-divisor.restore:
-    basis: 1599fc329533d92cdb2a21f8bfe5c7598d5ea87cd25743c88809db8b98e336bc
-    verdict: ADJUDICATE
+    basis: d0ea0655e3564466ce07666da5ffbcefa6afb4deb02feb2350ba330114b27a76
+    verdict: PASS
     date: '2026-10-11'
-    verifier: GPT-6.1 Sol / Codex / verify_m1_uart primary
-    note: Independent primary and critical-reader verdicts differ at this original basis. Both readings
-      are retained verbatim below; user adjudication is pending.
-    contrary_evidence: found
-    citation_precision: imprecise
+    verifier: Independent reader A; GPT-6.1 Sol Codex; session uart_delta_reader_a
+    note: dw.c:205-206 reaches idle_exit after success or failed DLAB readback; 107-117 returns immediately
+      for compatible ports, restores FCR only for FIFO-capable ports, restores MCR/IER, and conditionally
+      resumes TX DMA. Adjacent119 clears in_idle and116 says RX DMA is restarted by IRQ as needed; restore
+      claim correctly says TX only. Idle-enter failure calls exit separately at181.
+    contrary_evidence: none-found
+    citation_precision: exact
     readings:
     - verifier: GPT-6.1 Sol / Codex / verify_m1_uart primary
       verdict: FAIL
@@ -1219,17 +1242,23 @@ verdicts:
       reasoning: Independently compared On either DLAB failure or completion, idle exit restores FCR when
         FIFO-capable, MCR and IER; resumes TX DMA when configured. against linux-uart:drivers/tty/serial/8250/8250_dw.c:[205,
         206]; linux-uart:drivers/tty/serial/8250/8250_dw.c:[107, 119]. Parent scope and effective as-implemented
-        requirement retained. Adjacent definitions/performing alternatives checked; no contrary value
-        found.
+        requirement retained. Adjacent definitions/performing alternatives checked; no contrary value found.
+    adjudication:
+      decision: Apply the stricter correction and reverify. Fresh independent primary and second readings
+        support the corrected claim.
+      by: user
+      date: '2026-10-11'
+      rule: User selected option 1; preserve original dissent and settle only the freshly read corrected
+        basis.
     readers:
-    - verifier: GPT-6.1 Sol/Codex critical_m1_uart
+    - verifier: GPT-6.1 Sol, Codex, uart_delta_reader_c
       verdict: PASS
       date: '2026-10-11'
-      note: Independently compared On either DLAB failure or completion, idle exit restores FCR when FIFO-capable,
-        MCR and IER; resumes TX DMA when configured. against linux-uart:drivers/tty/serial/8250/8250_dw.c:[205,
-        206]; linux-uart:drivers/tty/serial/8250/8250_dw.c:[107, 119]. Parent scope and effective as-implemented
-        requirement retained. Adjacent definitions/performing alternatives checked; no contrary value
-        found.
+      note: dw.c 198-206 reaches idle_exit on DLAB readback failure or normal completion. idle_exit 107-117
+        returns early for compatible mode, restores FCR only with UART_CAP_FIFO, always restores MCR/IER
+        for incompatible mode, and resumes TX DMA only when up->dma exists. RX DMA comment specifies restart
+        by IRQ as needed. Contrary search includes idle_enter BUSY failure at 180-182 and compatible early
+        return; no unconditional FIFO or RX restart is claimed.
   linux-fractional-probe.save:
     basis: 9bd2c3ae01c88d284b048df408198b3e8162c20eb90585c08e4668cd0d59d618
     verdict: PASS
@@ -1827,22 +1856,25 @@ verdicts:
     contrary_evidence: none-found
     citation_precision: exact
   addressing:
-    basis: 23cdd120de23723d401bd56a5bb17198b4b3a12d18ebb7fdeec1a519a1956054
-    verdict: ADJUDICATE
+    basis: d817e6e80c30ed7da392409545aded1b238ccb31aa73cd6ec158e7ba998486ae
+    verdict: PASS
     date: '2026-10-11'
-    verifier: GPT-6.1 Sol / Codex / verify_m1_uart primary
-    note: Independent primary and critical-reader verdicts differ at this original basis. Both readings
-      are retained verbatim below; user adjudication is pending.
-    contrary_evidence: found
-    citation_precision: imprecise
+    verifier: Independent reader A; GPT-6.1 Sol Codex; session uart_delta_reader_a
+    note: U-Boot ns16550.c:162-182 scales slots and adds reg_offset; 548-550 supplies zero default and width/shift
+      properties. 103-143 places IO before the width-four MMIO branch. Linux 8250_dw.c:339-350 shifts standard
+      indices; dwlib.h:98-110 adds extension byte offsets directly. UART2 DT:2811-2824 supplies regshift
+      2. Adjacent static, big-endian and IO branches reviewed; conditional wording excludes their differing
+      transaction widths.
+    contrary_evidence: none-found
+    citation_precision: exact
     upstream:
       rk3588@hardware-specs-docs#interrupt-map: 78c270d71eb7dc7fc64b6907338dcbfa62ee0765185fe3f5d31635bb1e3c5436
       rk3588@hardware-specs-docs#uart-programming-model: 69dd999ed7d469aa7a4e2ba51eaa3cd1a8af175e6f148a7b42593b2e518a44a1
     readings:
     - verifier: GPT-6.1 Sol / Codex / verify_m1_uart primary
       verdict: FAIL
-      reasoning: 'ns16550.c:107-109 and :127-129 checks NS16550_FLAG_IO before reg_width==4; IO ports
-        use byte outb/inb even when reg_width is 4. The cited width ranges omit these controlling conditions.
+      reasoning: 'ns16550.c:107-109 and :127-129 checks NS16550_FLAG_IO before reg_width==4; IO ports use
+        byte outb/inb even when reg_width is 4. The cited width ranges omit these controlling conditions.
         Read all dynamic/shift access alternatives and BE byte-lane adjustment; this is an implementation-scope
         overstatement, not evidence of a silicon-width violation. Scaling/defaults and the Linux index/direct-extension
         distinction otherwise match. Proposed correction: Replace the width clause with: With CONFIG_NS16550_DYNAMIC
@@ -1851,17 +1883,25 @@ verdicts:
     - verifier: GPT-6.1 Sol/Codex critical_m1_uart
       verdict: PASS
       reasoning: U-Boot ns16550.c 162-182 scales slot then adds reg_offset; 548-550 defaults offset zero.
-        Dynamic MMIO width-4 branch 109-136 uses 32-bit access; IO flag branch precedes it. Linux dw.c
-        339-350 shifts indices; dwlib.h 98-110 directly adds extension offsets. DT UART2 shift 2 is declared
-        via relates. Claims describe performing branches, not universal flag behavior or silicon requirements.
-    readers:
-    - verifier: GPT-6.1 Sol/Codex critical_m1_uart
-      verdict: PASS
-      date: '2026-10-11'
-      note: U-Boot ns16550.c 162-182 scales slot then adds reg_offset; 548-550 defaults offset zero. Dynamic
-        MMIO width-4 branch 109-136 uses 32-bit access; IO flag branch precedes it. Linux dw.c 339-350
+        Dynamic MMIO width-4 branch 109-136 uses 32-bit access; IO flag branch precedes it. Linux dw.c 339-350
         shifts indices; dwlib.h 98-110 directly adds extension offsets. DT UART2 shift 2 is declared via
         relates. Claims describe performing branches, not universal flag behavior or silicon requirements.
+    adjudication:
+      decision: Apply the stricter correction and reverify. Fresh independent primary and second readings
+        support the corrected claim.
+      by: user
+      date: '2026-10-11'
+      rule: User selected option 1; preserve original dissent and settle only the freshly read corrected
+        basis.
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, uart_delta_reader_c
+      verdict: PASS
+      date: '2026-10-11'
+      note: U-Boot ns16550.c 162-182 scales slots and adds reg_offset; 548-550 defaults offset to zero.
+        Dynamic access 103-142 puts IO byte access ahead of width-four memory access, including endian alternatives.
+        Linux dw.c 339-368 shifts indexed accesses; dwlib.h 98-110 adds extension offsets directly. UART2
+        DTS 2811-2824 declares shift 2 and width 4. Contrary scope included non-dynamic, byte and BE paths;
+        conditional claim accommodates them. Transaction width does not assert silicon width.
   reg-rbr:
     basis: a23131ba56cb63b97ae35ab20239991db949a3637b803f4276c025ca1e4b65ba
     verdict: PASS
@@ -2223,15 +2263,19 @@ verdicts:
         layouts at header 38-50. Logical slot 7 therefore yields block-relative byte offset 0x1c. No contrary
         evidence found in adjacent alternative layout/access paths; no silicon access/reset class inferred.'
   reg-usr:
-    basis: aed65734e537f1d2194e19d4c8ffa4d0ffeb2f5777534aa6e3202c1ce0f93c4d
-    verdict: ADJUDICATE
+    basis: 04196303118874db71166e2672bcfbbf700f7b219a22859b5232849698c02541
+    verdict: PASS
     date: '2026-10-11'
-    verifier: GPT-6.1 Sol / Codex / verify_m1_uart primary
-    note: Round 2 independent readings agree on the repaired numeric/dependency defect but disagree on
-      citation completeness of the added direct-extension comparison. User adjudication is pending; both
-      actual current-basis readings are retained.
+    verifier: Independent reader A; GPT-6.1 Sol Codex; session uart_delta_reader_a
+    note: Re-read latest reg-usr claim and all six cited anchors independently. Linux dwlib.h:16 defines
+      USR logical index0x1f; dw.c:350 shifts the index by regshift, and declared UART2 DT dependency has
+      regshift2, giving byte offset0x7c. dw.c:132 selects platform USR or default,167 reads it via indexed
+      serial_port_in,844-846 selects DW_UART_USR for generic DW APB. Contrary platform case at848-850 uses
+      OCTEON index; generic compatible association at892 agrees with UART2 DT compatible. Direct extension
+      helpers dwlib.h:98-110 use unshifted byte offsets. PASS; citations exact; no contrary evidence found
+      within these alternate-platform/accessor paths. No silicon feature availability established.
     contrary_evidence: none-found
-    citation_precision: imprecise
+    citation_precision: exact
     upstream:
       rk3588@hardware-specs-docs#interrupt-map: 78c270d71eb7dc7fc64b6907338dcbfa62ee0765185fe3f5d31635bb1e3c5436
       rk3588@hardware-specs-docs#uart-programming-model: 69dd999ed7d469aa7a4e2ba51eaa3cd1a8af175e6f148a7b42593b2e518a44a1
@@ -2239,15 +2283,15 @@ verdicts:
     - verifier: GPT-6.1 Sol / Codex / verify_m1_uart primary
       verdict: FAIL
       reasoning: 'Round 2 fresh reading confirms the new relates dependency tracks UART2 regshift=2 and
-        that header DW_UART_USR=0x1f passed to in32 gives 0x7c. Read 8250_dwlib.h:16 and 8250_dw.c:350
-        plus adjacent access alternatives; numeric arithmetic is correct and the original missing-dependency
+        that header DW_UART_USR=0x1f passed to in32 gives 0x7c. Read 8250_dwlib.h:16 and 8250_dw.c:350 plus
+        adjacent access alternatives; numeric arithmetic is correct and the original missing-dependency
         defect is resolved. However the author added a new comparison asserting DLF/CPR/UCV direct extension
         offsets, while this fact support still locates only USR:16 and in32:350. The actual direct-offset
         helpers were independently reread at dwlib.h:98-110 but are not located in this fact. No conflicting
         implementation was found; this is citation completeness for the new clause. Proposed correction:
-        Add an anchor to linux-uart drivers/tty/serial/8250/8250_dwlib.h:98-110 (dw8250_readl_ext) for
-        the new direct-extension comparison, or remove the added sentence beginning Unlike DLF/CPR/UCV.
-        Preserve the fixed UART2 relates dependency and 0x1f->0x7c arithmetic.'
+        Add an anchor to linux-uart drivers/tty/serial/8250/8250_dwlib.h:98-110 (dw8250_readl_ext) for the
+        new direct-extension comparison, or remove the added sentence beginning Unlike DLF/CPR/UCV. Preserve
+        the fixed UART2 relates dependency and 0x1f->0x7c arithmetic.'
     - verifier: GPT-6.1 Sol/Codex critical_m1_uart
       verdict: PASS
       reasoning: 'Fresh round-2 source reading: dwlib.h 16 defines USR logical index 0x1f; dw.c 348-350
@@ -2255,49 +2299,71 @@ verdicts:
         pinned base DTS 2823 supplies shift 2. Index 0x1f<<2 equals block-relative 0x7c. Adjacent extension
         constants and dwlib.h 98-110 helpers use direct offsets, not this indexed path. No contrary evidence
         found; optional silicon feature implementation remains unasserted.'
+    adjudication:
+      decision: Apply the stricter correction and reverify. Fresh independent primary and second readings
+        support the corrected claim.
+      by: user
+      date: '2026-10-11'
+      rule: User selected option 1; preserve original dissent and settle only the freshly read corrected
+        basis.
     readers:
-    - verifier: GPT-6.1 Sol/Codex critical_m1_uart
+    - verifier: GPT-6.1 Sol, Codex, uart_delta_reader_c
       verdict: PASS
       date: '2026-10-11'
-      note: 'Fresh round-2 source reading: dwlib.h 16 defines USR logical index 0x1f; dw.c 348-350 performs
-        readl at membase+(index<<regshift). Explicit relates now tracks rk3588@hardware-specs-gpl#dt-uart2-node;
-        pinned base DTS 2823 supplies shift 2. Index 0x1f<<2 equals block-relative 0x7c. Adjacent extension
-        constants and dwlib.h 98-110 helpers use direct offsets, not this indexed path. No contrary evidence
-        found; optional silicon feature implementation remains unasserted.'
+      note: dwlib.h 16 defines USR index 0x1f; dw.c 350 shifts indexed accesses; declared UART2 DTS dependency
+        gives shift 2, yielding offset 0x7c. Added dw.c 132 and 167 identify usr_reg and its indexed serial_port_in
+        use; 844-846 selects DW_UART_USR for dw-apb. dwlib.h 98-110 uses direct offsets for extensions.
+        Contrary search previously read adjacent alternative platform USR at 848-850 and BE/indexed helpers
+        at 355-368; neither contradicts this scoped UART2 claim. Added anchors now identify the accessor
+        provenance precisely. No silicon optional-feature presence is asserted.
   linux-busy-divisor:
-    basis: aa260f4220ca2b394670526cf1f399d8ac34e2a7d7aafbdbedef96c6f0b1187b
-    verdict: ADJUDICATE
+    basis: 6050f58bf97fce259eecb85310bb68d00b0d05b783f9988acaa3dda6af5a2708
+    verdict: PASS
     date: '2026-10-11'
-    verifier: GPT-6.1 Sol / Codex / verify_m1_uart primary
-    note: Independent primary and critical-reader verdicts differ at this original basis. Both readings
-      are retained verbatim below; user adjudication is pending.
-    contrary_evidence: found
-    citation_precision: imprecise
+    verifier: Independent reader A; GPT-6.1 Sol Codex; session uart_delta_reader_a
+    note: dw.c:107-206 establishes idle masking, DMA RX flush and conditional TX pause, drain/frame wait,
+      four retries, RX discard, failure restore, DLAB readback, quotient write and exit. dw.c:645 installs
+      the integer callback; dwlib.c:218-221 replaces it when DLF probing succeeds, consistent with declared
+      fractional-baud dependency. Contrary compatible short-circuit and DLAB failure path read explicitly;
+      no lossless guarantee follows from flush/discard operations. dwlib.c:42-43 and port.c:2546-2556 confirm
+      distinct fractional path.
+    contrary_evidence: none-found
+    citation_precision: exact
     readings:
     - verifier: GPT-6.1 Sol / Codex / verify_m1_uart primary
       verdict: FAIL
       reasoning: 'The performing idle/integer-divisor steps otherwise match 8250_dw.c:139-206. Contrary
         search at :112-113 and :136-137 finds uart_16550_compatible early exits: idle_enter performs no
-        idle work and idle_exit does not restore FCR/MCR/IER or resume DMA in that configuration. The
-        parent presents a restoration sequence without declaring this condition; its own anchors also
-        stop before TX DMA resume :121-122. Proposed correction: Scope the sequence to dw8250.c integer-divisor
-        callback with uart_16550_compatible false; cite the guards :112-113,:136-137 and TX DMA resume
-        :121-122. Retain explicit fractional-callback replacement qualification through relates to #fractional-baud
+        idle work and idle_exit does not restore FCR/MCR/IER or resume DMA in that configuration. The parent
+        presents a restoration sequence without declaring this condition; its own anchors also stop before
+        TX DMA resume :121-122. Proposed correction: Scope the sequence to dw8250.c integer-divisor callback
+        with uart_16550_compatible false; cite the guards :112-113,:136-137 and TX DMA resume :121-122.
+        Retain explicit fractional-callback replacement qualification through relates to #fractional-baud
         or a scope statement.'
     - verifier: GPT-6.1 Sol/Codex critical_m1_uart
       verdict: PASS
-      reasoning: dw.c 107-206 trace confirms compatible early returns, idle/IER mask, DMA flush/pause,
-        THRE wait/frame delay, loopback, at most four FIFO/BUSY attempts, conditional RX discard, final
-        BUSY failure exit, DLAB check, quotient write and idle restore. port.c 327-330 writes DLL/DLM.
-        This path is replaced by fractional setup, not composed with it.
+      reasoning: dw.c 107-206 trace confirms compatible early returns, idle/IER mask, DMA flush/pause, THRE
+        wait/frame delay, loopback, at most four FIFO/BUSY attempts, conditional RX discard, final BUSY
+        failure exit, DLAB check, quotient write and idle restore. port.c 327-330 writes DLL/DLM. This path
+        is replaced by fractional setup, not composed with it.
+    adjudication:
+      decision: Apply the stricter correction and reverify. Fresh independent primary and second readings
+        support the corrected claim.
+      by: user
+      date: '2026-10-11'
+      rule: User selected option 1; preserve original dissent and settle only the freshly read corrected
+        basis.
     readers:
-    - verifier: GPT-6.1 Sol/Codex critical_m1_uart
+    - verifier: GPT-6.1 Sol, Codex, uart_delta_reader_c
       verdict: PASS
       date: '2026-10-11'
-      note: dw.c 107-206 trace confirms compatible early returns, idle/IER mask, DMA flush/pause, THRE
-        wait/frame delay, loopback, at most four FIFO/BUSY attempts, conditional RX discard, final BUSY
-        failure exit, DLAB check, quotient write and idle restore. port.c 327-330 writes DLL/DLM. This
-        path is replaced by fractional setup, not composed with it.
+      note: dw.c 129-206 implements the listed idle sequence, including DMA flush/pause, THRE wait, bounded
+        clearing/polling, discard, -EBUSY restoration, DLAB readback and quotient write. dw.c 645 initially
+        installs this callback; dwlib.c 218-221 conditionally replaces it with the fractional callback,
+        whose 42-43 writes DLF and calls the generic divisor helper. Declared fractional-baud dependency
+        agrees. Contrary paths include 16550-compatible early returns, busy failure, DLAB failure and replacement
+        callback; stated scope accommodates all. The source also requires the port lock, but this descriptive
+        claim is not a runnable lossless recipe.
   interrupt-service:
     basis: 93723d36e6b182a9d6fae8ae54625d1bc0dff08398618bc0cfa0b560928deebd
     verdict: PASS
