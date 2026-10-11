@@ -1,0 +1,794 @@
+# SPDX-FileCopyrightText: 2026 contributors
+# SPDX-License-Identifier: GPL-2.0-only
+
+format: 2
+spec: arm-architectural-timer
+spec_file: arm-architectural-timer.spec.yaml
+spec_sha256: 2091cd10c0840d991127d6e26dfed8460d9779237b5401c3443df39d6b71de4f
+canonical: fact-v1
+sources:
+- name: linux
+  url: https://github.com/torvalds/linux
+  commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+  fetch: ok
+  note: 46 anchors resolved at immutable git pin; zero skipped. Three cited file SPDX lines agree with
+    GPL-2.0-only. Also read pinned RK3588 timer DT dependency. kernel/cpu.c supplemental contract fetch
+    failed; no unseen output used.
+- name: arm-generic-timer-102379-0104.pdf
+  url: https://developer.arm.com/documentation/102379/latest
+  sha256: c8fb557a14970b8302e2f12560fc9038d650da9aaaf97d4bb85327bfa401e82c
+  fetch: ok
+  note: Pinned 28-page non-confidential PDF hash checked by resolver; extracted text read for sections
+    3-6 and interrupt example. Excluded confidential and retired documents were not read.
+summary:
+  pass: 38
+  fail: 0
+  unverifiable: 0
+  gap: 6
+  adjudicate: 0
+verdicts:
+  processor-timer-scope:
+    basis: 04c7f405c20d9609a3c2ac60bf8c0e61e4440651a5bd0ab82e30e55718aff4ac
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: 'Delta reread guide pages 8, 9, 10 and 22: common count broadcast, per-core comparators, always-present
+      EL1 physical/virtual timers and separate external MMIO frames are now all precisely cited. Adjacent
+      architecture-feature qualifications change only the other timers, not this scope. No contrary evidence
+      found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+  instance-topology:
+    basis: 6bca84507ebb5d50a8a6db4994035e9d2a87c191469e61192f3b89a4b1ad39eb
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: Read rk3588#dt-timer-node and its declared docs-root system-counter gap. At the Linux pin rk3588-base.dtsi
+      413-421 lists the five named PPIs and no clock-frequency. The inference is a scoped pointer to source
+      topology, not actual wiring proof. Its TODO can compare actual entry DT against the pin; no hardware
+      result is claimed. Contrary search read neighboring branches, configuration guards and relevant
+      guide pages 10-16; no contradictory behavior for this scoped claim was found.
+    contrary_evidence: none-found
+    citation_precision: exact
+    upstream:
+      rk3588@hardware-specs-docs#system-counter: c82e986f0f3c6c9ff9aa1950c2170fb264b5e00c194596e9df6ca36a583b8376
+  physical-count-and-frequency:
+    basis: 8a079f71ed5a74702f3fdf4f6d73a40bfe0a26aef3b488f786fa1e20b893cf24
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: Guide pages 8 and 10 state physical count, 56-64 bit architectural range, software-populated
+      CNTFRQ and writes at the highest implemented EL; typical EL3 firmware is not asserted as measured
+      board state. Contrary search read neighboring branches, configuration guards and relevant guide
+      pages 10-16; no contradictory behavior for this scoped claim was found.
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Guide pp8/10 expressly states 56\u201364-bit physical count and firmware-populated CNTFRQ,\
+        \ writable at highest implemented EL. Adjacent frequency-generation discussion is not evidence\
+        \ of RK3588 frequency; scoped exclusion is correct."
+  virtual-count-offset:
+    basis: bf6515c97eaa7b7f44d7c3a67be58c77202d58389b288e82ebed050abd9d18ca
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: Guide pages 13-14 distinguish physical/virtual domains, subtraction of CNTVOFF_EL2, EL2/EL3
+      access and zero only when EL2 is not implemented. No firmware offset is inferred. Contrary search
+      read neighboring branches, configuration guards and relevant guide pages 10-16; no contradictory
+      behavior for this scoped claim was found.
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Guide pp13\u201314 states physical and virtual compare domains, subtraction of CNTVOFF_EL2,\
+        \ EL2/EL3 access and zero only when EL2 is not implemented. Read adjacent virtualization text\
+        \ and p16 summary: summary table misleadingly labels virtual count CNTPCT, but explicit equation\
+        \ controls this scoped claim."
+  physical-sysregs:
+    basis: a06e8c8e45289d972a3e9660cdbdd4adb0187d29344cfb3b0085b1f01643a1cc
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: 'Read arm64 arch_timer.h 102-110 and 134-139: physical CTL read, CTL write plus ISB, and CVAL
+      write. The claim is source behavior and has no invented MMIO placement. Contrary search read neighboring
+      branches, configuration guards and relevant guide pages 10-16; no contradictory behavior for this
+      scoped claim was found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Read arm64 header full accessor branches 99\u2013152: physical CTRL read/write and CVAL write\
+        \ match claim; CTRL write includes ISB. Adjacent virtual and invalid branches do not change physical\
+        \ selection."
+  virtual-sysregs:
+    basis: 5cbf042e4e9ddd96bc17278046af2cc8bb5838e3f943c1474f0d81f94741ba7e
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: 'Read arm64 arch_timer.h 114-128 and 141-151: virtual CTL read/write plus ISB, CVAL write and
+      BUILD_BUG paths. Source-only classification is appropriate. Contrary search read neighboring branches,
+      configuration guards and relevant guide pages 10-16; no contradictory behavior for this scoped claim
+      was found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Read arm64 header full accessor branches 99\u2013152: virtual CTRL read/write and CVAL write\
+        \ match, CTRL writes include ISB; invalid selections reach BUILD_BUG. Physical alternative remains\
+        \ distinct."
+  counter-read-order:
+    basis: f428e0bf57268ff33ddf0b360981f95817adf808f9791146fe1f61fea998ea33
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: 'Read arm64 arch_timer.h 65-87 and 170-201: ISB/MRS normal branch, ECV NOP/self-synchronizing
+      alternative, and ordering helper after direct and stable reads. Stable dispatch macro 23-41 can
+      choose workaround handlers; the claim leaves that implementation open. Contrary search read neighboring
+      branches, configuration guards and relevant guide pages 10-16; no contradictory behavior for this
+      scoped claim was found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Read header 23\u201341,65\u201394,170\u2013201: normal ISB/MRS, ECV NOP/self-synchronizing\
+        \ register alternatives, stable/direct wrapper ordering calls match. Stable readers may dispatch\
+        \ installed erratum handler; claim intentionally leaves helper implementation unspecified."
+  physical-read-isb:
+    basis: d2cfd860dad432d5e880a354a510bf976e98a03f8f637b24f257d93ae7be2d26
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: Guide page 10 identifies speculative CNTPCT reads, shows ISB before MRS for ordering, and dates
+      self-synchronizing CNTPCTSS to newer architectures. This conditional architectural instruction does
+      not claim board feature availability. Contrary search read neighboring branches, configuration guards
+      and relevant guide pages 10-16; no contradictory behavior for this scoped claim was found.
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Guide p10 speculative-read warning and ISB-before-MRS example support order-sensitive read.
+        Adjacent self-synchronizing feature paragraph limits availability to newer architecture; no board
+        feature asserted.
+  compare-and-relative-registers:
+    basis: f7c72324d24c01cd4486ce661c475a45be06c9d839e2f1bd4889468c858c81ef
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: Guide pages 11-12 establish names, 64-bit CVAL, 32-bit TVAL, relative programming, signed decrementing
+      reads and the single timer represented by both views. No reset value or encoding is invented. Contrary
+      search read neighboring branches, configuration guards and relevant guide pages 10-16; no contradictory
+      behavior for this scoped claim was found.
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Guide pp11\u201312 prefix table and CVAL/TVAL discussion support six names, widths, update\
+        \ formula and signed decrementing read. Adjacent firing discussion does not introduce independent\
+        \ TVAL timer or reset values."
+  control-bit-definitions:
+    basis: 970cc85f062b731711026042b4303e93b8a29bd5a93a7bf056d62e6aa6965fa4
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: 'Read clocksource arm_arch_timer.h 12-14: ENABLE 1<<0, mask 1<<1, status 1<<2. These are source
+      constants rather than uncited hardware requirements. Contrary search read neighboring branches,
+      configuration guards and relevant guide pages 10-16; no contradictory behavior for this scoped claim
+      was found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Header 12\u201314 directly defines enable/mask/status bits 0/1/2; adjacent CNTHCTL constants\
+        \ are separate and not substituted."
+  firing-condition:
+    basis: b82455e655b16ca175b23a2af9b898763b0dd4100a4e3a8c711686eb10b1ab7e
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: Guide pages 12-13 establish CVAL<=count, ENABLE/IMASK gating, ISTATUS qualification by ENABLE,
+      per-core delivery and level sensitivity. Masking is not asserted to erase the underlying compare
+      condition. Contrary search read neighboring branches, configuration guards and relevant guide pages
+      10-16; no contradictory behavior for this scoped claim was found.
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Guide pp12\u201313 supports condition, ENABLE/IMASK/ISTATUS behavior, core-private delivery\
+        \ and level-sensitive signal. Adjacent SBSA recommendations are not used to assign RK3588 INTIDs."
+  clear-before-gic-deactivation:
+    basis: ca324a131edc86395e76615c96e3427a39b0e769e892ab26b25f4105c76dfe49
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: Guide page 13 explicitly says remove timer signal before GIC deactivation and gives mask, disable
+      or future compare alternatives. Page 25 distinguishes IAR acknowledgment from timer clearing and
+      EOIR handling; no GIC implementation recipe is claimed. Contrary search read neighboring branches,
+      configuration guards and relevant guide pages 10-16; no contradictory behavior for this scoped claim
+      was found.
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Guide p13 explicitly requires removing timer signal before GIC deactivation and lists masking,
+        disabling or moving compare. Example explanation p25 confirms handler timer clearing before EOIR;
+        adjacent example is illustrative GIC behavior, not a complete GIC implementation recipe.
+  ppi-selection:
+    basis: ee1a1a445bbd01a1b501ff32b0cff69392b4dbcf15fe88db4e2a928668eefd08
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: 'Read driver 1136-1153 and adjacent VHE/AArch32 comment: hyp virtual availability plus guard,
+      hyp physical fallback, no-hyp virtual branch, arm64 nonsecure physical and residual secure physical
+      branch all agree. Actual entry mode remains unproved. Contrary search read neighboring branches,
+      configuration guards and relevant guide pages 10-16; no contradictory behavior for this scoped claim
+      was found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Read driver 1093\u20131153 including broken helper and explanatory comment. Full conditional\
+        \ ordering matches hyp-virtual guard/fallback, no-hyp virtual, arm64 nonsecure and residual secure\
+        \ paths. No entry mode inferred."
+  broken-el2-vtimer-guard:
+    basis: 2563e33c594e43529f3ee29fc87cac1b76b2f664c69d820fe6c5f9b718dc340a
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: 'Read driver 1093-1112: only brcm,bcm2712 match, taint/warning and true, otherwise false. No
+      RK3588 erratum is inferred from this unrelated guard. Contrary search read neighboring branches,
+      configuration guards and relevant guide pages 10-16; no contradictory behavior for this scoped claim
+      was found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+  counter-choice:
+    basis: c058e11c696c3039bc92901f3f02cd5796b32025d0053b7bd156b27ec210a7b9
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: 'Read driver 915-935 and adjacent wrappers 93-128: CONFIG_ARM64/no-hyp OR selected virtual PPIs
+      choose virtual; otherwise physical, each split by workaround presence. Separate PPI policy 1136-1153
+      does not contradict the claim. Contrary search read neighboring branches, configuration guards and
+      relevant guide pages 10-16; no contradictory behavior for this scoped claim was found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Driver 915\u2013935 selects virtual based on ARM64/no-hyp OR virtual PPI and then workaround\
+        \ reader; physical branch mirrors reader choice. Adjacent clocksource setup is separate from PPI\
+        \ policy."
+  rate-probing:
+    basis: 42ad239b82632b40faffe155b6ed2c86852b9fe53c7dcb825b6f731f654b1a2d
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: 'Read arm64 frequency helper 154-157, driver 848-876 and 1187-1188: prior nonzero rate wins,
+      DT property replaces passed register rate, zero validation warns without immediate abort. Adjacent
+      comment confirms first-rate policy rather than equality validation. Contrary search read neighboring
+      branches, configuration guards and relevant guide pages 10-16; no contradictory behavior for this
+      scoped claim was found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Driver 848\u2013876 and1187\u20131188 plus header154\u2013157 support existing rate early-return,\
+        \ property override/fallback, zero failure and low-rate warning. Adjacent configure helper intentionally\
+        \ warns without returning failure."
+  program-next-event:
+    basis: 67f2ce9e76c9eef1a706511369e2cdfde74786c188ec856a4fa72aef9cf37504
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: Driver 616-632 establishes prepare CTL, read selected domain, write count+delta CVAL, then write
+      CTL. Workaround path 320-338 and dispatch at setup are separate and explicitly excluded from this
+      normal-path claim. Contrary search read neighboring branches, configuration guards and relevant
+      guide pages 10-16; no contradictory behavior for this scoped claim was found.
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Driver616\u2013632 and arm64 accessors support control preparation, chosen domain count,\
+        \ CVAL=evt+count then CTL. Adjacent wrapper and stable workaround alternatives bound this to the\
+        \ normal path."
+  handle-timer-interrupt:
+    basis: 0fba783b77b277dc7f5c23de09c483f4c19b9429c1e92ce5ddfe83062790f2b1
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: 'Delta reread pinned driver 563-579: selected CTL status controls the mask/write/callback/IRQ_HANDLED
+      branch; absent status returns IRQ_NONE. Expanded parent citation 569-579 covers the complete claim.
+      Adjacent wrapper and no-status path show no contrary behavior. Source-only as-implemented classification
+      remains appropriate.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Renewed reading: parent anchor569\u2013579 now covers selected CTL status test, conditional\
+        \ mask/write before callback, IRQ_HANDLED and no-status IRQ_NONE. Adjacent physical/virtual wrappers\
+        \ use this same shared function; no contradictory branch found. Whole parent citation is now exact."
+  disable-timer:
+    basis: 5f692a3454c192858a82db2cccaf0d3611e2c494ba9525f674cb95db26496f99
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: 'Delta reread pinned driver 594-603: selected CTL read, ENABLE clear, CTL write and return zero.
+      Expanded parent 599-603 precisely covers the complete claim. Adjacent physical/virtual wrappers
+      preserve the access selection; no contrary behavior found. Source-only as-implemented classification
+      remains appropriate.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Renewed reading: parent anchor599\u2013603 now covers CTL read, ENABLE clearing, selected\
+        \ CTL write and zero return. Adjacent virtual/physical shutdown wrappers preserve channel selection;\
+        \ arm64 CTRL accessor includes ISB. No conflicting path found; whole parent citation is now exact."
+  setup-channel-and-disable:
+    basis: 921095a9d9f1418ca42e4bd9ccb2a8e27779e0e96d7a1f7f202b0be4728d6130
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: Driver 690-713 selects operations by PPI, dispatches next event through erratum_handler, computes
+      max delta, shuts down then registers at minimum 0xf. Header dispatch alternatives 23-41 qualify
+      installed workaround behavior. Contrary search read neighboring branches, configuration guards and
+      relevant guide pages 10-16; no contradictory behavior for this scoped claim was found.
+    contrary_evidence: none-found
+    citation_precision: exact
+  workaround-next-event:
+    basis: 9c5c2697da15a5045d7be0dd61d4ff5acf19479350b3e6358012ba50fb0fd294
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: Header 23-41 selects only non-null operation handler with ISB and otherwise normal function;
+      driver 320-338 uses stable matching counter, CVAL and prepared CTL. Adjacent configuration guard
+      and installation paths 479-562 preserve stated conditional scope. Contrary search read neighboring
+      branches, configuration guards and relevant guide pages 10-16; no contradictory behavior for this
+      scoped claim was found.
+    contrary_evidence: none-found
+    citation_precision: exact
+  width-policy:
+    basis: f6860066eb84f3f146b2a378e9558b6a6b6654675f278d030492f029b4c5f394
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: Driver 41, 82-88 and 649-671 calculate ceil-like width from 40 years times rate, clamp 56-64
+      and use 31-bit mask on CONFIG_ARM64 XGene MIDR match. Architectural range is distinct from measured
+      implementation. Contrary search read neighboring branches, configuration guards and relevant guide
+      pages 10-16; no contradictory behavior for this scoped claim was found.
+    contrary_evidence: none-found
+    citation_precision: exact
+  cntkctl-policy-bits:
+    basis: d52b1161eacad1ec37df7a445df9909fb438ade9aa7aaa32181908d109c1a8ba
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: Header 54-61 defines access/event masks including selector 4-7 and scale 17; arm64 helper 159-167
+      reads and writes CNTKCTL with ISB. Description stays within source constants rather than full hardware
+      permissions. Contrary search read neighboring branches, configuration guards and relevant guide
+      pages 10-16; no contradictory behavior for this scoped claim was found.
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Header54\u201361 defines the stated positions and selector mask, arm64 header159\u2013167\
+        \ reads CNTKCTL_EL1 and writes followed by ISB. Adjacent CNTHCTL definitions concern another permission\
+        \ domain."
+  user-access-policy:
+    basis: e9992cb6b5b47fbe34482d06a8b28763f36a2cdd35f45907a6a361d70aa591a0
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: Driver 783-806 clears timers, both counters and virtual event, enables virtual counter only
+      without per-CPU workaround, then writes CNTKCTL. Helpers 549-562 and arm64 164-167 confirm configuration
+      scope and ISB. No EL1 authorization is inferred. Contrary search read neighboring branches, configuration
+      guards and relevant guide pages 10-16; no contradictory behavior for this scoped claim was found.
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Driver783\u2013806 clears all named bits and enables virtual counter only without per-CPU\
+        \ CNTVCT workaround; header164\u2013167 establishes ISB. Adjacent event-stream registration and\
+        \ higher-level trap controls are distinct; no firmware permission inferred."
+  access-and-redirection:
+    basis: 26794296693523c3efcf1a9dd4c2686d520f53ffaa89bc177e024a8b29c0152d
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: Guide pages 11 and 16 identify EL0 control, physical timer trapping and E2H redirection; Linux
+      1122-1130 is explicitly attributed as a comment. Page 16 contains a counter-label inconsistency
+      with page 14, but this claim uses only trapping/redirection columns and does not repeat that inconsistency.
+      Contrary search read neighboring branches, configuration guards and relevant guide pages 10-16;
+      no contradictory behavior for this scoped claim was found.
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Guide pp11/16 supports CNTKCTL_EL1 EL0 policy, EL1 physical trapping and E2H redirection\
+        \ annotation. Driver1122\u20131130 is explicitly attributed comment evidence; its CNTV_*_EL1 spelling\
+        \ differs from actual accessor EL0 spelling, but claim does not reproduce that register typo.\
+        \ Adjacent other timer privilege rules do not establish board state."
+  dt-init-and-failure:
+    basis: 002909710dfeb9a07ed009e5791b2fd836803a138374b86da0f928194c47f9fb
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: Driver 1163-1218 and names/enum anchors confirm duplicate handling, positive IRQ retention,
+      always-on inversion, DT workaround call, CONFIG_ARM-only secure fallback, selected IRQ failure,
+      suspend flag and registration-before-common-init order. Contrary search read neighboring branches,
+      configuration guards and relevant guide pages 10-16; no contradictory behavior for this scoped claim
+      was found.
+    contrary_evidence: none-found
+    citation_precision: exact
+  percpu-irq-lifecycle:
+    basis: f002f102d7a57deec77f7c357f86d6b105af5da612aeba5409691d25ad63ace2
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: Driver 808-846 and 954-968 confirm setup, trigger validation, primary IRQ and guarded secondary
+      IRQ, user access and teardown. Only HIGH/LOW are accepted; any other trigger is warned and changed
+      to LOW. Contrary search read neighboring branches, configuration guards and relevant guide pages
+      10-16; no contradictory behavior for this scoped claim was found.
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Read driver808\u2013846 and954\u2013968: setup, trigger validation, selected IRQ enable,\
+        \ guarded second IRQ and user access occur in stated order; teardown uses identical second-IRQ\
+        \ guard. Alternate invalid flags become level low with warning, not edge-trigger delivery."
+  registration-unwind:
+    basis: 4bd698e790cbc0a01859334b4c1a85ff622bca92bb43d47c1d2d7ae696222237
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: 'Delta reread pinned driver 1014-1084: allocation, IRQ selection, guarded second request and
+      every cleanup label match the claim. Final sentence now states the executable cpuhp_setup_state
+      call with startup/teardown callbacks and zero return on success, all visible at 1063-1068. It no
+      longer depends on an uncited immediate-callback execution contract or the nearby comment. Adjacent
+      success/failure branches contain no contrary evidence; classification as source behavior is appropriate.'
+    contrary_evidence: none-found
+    citation_precision: exact
+  power-policy:
+    basis: c64ba3721e13cd587aa9aad84e3b96f1a9c553768ece7fdb8d333a6bf4959169
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: Driver 942-943 and 971-986 establish suspend-nonstop declaration and CONFIG_CPU_PM CNTKCTL save/restore
+      plus event availability conditions. They do not establish counter/timer persistence across firmware
+      power transitions. Contrary search read neighboring branches, configuration guards and relevant
+      guide pages 10-16; no contradictory behavior for this scoped claim was found.
+    contrary_evidence: none-found
+    citation_precision: exact
+  boot-privilege-state:
+    basis: e91b5c5d0d441843620af887314c30e0b858fbd20e9af0f23a4d3fdbfbfac6ad
+    verdict: GAP
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: No supported value is asserted and no hardware test was performed. The TODO is feasible as future
+      evidence collection with actual privilege/hardware access or target-source selection as specified;
+      no forbidden EL1-only read of an EL3-only register is prescribed. Counter width is to be established
+      by an applicable public identity rather than a short rollover experiment. No citation exists to
+      grade or supported value to search for contradiction.
+    contrary_evidence: not-checked
+    citation_precision: imprecise
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: GAP
+      date: '2026-10-11'
+      note: No support; no hardware value asserted. TODO requires actual accessible entry/firmware observations
+        or applicable public identity/source, and does not ask EL1 to read EL3-only state. The question
+        is feasible with appropriately privileged instrumentation and accepted evidence; no test was performed.
+        Citation absent and contrary comparison inapplicable.
+  measured-frequency-offset-width:
+    basis: d12060cd54e31cfa3be9bb2bb691bbab21e40479d6d5fdf99440b45400b50797
+    verdict: GAP
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: No supported value is asserted and no hardware test was performed. The TODO is feasible as future
+      evidence collection with actual privilege/hardware access or target-source selection as specified;
+      no forbidden EL1-only read of an EL3-only register is prescribed. Counter width is to be established
+      by an applicable public identity rather than a short rollover experiment. No citation exists to
+      grade or supported value to search for contradiction.
+    contrary_evidence: not-checked
+    citation_precision: imprecise
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: GAP
+      date: '2026-10-11'
+      note: No support; no hardware value asserted. TODO requires actual accessible entry/firmware observations
+        or applicable public identity/source, and does not ask EL1 to read EL3-only state. The question
+        is feasible with appropriately privileged instrumentation and accepted evidence; no test was performed.
+        Citation absent and contrary comparison inapplicable.
+  target-integration:
+    basis: 5f56b4c41d66889d3b6d80460a6e3ad9605ae9dc86ff1085716044de189c3bd3
+    verdict: GAP
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: No supported value is asserted and no hardware test was performed. The TODO is feasible as future
+      evidence collection with actual privilege/hardware access or target-source selection as specified;
+      no forbidden EL1-only read of an EL3-only register is prescribed. Counter width is to be established
+      by an applicable public identity rather than a short rollover experiment. No citation exists to
+      grade or supported value to search for contradiction.
+    contrary_evidence: not-checked
+    citation_precision: imprecise
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: GAP
+      date: '2026-10-11'
+      note: No support; no hardware value asserted. TODO requires actual accessible entry/firmware observations
+        or applicable public identity/source, and does not ask EL1 to read EL3-only state. The question
+        is feasible with appropriately privileged instrumentation and accepted evidence; no test was performed.
+        Citation absent and contrary comparison inapplicable.
+  counter-firmware-setup:
+    basis: b23722febb276633fda6df8bb9e19f88fb6e8af23ae054d670a5b193f75379b5
+    verdict: GAP
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: No supported value is asserted and no hardware test was performed. The TODO is feasible as future
+      evidence collection with actual privilege/hardware access or target-source selection as specified;
+      no forbidden EL1-only read of an EL3-only register is prescribed. Counter width is to be established
+      by an applicable public identity rather than a short rollover experiment. No citation exists to
+      grade or supported value to search for contradiction.
+    contrary_evidence: not-checked
+    citation_precision: imprecise
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: GAP
+      date: '2026-10-11'
+      note: No support; no hardware value asserted. TODO requires actual accessible entry/firmware observations
+        or applicable public identity/source, and does not ask EL1 to read EL3-only state. The question
+        is feasible with appropriately privileged instrumentation and accepted evidence; no test was performed.
+        Citation absent and contrary comparison inapplicable.
+  extensions-and-errata:
+    basis: f2fba92d2eafb27384c85b347da133f5bfde01aba76e0c0c985830c178dab3d9
+    verdict: GAP
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: No supported value is asserted and no hardware test was performed. The TODO is feasible as future
+      evidence collection with actual privilege/hardware access or target-source selection as specified;
+      no forbidden EL1-only read of an EL3-only register is prescribed. Counter width is to be established
+      by an applicable public identity rather than a short rollover experiment. No citation exists to
+      grade or supported value to search for contradiction.
+    contrary_evidence: not-checked
+    citation_precision: imprecise
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: GAP
+      date: '2026-10-11'
+      note: No support; no hardware value asserted. TODO requires actual accessible entry/firmware observations
+        or applicable public identity/source, and does not ask EL1 to read EL3-only state. The question
+        is feasible with appropriately privileged instrumentation and accepted evidence; no test was performed.
+        Citation absent and contrary comparison inapplicable.
+  irq-delivery-prerequisite:
+    basis: 332791325e3e44b94ebcbeed49abbe651ba0558e4d2002189613dab84aaaafd1
+    verdict: GAP
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: No supported value is asserted and no hardware test was performed. The TODO is feasible as future
+      evidence collection with actual privilege/hardware access or target-source selection as specified;
+      no forbidden EL1-only read of an EL3-only register is prescribed. Counter width is to be established
+      by an applicable public identity rather than a short rollover experiment. No citation exists to
+      grade or supported value to search for contradiction.
+    contrary_evidence: not-checked
+    citation_precision: imprecise
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: GAP
+      date: '2026-10-11'
+      note: No support; no hardware value asserted. TODO requires actual accessible entry/firmware observations
+        or applicable public identity/source, and does not ask EL1 to read EL3-only state. The question
+        is feasible with appropriately privileged instrumentation and accepted evidence; no test was performed.
+        Citation absent and contrary comparison inapplicable.
+  program-next-event.prepare-control:
+    basis: 3d583a962ce970535399a37c4182ac13d1ccbbbcf5453e3f6ce6202eb499bad1
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: 'Independently read child support at drivers/clocksource/arm_arch_timer.c 622-624: Read the
+      selected CTL; preserve its other bits, set ENABLE and clear IT_MASK. Executable operations match;
+      adjacent parent branches confirm the stated condition and ordering. Requirement inherits as-implemented;
+      this does not claim a hardware mandate. Contrary search read neighboring branches, configuration
+      guards and relevant guide pages 10-16; no contradictory behavior for this scoped claim was found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Read full driver616\u2013643 and arm64 header99\u2013128. The named step matches source order,\
+        \ register selection and conditions; adjacent alternate branches/wrappers do not contradict its\
+        \ parent-scoped normal path."
+  program-next-event.read-domain-count:
+    basis: c77c890bb04c5bfd23475588575b10600ed898a9e08c861fde4a7bdf11719f2d
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: 'Independently read child support at drivers/clocksource/arm_arch_timer.c 626-629: For physical
+      access read __arch_counter_get_cntpct; otherwise read __arch_counter_get_cntvct. Executable operations
+      match; adjacent parent branches confirm the stated condition and ordering. Requirement inherits
+      as-implemented; this does not claim a hardware mandate. Contrary search read neighboring branches,
+      configuration guards and relevant guide pages 10-16; no contradictory behavior for this scoped claim
+      was found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Read full driver616\u2013643 and arm64 header99\u2013128. The named step matches source order,\
+        \ register selection and conditions; adjacent alternate branches/wrappers do not contradict its\
+        \ parent-scoped normal path."
+  program-next-event.write-compare:
+    basis: 4b8ba79a88819db6731fa80af0cfb4216d18275226048c1994be53cf8140c424
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: 'Independently read child support at drivers/clocksource/arm_arch_timer.c 631-631: Write the
+      selected CVAL with evt plus the count. Executable operations match; adjacent parent branches confirm
+      the stated condition and ordering. Requirement inherits as-implemented; this does not claim a hardware
+      mandate. Contrary search read neighboring branches, configuration guards and relevant guide pages
+      10-16; no contradictory behavior for this scoped claim was found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Read full driver616\u2013643 and arm64 header99\u2013128. The named step matches source order,\
+        \ register selection and conditions; adjacent alternate branches/wrappers do not contradict its\
+        \ parent-scoped normal path."
+  program-next-event.enable-unmasked:
+    basis: d067b67127542a41e6277d0eb6af2838307e3b081ae1eabc4ccec7fc570a9303
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: 'Independently read child support at drivers/clocksource/arm_arch_timer.c 632-632; arch/arm64/include/asm/arch_timer.h
+      104-118: Write the prepared selected CTL; the arm64 physical and virtual CTL accessors each follow
+      that write with ISB. Executable operations match; adjacent parent branches confirm the stated condition
+      and ordering. Requirement inherits as-implemented; this does not claim a hardware mandate. Contrary
+      search read neighboring branches, configuration guards and relevant guide pages 10-16; no contradictory
+      behavior for this scoped claim was found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Read full driver616\u2013643 and arm64 header99\u2013128. The named step matches source order,\
+        \ register selection and conditions; adjacent alternate branches/wrappers do not contradict its\
+        \ parent-scoped normal path."
+  handle-timer-interrupt.read-status:
+    basis: 4af110792a6ee84ef164d14b942bb23044eb0c7df1397ce4779813daec994e2a
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: 'Independently read child support at drivers/clocksource/arm_arch_timer.c 569-570: Read selected
+      CTL and test ARCH_TIMER_CTRL_IT_STAT. Executable operations match; adjacent parent branches confirm
+      the stated condition and ordering. Requirement inherits as-implemented; this does not claim a hardware
+      mandate. Contrary search read neighboring branches, configuration guards and relevant guide pages
+      10-16; no contradictory behavior for this scoped claim was found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Read full driver565\u2013592 and arm64 header99\u2013128. The named step matches source order,\
+        \ register selection and conditions; adjacent alternate branches/wrappers do not contradict its\
+        \ parent-scoped normal path."
+  handle-timer-interrupt.mask-on-status:
+    basis: 98e09a4cf7cfa02b2e99994f424c3608ff680c86df82596ef86ae7f03cd3e9ec
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: 'Independently read child support at drivers/clocksource/arm_arch_timer.c 570-572: Only when
+      status is set, set IT_MASK and write the selected CTL. Executable operations match; adjacent parent
+      branches confirm the stated condition and ordering. Requirement inherits as-implemented; this does
+      not claim a hardware mandate. Contrary search read neighboring branches, configuration guards and
+      relevant guide pages 10-16; no contradictory behavior for this scoped claim was found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Read full driver565\u2013592 and arm64 header99\u2013128. The named step matches source order,\
+        \ register selection and conditions; adjacent alternate branches/wrappers do not contradict its\
+        \ parent-scoped normal path."
+  handle-timer-interrupt.callback-on-status:
+    basis: dfe6e79083c363dff32d8bb4467a1f4504dddef7acaad42c3e4a057d9c0a39c9
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: 'Independently read child support at drivers/clocksource/arm_arch_timer.c 573-577: In that branch
+      invoke event_handler and return IRQ_HANDLED; otherwise return IRQ_NONE without the callback. Executable
+      operations match; adjacent parent branches confirm the stated condition and ordering. Requirement
+      inherits as-implemented; this does not claim a hardware mandate. Contrary search read neighboring
+      branches, configuration guards and relevant guide pages 10-16; no contradictory behavior for this
+      scoped claim was found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Read full driver565\u2013592 and arm64 header99\u2013128. The named step matches source order,\
+        \ register selection and conditions; adjacent alternate branches/wrappers do not contradict its\
+        \ parent-scoped normal path."
+  disable-timer.read-control:
+    basis: acb4b9d314557e81aa296eb94a5cf188c490460f102f651096901ab30d50e866
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: 'Independently read child support at drivers/clocksource/arm_arch_timer.c 599-599: Read selected
+      CTL. Executable operations match; adjacent parent branches confirm the stated condition and ordering.
+      Requirement inherits as-implemented; this does not claim a hardware mandate. Contrary search read
+      neighboring branches, configuration guards and relevant guide pages 10-16; no contradictory behavior
+      for this scoped claim was found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Read full driver594\u2013615 and arm64 header99\u2013128. The named step matches source order,\
+        \ register selection and conditions; adjacent alternate branches/wrappers do not contradict its\
+        \ parent-scoped normal path."
+  disable-timer.clear-enable:
+    basis: 59ad5405d7f2dcabcd8b434a93b02c88d18b3df969b595deb31d7005b1729425
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol Codex timer_verify_a
+    note: 'Independently read child support at drivers/clocksource/arm_arch_timer.c 600-601; arch/arm64/include/asm/arch_timer.h
+      104-118: Clear ENABLE and write CTL through the arm64 accessor, which includes ISB for CTL writes.
+      Executable operations match; adjacent parent branches confirm the stated condition and ordering.
+      Requirement inherits as-implemented; this does not claim a hardware mandate. Contrary search read
+      neighboring branches, configuration guards and relevant guide pages 10-16; no contradictory behavior
+      for this scoped claim was found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, timer_verify_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: "Read full driver594\u2013615 and arm64 header99\u2013128. The named step matches source order,\
+        \ register selection and conditions; adjacent alternate branches/wrappers do not contradict its\
+        \ parent-scoped normal path."

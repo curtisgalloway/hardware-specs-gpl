@@ -1,0 +1,904 @@
+# SPDX-FileCopyrightText: 2026 contributors
+# SPDX-License-Identifier: GPL-2.0-only
+format: 2
+kind: peripheral
+id: arm-architectural-timer
+name: Arm architectural timer hardware programming
+orientation: 'Terms: system register means a named CPU register accessed by MRS/MSR; PPI means an interrupt
+  private to a core; EL means exception level, a processor privilege level; CVAL is absolute compare value;
+  TVAL is relative timer value. See the repository glossary. Scope: hardware programming for the standard
+  ROCK 5T V1.2 campaign; target OS integration is open. Ordinary facts describe system registers because
+  the format register payload requires an MMIO offset. No measured firmware state or hardware test is
+  claimed.'
+resources:
+  documents:
+  - name: arm-generic-timer-102379-0104.pdf
+    class: doc
+    title: Learn the architecture - Generic Timer
+    revision: 102379_0104_01_en version 1.4 issue 01
+    url: https://developer.arm.com/documentation/102379/latest
+    retrieval:
+    - url: https://documentation-service.arm.com/static/66c4754f32f35b31ceb317ff
+    sha256: c8fb557a14970b8302e2f12560fc9038d650da9aaaf97d4bb85327bfa401e82c
+    pages: 28
+    page_numbering: printed
+    access: public
+    note: Non-confidential public programming guide. Does not establish CPU extension availability or
+      actual firmware state; no claim cites the rejected retired DDI0608 supplement.
+  repos:
+  - name: linux
+    url: https://github.com/torvalds/linux
+    commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+    license: GPL-2.0-only
+    role: source
+    files:
+    - path: drivers/clocksource/arm_arch_timer.c
+      license_from: spdx-line
+    - path: include/clocksource/arm_arch_timer.h
+      license_from: spdx-line
+    - path: arch/arm64/include/asm/arch_timer.h
+      license_from: spdx-line
+facts:
+- id: processor-timer-scope
+  section: identity
+  title: Processor timer scope
+  claim: The guide describes a common System Counter broadcast to per-core comparators, with EL1 physical
+    and virtual timers always present. This peripheral covers their AArch64 programming and the pinned
+    Linux system-register path; it does not specify external MMIO timer frames.
+  support:
+  - class: doc
+    doc: arm-generic-timer-102379-0104.pdf
+    at:
+    - section: 3 What is the Generic Timer?
+      page: '8'
+  - class: doc
+    doc: arm-generic-timer-102379-0104.pdf
+    at:
+    - section: 3 What is the Generic Timer?
+      page: '9'
+  - class: doc
+    doc: arm-generic-timer-102379-0104.pdf
+    at:
+    - section: 4 The processor timers
+      page: '10'
+  - class: doc
+    doc: arm-generic-timer-102379-0104.pdf
+    at:
+    - section: 6 External timers
+      page: '22'
+- id: instance-topology
+  section: identity
+  title: RK3588 timer topology pointer
+  claim: RK3588 timer interrupt wiring and node properties are recorded by the referenced SoC fact. This
+    spec adds programming behavior, not an MMIO base or proof of the boot firmware state.
+  support:
+  - class: inference
+    confidence: high
+    premises:
+    - fact: rk3588@hardware-specs-gpl#dt-timer-node
+      uses: timer node interrupt names and properties
+    derivation: The SoC fact supplies the instance topology; timer programming is kept in this peripheral.
+  todo:
+    check: hardware
+    text: Confirm the timer node used at actual kernel entry matches the pinned SoC topology.
+  relates:
+  - fact: rk3588@hardware-specs-gpl#dt-timer-node
+    relation: qualifies
+- id: physical-count-and-frequency
+  section: sub-protocols
+  title: Physical count and frequency
+  claim: 'CNTPCT_EL0 reports the physical system count. CNTFRQ_EL0 reports its frequency but hardware
+    does not populate it: early firmware must set it, typically at EL3; the guide permits writes at the
+    highest implemented exception level. The count is 56 to 64 bits wide; this does not establish the
+    implemented RK3588 width or frequency.'
+  support:
+  - class: doc
+    doc: arm-generic-timer-102379-0104.pdf
+    at:
+    - section: 4.1 Count and frequency
+      page: '10'
+  - class: doc
+    doc: arm-generic-timer-102379-0104.pdf
+    at:
+    - section: 3 What is the Generic Timer?
+      page: '8'
+  requirement: hw-required
+  critical: true
+- id: virtual-count-offset
+  section: sub-protocols
+  title: Virtual count has its own time domain
+  claim: The virtual count is physical count minus CNTVOFF_EL2. The guide restricts access to that offset
+    to EL2 or EL3; without EL2 the offset is fixed to zero. Physical timers compare with physical count,
+    virtual timers with virtual count. No actual firmware offset is asserted.
+  support:
+  - class: doc
+    doc: arm-generic-timer-102379-0104.pdf
+    at:
+    - section: 4.6 Timer virtualization
+      page: '13'
+  - class: doc
+    doc: arm-generic-timer-102379-0104.pdf
+    at:
+    - section: 4.6 Timer virtualization
+      page: '14'
+  requirement: hw-required
+  critical: true
+- id: physical-sysregs
+  section: sub-protocols
+  title: Physical system register accessors
+  claim: For ARCH_TIMER_PHYS_ACCESS the pinned arm64 accessor reads CNTP_CTL_EL0, writes CNTP_CTL_EL0
+    followed by ISB, and writes CNTP_CVAL_EL0. These are system-register accesses, with no MMIO offsets
+    represented.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: arch/arm64/include/asm/arch_timer.h
+      lines:
+      - 102
+      - 110
+      symbol: arch_timer_reg_write_cp15
+  - class: src
+    anchors:
+    - repo: linux
+      path: arch/arm64/include/asm/arch_timer.h
+      lines:
+      - 134
+      - 139
+      symbol: arch_timer_reg_read_cp15
+  requirement: as-implemented
+  critical: true
+- id: virtual-sysregs
+  section: sub-protocols
+  title: Virtual system register accessors
+  claim: For ARCH_TIMER_VIRT_ACCESS the pinned arm64 accessor reads CNTV_CTL_EL0, writes CNTV_CTL_EL0
+    followed by ISB, and writes CNTV_CVAL_EL0. Invalid access or register selections reach BUILD_BUG paths
+    in these accessors.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: arch/arm64/include/asm/arch_timer.h
+      lines:
+      - 114
+      - 128
+      symbol: arch_timer_reg_write_cp15
+  - class: src
+    anchors:
+    - repo: linux
+      path: arch/arm64/include/asm/arch_timer.h
+      lines:
+      - 141
+      - 151
+      symbol: arch_timer_reg_read_cp15
+  requirement: as-implemented
+  critical: true
+- id: counter-read-order
+  section: sub-protocols
+  title: Counter read branches
+  claim: The arm64 normal read functions use ISB then MRS CNTPCT_EL0 or CNTVCT_EL0. Their ARM64_HAS_ECV
+    alternatives use NOP and the corresponding CNTPCTSS_EL0 or CNTVCTSS_EL0 access. The direct and stable
+    wrappers then call arch_counter_enforce_ordering with the read count; that helper implementation is
+    not specified here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: arch/arm64/include/asm/arch_timer.h
+      lines:
+      - 65
+      - 87
+      symbol: arch_timer_read_cntpct_el0
+  - class: src
+    anchors:
+    - repo: linux
+      path: arch/arm64/include/asm/arch_timer.h
+      lines:
+      - 170
+      - 201
+      symbol: __arch_counter_get_cntpct_stable
+  requirement: as-implemented
+  critical: true
+- id: physical-read-isb
+  section: sub-protocols
+  title: Order-sensitive physical count reads
+  claim: The guide warns that CNTPCT_EL0 reads can be speculative and shows an ISB before MRS when the
+    read must follow preceding program flow. Its self-synchronizing CNTPCTSS_EL0 is a newer architectural
+    feature; applicability to a particular CPU must be established before choosing it.
+  support:
+  - class: doc
+    doc: arm-generic-timer-102379-0104.pdf
+    at:
+    - section: 4.1 Count and frequency
+      page: '10'
+  requirement: hw-required
+  critical: true
+- id: compare-and-relative-registers
+  section: sub-protocols
+  title: Compare and relative timer registers
+  claim: The guide names CNTP_CTL_EL0, CNTP_CVAL_EL0 and CNTP_TVAL_EL0 for the EL1 physical timer, and
+    CNTV_CTL_EL0, CNTV_CVAL_EL0 and CNTV_TVAL_EL0 for the EL1 virtual timer. CVAL is 64 bits; TVAL is
+    32 bits. Writing TVAL populates CVAL from current count plus the written value; reading TVAL returns
+    a signed decrementing value. CVAL and TVAL are two views of the same timer. No reset values or system-register
+    instruction encodings are supplied.
+  support:
+  - class: doc
+    doc: arm-generic-timer-102379-0104.pdf
+    at:
+    - section: 4.2 Timer registers
+      page: '11'
+  - class: doc
+    doc: arm-generic-timer-102379-0104.pdf
+    at:
+    - section: 4.4 Configuring a timer
+      page: '12'
+  requirement: hw-required
+  critical: true
+- id: control-bit-definitions
+  section: sub-protocols
+  title: Linux control bit positions
+  claim: The Linux header defines ARCH_TIMER_CTRL_ENABLE at bit 0, ARCH_TIMER_CTRL_IT_MASK at bit 1 and
+    ARCH_TIMER_CTRL_IT_STAT at bit 2. These definitions supply the masks used by the source sequences.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: include/clocksource/arm_arch_timer.h
+      lines:
+      - 12
+      - 14
+      symbol: ARCH_TIMER_CTRL_ENABLE
+  requirement: as-implemented
+  critical: true
+- id: firing-condition
+  section: interrupts
+  title: Timer firing and mask semantics
+  claim: The guide states the timer condition is CVAL less than or equal to the count. CTL ENABLE enables
+    the timer, IMASK masks interrupt generation, and ISTATUS reports the firing condition when ENABLE
+    is one. To generate an interrupt, set ENABLE to one and IMASK to zero. Timer interrupts are private
+    to the originating core and level-sensitive.
+  support:
+  - class: doc
+    doc: arm-generic-timer-102379-0104.pdf
+    at:
+    - section: 4.4 Configuring a timer
+      page: '12'
+  - class: doc
+    doc: arm-generic-timer-102379-0104.pdf
+    at:
+    - section: 4.5 Interrupts
+      page: '12'
+  - class: doc
+    doc: arm-generic-timer-102379-0104.pdf
+    at:
+    - section: 4.5 Interrupts
+      page: '13'
+  requirement: hw-required
+  critical: true
+- id: clear-before-gic-deactivation
+  section: interrupts
+  title: Remove the timer signal before GIC deactivation
+  claim: The guide requires clearing the timer interrupt before deactivating it in the GIC. Set IMASK,
+    clear ENABLE, or write TVAL/CVAL so the firing condition is no longer met; otherwise the GIC can signal
+    the interrupt again. The timer control/status handling is distinct from GIC acknowledgment and deactivation.
+  support:
+  - class: doc
+    doc: arm-generic-timer-102379-0104.pdf
+    at:
+    - section: 4.5 Interrupts
+      page: '13'
+  - class: doc
+    doc: arm-generic-timer-102379-0104.pdf
+    at:
+    - section: 7 Example using Arm Development Studio
+      page: '25'
+  requirement: hw-required
+  critical: true
+- id: ppi-selection
+  section: interrupts
+  title: Linux PPI selection is conditional
+  claim: In arch_timer_select_ppi, a kernel in hyp mode uses the hypervisor virtual PPI if available and
+    has_broken_el2_vtimer is false, otherwise the hypervisor physical PPI. Outside that branch, lack of
+    hyp availability plus an available virtual PPI selects the EL1 virtual PPI; otherwise CONFIG_ARM64
+    selects the nonsecure physical PPI, with the secure physical PPI as the remaining non-arm64 fallback.
+    This is driver policy, not evidence of the actual ROCK5T entry mode.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clocksource/arm_arch_timer.c
+      lines:
+      - 1136
+      - 1153
+      symbol: arch_timer_select_ppi
+  requirement: as-implemented
+  critical: true
+- id: broken-el2-vtimer-guard
+  section: gotchas
+  title: Hypervisor virtual timer exclusion guard
+  claim: The has_broken_el2_vtimer helper returns true for an of_machine_compatible_match against its
+    brcm,bcm2712 list, taints the kernel and warns; otherwise it returns false. This describes the guard
+    called by PPI selection and does not assert any RK3588 timer erratum.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clocksource/arm_arch_timer.c
+      lines:
+      - 1093
+      - 1112
+      symbol: has_broken_el2_vtimer
+  requirement: as-implemented
+- id: counter-choice
+  section: sub-protocols
+  title: Clocksource counter selection differs from PPI selection
+  claim: arch_counter_register chooses the virtual counter when CONFIG_ARM64 is enabled and hyp mode is
+    unavailable, or when the selected PPI is virtual or hypervisor virtual. Otherwise it chooses the physical
+    counter. Each branch selects stable reader variants when arch_timer_counter_has_wa is true and direct
+    variants otherwise. Counter choice must be evaluated separately from timer interrupt choice.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clocksource/arm_arch_timer.c
+      lines:
+      - 915
+      - 935
+      symbol: arch_counter_register
+  requirement: as-implemented
+  critical: true
+- id: rate-probing
+  section: sub-protocols
+  title: Linux frequency probing branches
+  claim: The arm64 frequency accessor reads CNTFRQ_EL0. In DT initialization the driver passes that value
+    to arch_timer_of_configure_rate. That helper returns immediately if a nonzero rate already exists;
+    otherwise a successfully read clock-frequency property supplies the rate, and property-read failure
+    uses the passed CNTFRQ value. validate_timer_rate returns EINVAL for zero and warns below 1 MHz; the
+    DT helper merely warns on validation failure rather than aborting initialization there.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: arch/arm64/include/asm/arch_timer.h
+      lines:
+      - 154
+      - 157
+      symbol: arch_timer_get_cntfrq
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clocksource/arm_arch_timer.c
+      lines:
+      - 848
+      - 876
+      symbol: validate_timer_rate
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clocksource/arm_arch_timer.c
+      lines:
+      - 1187
+      - 1188
+      symbol: arch_timer_of_init
+  requirement: as-implemented
+  critical: true
+- id: program-next-event
+  section: sequences
+  title: Program a normal Linux next event
+  claim: For the non-workaround next-event path, the driver programs a relative delta using CVAL in the
+    chosen physical or virtual counter domain. This records source order, not a mandate for every operating
+    system.
+  requirement: as-implemented
+  critical: true
+  data:
+    sequence:
+      steps:
+      - id: prepare-control
+        action: Read the selected CTL; preserve its other bits, set ENABLE and clear IT_MASK.
+        support:
+        - class: src
+          anchors:
+          - repo: linux
+            path: drivers/clocksource/arm_arch_timer.c
+            lines:
+            - 622
+            - 624
+            symbol: set_next_event
+      - id: read-domain-count
+        action: For physical access read __arch_counter_get_cntpct; otherwise read __arch_counter_get_cntvct.
+        support:
+        - class: src
+          anchors:
+          - repo: linux
+            path: drivers/clocksource/arm_arch_timer.c
+            lines:
+            - 626
+            - 629
+            symbol: set_next_event
+      - id: write-compare
+        action: Write the selected CVAL with evt plus the count.
+        support:
+        - class: src
+          anchors:
+          - repo: linux
+            path: drivers/clocksource/arm_arch_timer.c
+            lines:
+            - 631
+            - 631
+            symbol: set_next_event
+      - id: enable-unmasked
+        action: Write the prepared selected CTL; the arm64 physical and virtual CTL accessors each follow
+          that write with ISB.
+        support:
+        - class: src
+          anchors:
+          - repo: linux
+            path: drivers/clocksource/arm_arch_timer.c
+            lines:
+            - 632
+            - 632
+            symbol: set_next_event
+        - class: src
+          anchors:
+          - repo: linux
+            path: arch/arm64/include/asm/arch_timer.h
+            lines:
+            - 104
+            - 118
+            symbol: arch_timer_reg_write_cp15
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clocksource/arm_arch_timer.c
+      lines:
+      - 616
+      - 632
+      symbol: set_next_event
+- id: handle-timer-interrupt
+  section: sequences
+  title: Handle the Linux timer interrupt
+  claim: The shared physical/virtual handler masks the interrupt before invoking the callback only if
+    its status bit is set; the no-status branch returns IRQ_NONE.
+  requirement: as-implemented
+  critical: true
+  data:
+    sequence:
+      steps:
+      - id: read-status
+        action: Read selected CTL and test ARCH_TIMER_CTRL_IT_STAT.
+        support:
+        - class: src
+          anchors:
+          - repo: linux
+            path: drivers/clocksource/arm_arch_timer.c
+            lines:
+            - 569
+            - 570
+            symbol: timer_handler
+      - id: mask-on-status
+        action: Only when status is set, set IT_MASK and write the selected CTL.
+        support:
+        - class: src
+          anchors:
+          - repo: linux
+            path: drivers/clocksource/arm_arch_timer.c
+            lines:
+            - 570
+            - 572
+            symbol: timer_handler
+      - id: callback-on-status
+        action: In that branch invoke event_handler and return IRQ_HANDLED; otherwise return IRQ_NONE
+          without the callback.
+        support:
+        - class: src
+          anchors:
+          - repo: linux
+            path: drivers/clocksource/arm_arch_timer.c
+            lines:
+            - 573
+            - 577
+            symbol: timer_handler
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clocksource/arm_arch_timer.c
+      lines:
+      - 569
+      - 579
+      symbol: timer_handler
+- id: disable-timer
+  section: sequences
+  title: Disable the Linux timer
+  claim: The shutdown path clears ENABLE in the selected control register and returns zero.
+  requirement: as-implemented
+  critical: true
+  data:
+    sequence:
+      steps:
+      - id: read-control
+        action: Read selected CTL.
+        support:
+        - class: src
+          anchors:
+          - repo: linux
+            path: drivers/clocksource/arm_arch_timer.c
+            lines:
+            - 599
+            - 599
+            symbol: arch_timer_shutdown
+      - id: clear-enable
+        action: Clear ENABLE and write CTL through the arm64 accessor, which includes ISB for CTL writes.
+        support:
+        - class: src
+          anchors:
+          - repo: linux
+            path: drivers/clocksource/arm_arch_timer.c
+            lines:
+            - 600
+            - 601
+            symbol: arch_timer_shutdown
+        - class: src
+          anchors:
+          - repo: linux
+            path: arch/arm64/include/asm/arch_timer.h
+            lines:
+            - 104
+            - 118
+            symbol: arch_timer_reg_write_cp15
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clocksource/arm_arch_timer.c
+      lines:
+      - 599
+      - 603
+      symbol: arch_timer_shutdown
+- id: setup-channel-and-disable
+  section: gotchas
+  title: Linux setup selects channel operations and initially disables
+  claim: __arch_timer_setup assigns virtual shutdown and next-event operations for virtual and hypervisor
+    virtual PPIs, and physical operations for secure physical, nonsecure physical and hypervisor physical
+    PPIs. Next-event operations are chosen through erratum_handler. It invokes shutdown before clockevents_config_and_register
+    with minimum delta 15 and the computed maximum delta.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clocksource/arm_arch_timer.c
+      lines:
+      - 690
+      - 713
+      symbol: __arch_timer_setup
+  requirement: as-implemented
+- id: workaround-next-event
+  section: gotchas
+  title: Workaround callback boundary
+  claim: With CONFIG_ARM_ARCH_TIMER_OOL_WORKAROUND, erratum_handler uses an installed non-null per-CPU
+    handler for the requested operation, executing ISB before yielding that handler; otherwise it uses
+    the normal function. Without that configuration it always selects the normal function. erratum_set_next_event_generic
+    uses stable physical or virtual count reads, writes matching CVAL, then writes CTL with ENABLE set
+    and IT_MASK clear. Applicability of any workaround to the board remains open.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: arch/arm64/include/asm/arch_timer.h
+      lines:
+      - 23
+      - 41
+      symbol: erratum_handler
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clocksource/arm_arch_timer.c
+      lines:
+      - 320
+      - 338
+      symbol: erratum_set_next_event_generic
+  requirement: as-implemented
+- id: width-policy
+  section: gotchas
+  title: Linux counter width is estimated
+  claim: arch_counter_get_width computes a width from 40 years times the configured rate, then clamps
+    the estimate to 56 through 64. This is a source policy estimate, not a measurement of implemented
+    counter width. Under CONFIG_ARM64 the maximum-delta helper has an XGene MIDR exception returning a
+    31-bit mask; otherwise it uses the estimated width.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clocksource/arm_arch_timer.c
+      lines:
+      - 41
+      - 41
+      symbol: MIN_ROLLOVER_SECS
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clocksource/arm_arch_timer.c
+      lines:
+      - 82
+      - 88
+      symbol: arch_counter_get_width
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clocksource/arm_arch_timer.c
+      lines:
+      - 649
+      - 671
+      symbol: __arch_timer_check_delta
+  requirement: as-implemented
+- id: cntkctl-policy-bits
+  section: sub-protocols
+  title: Linux CNTKCTL policy bit constants
+  claim: The Linux header defines user physical-counter access at bit 0, user virtual-counter access at
+    bit 1, virtual-event enable at bit 2, event selector bits 4 through 7, user virtual-timer access at
+    bit 8, user physical-timer access at bit 9, and event interval scale at bit 17. The arm64 helpers
+    read CNTKCTL_EL1 and write it followed by ISB. These are source constants and operations, not a complete
+    hardware permission table.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: include/clocksource/arm_arch_timer.h
+      lines:
+      - 54
+      - 61
+      symbol: ARCH_TIMER_USR_PCT_ACCESS_EN
+  - class: src
+    anchors:
+    - repo: linux
+      path: arch/arm64/include/asm/arch_timer.h
+      lines:
+      - 159
+      - 167
+      symbol: arch_timer_get_cntkctl
+  requirement: as-implemented
+  critical: true
+- id: user-access-policy
+  section: gotchas
+  title: Linux user access policy is per CPU
+  claim: arch_counter_set_user_access clears user physical/virtual timer access, both user counter access
+    bits and virtual-event enable. It then enables user virtual-counter access only when arch_timer_this_cpu_has_cntvct_wa
+    is false; otherwise it logs trapping CNTVCT access. Finally it writes CNTKCTL through the arm64 ISB
+    accessor. This is EL0 policy and does not establish that higher exception levels permit EL1 timer/counter
+    accesses.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clocksource/arm_arch_timer.c
+      lines:
+      - 783
+      - 806
+      symbol: arch_counter_set_user_access
+  - class: src
+    anchors:
+    - repo: linux
+      path: arch/arm64/include/asm/arch_timer.h
+      lines:
+      - 164
+      - 167
+      symbol: arch_timer_set_cntkctl
+  requirement: as-implemented
+  critical: true
+- id: access-and-redirection
+  section: sub-protocols
+  title: Access and exception level prerequisites
+  claim: The guide states CNTKCTL_EL1 controls EL0 access to EL1 physical and virtual timers. Its summary
+    marks EL1 physical timer accesses trappable to EL2 and CNTP/CNTV timer registers subject to redirection
+    when HCR_EL2.E2H is one. The Linux selection comment describes VHE redirection to EL2 counterparts;
+    this does not authorize assuming those access conditions on the board.
+  support:
+  - class: doc
+    doc: arm-generic-timer-102379-0104.pdf
+    at:
+    - section: 4.3 Accessing the timers
+      page: '11'
+  - class: doc
+    doc: arm-generic-timer-102379-0104.pdf
+    at:
+    - section: 4.8 Summary table
+      page: '16'
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clocksource/arm_arch_timer.c
+      lines:
+      - 1122
+      - 1130
+      symbol: arch_timer_select_ppi
+      comment: true
+  requirement: hw-required
+  critical: true
+- id: dt-init-and-failure
+  section: gotchas
+  title: Linux DT initialization and early exits
+  claim: arch_timer_of_init skips a duplicate node when arch_timer_evt exists. It resolves interrupts
+    by names if interrupt-names exists, otherwise by enum index, retaining only positive IRQ results.
+    It derives c3stop from absence of always-on, checks DT workarounds, and only CONFIG_ARM with arm,cpu-registers-not-fw-configured
+    forces the secure physical PPI; otherwise it calls arch_timer_select_ppi. Missing selected interrupt
+    returns EINVAL. It reads arm,no-tick-in-suspend, propagates arch_timer_register failure, and calls
+    common initialization only after registration succeeds.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clocksource/arm_arch_timer.c
+      lines:
+      - 1163
+      - 1218
+      symbol: arch_timer_of_init
+  - class: src
+    anchors:
+    - repo: linux
+      path: include/clocksource/arm_arch_timer.h
+      lines:
+      - 35
+      - 41
+      symbol: arch_timer_ppi_nr
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clocksource/arm_arch_timer.c
+      lines:
+      - 46
+      - 52
+      symbol: arch_timer_ppi_names
+  requirement: as-implemented
+- id: percpu-irq-lifecycle
+  section: interrupts
+  title: Linux per CPU IRQ lifecycle
+  claim: 'On CPU startup the driver calls __arch_timer_setup, validates selected PPI trigger flags and
+    enables that per-CPU IRQ, then configures user access. A second nonsecure physical IRQ is enabled
+    only when arch_timer_has_nonsecure_ppi is true: selected secure physical PPI and an available nonsecure
+    physical PPI. check_ppi_trigger accepts level high or level low, warning and choosing level low for
+    any other flags. CPU teardown disables selected IRQ and the second IRQ under the same guard.'
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clocksource/arm_arch_timer.c
+      lines:
+      - 808
+      - 846
+      symbol: arch_timer_has_nonsecure_ppi
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clocksource/arm_arch_timer.c
+      lines:
+      - 954
+      - 968
+      symbol: arch_timer_stop
+  requirement: as-implemented
+  critical: true
+- id: registration-unwind
+  section: gotchas
+  title: Linux registration errors unwind resources
+  claim: arch_timer_register allocates per-CPU clock-event storage or returns ENOMEM. It requests the
+    handler matching selected PPI; a second nonsecure IRQ is requested only after successful secure-physical
+    request and the nonsecure-PPI guard. Failure of that second request frees the first. IRQ request failure
+    frees storage; CPU-PM initialization failure frees IRQs and storage; CPU hotplug setup failure additionally
+    unregisters CPU-PM notification. The driver calls cpuhp_setup_state with arch_timer_starting_cpu and
+    arch_timer_dying_cpu as callbacks and returns zero when that call succeeds.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clocksource/arm_arch_timer.c
+      lines:
+      - 1014
+      - 1084
+      symbol: arch_timer_register
+  requirement: as-implemented
+- id: power-policy
+  section: gotchas
+  title: Linux CPU power and suspend declarations
+  claim: With CONFIG_CPU_PM, the notifier saves CNTKCTL on CPU_PM_ENTER and clears event-stream availability.
+    On CPU_PM_ENTER_FAILED or CPU_PM_EXIT it restores CNTKCTL and marks availability only if the CPU has
+    the event-stream feature. arch_counter_register marks the clocksource suspend-nonstop only when arch_counter_suspend_stop
+    is false. These are source policies; they do not prove firmware preserves count or timer state.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clocksource/arm_arch_timer.c
+      lines:
+      - 942
+      - 943
+      symbol: arch_counter_register
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clocksource/arm_arch_timer.c
+      lines:
+      - 971
+      - 986
+      symbol: arch_timer_cpu_pm_notify
+  requirement: as-implemented
+- id: boot-privilege-state
+  section: open-questions
+  title: Actual entry privilege and trap permissions
+  claim: Establish the actual entry exception level, security state, HCR_EL2 configuration where applicable,
+    and higher-level timer/counter access controls before applying the physical or virtual programming
+    path. The accepted guide is not a complete bit-level trap setup recipe; neither pinned Linux nor the
+    SoC node proves actual firmware state.
+  critical: true
+  todo:
+    check: hardware
+    text: Establish the actual entry exception level, security state, HCR_EL2 configuration where applicable,
+      and higher-level timer/counter access controls before applying the physical or virtual programming
+      path. The accepted guide is not a complete bit-level trap setup recipe; neither pinned Linux nor
+      the SoC node proves actual firmware state.
+- id: measured-frequency-offset-width
+  section: open-questions
+  title: Actual counter properties
+  claim: Measure CNTFRQ_EL0, monotonic count behavior, physical-versus-virtual offset from a permitted
+    privilege level, and cross-core consistency; establish implemented counter width from an applicable
+    public architecture or hardware identity. Do not substitute a guessed frequency, zero virtual offset,
+    or the Linux width estimate.
+  critical: true
+  todo:
+    check: hardware
+    text: Measure CNTFRQ_EL0, monotonic count behavior, physical-versus-virtual offset from a permitted
+      privilege level, and cross-core consistency; establish implemented counter width from an applicable
+      public architecture or hardware identity. Do not substitute a guessed frequency, zero virtual offset,
+      or the Linux width estimate.
+- id: target-integration
+  section: target
+  title: Target operating system integration
+  claim: No target operating system or target source tree is selected. Identify its clocksource, one-shot
+    timer and per-CPU interrupt contracts, privilege setup and interrupt deactivation ordering before
+    implementing a port. Linux behavior here is source evidence, not that target contract.
+  critical: true
+  todo:
+    check: source
+    text: No target operating system or target source tree is selected. Identify its clocksource, one-shot
+      timer and per-CPU interrupt contracts, privilege setup and interrupt deactivation ordering before
+      implementing a port. Linux behavior here is source evidence, not that target contract.
+- id: counter-firmware-setup
+  section: open-questions
+  title: System Counter initialization prerequisite
+  claim: Confirm boot firmware enables the System Counter and sets CNTFRQ correctly, using accepted firmware
+    evidence and entry-state observation. The guide section 5.2 describes a recommended Secure System
+    Counter MMIO interface but does not establish its RK3588 address or authorize nonsecure software to
+    configure it.
+  critical: true
+  todo:
+    check: hardware
+    text: Confirm boot firmware enables the System Counter and sets CNTFRQ correctly, using accepted firmware
+      evidence and entry-state observation. The guide section 5.2 describes a recommended Secure System
+      Counter MMIO interface but does not establish its RK3588 address or authorize nonsecure software
+      to configure it.
+- id: extensions-and-errata
+  section: open-questions
+  title: Extensions and errata applicability
+  claim: Establish actual CPU feature and erratum applicability before selecting ECV alternatives or workaround
+    readers. Event-stream tuning, secure and hypervisor timer programming, timer virtualization implementation,
+    MMIO timer frames and ACPI integration are outside this bounded boot programming draft.
+  critical: true
+  todo:
+    check: document
+    text: Establish actual CPU feature and erratum applicability before selecting ECV alternatives or
+      workaround readers. Event-stream tuning, secure and hypervisor timer programming, timer virtualization
+      implementation, MMIO timer frames and ACPI integration are outside this bounded boot programming
+      draft.
+- id: irq-delivery-prerequisite
+  section: open-questions
+  title: End to end timer interrupt delivery
+  claim: Confirm the selected timer PPI reaches the intended core through the interrupt controller with
+    the actual exception-level routing and masking configuration. Verify status, mask or disable, GIC
+    acknowledgment and deactivation order, and a future compare event on the board under an approved hardware
+    test. No hardware test was run for this draft.
+  critical: true
+  todo:
+    check: hardware
+    text: Confirm the selected timer PPI reaches the intended core through the interrupt controller with
+      the actual exception-level routing and masking configuration. Verify status, mask or disable, GIC
+      acknowledgment and deactivation order, and a future compare event on the board under an approved
+      hardware test. No hardware test was run for this draft.
