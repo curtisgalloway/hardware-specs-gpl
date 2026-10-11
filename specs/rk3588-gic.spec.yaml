@@ -1,0 +1,2747 @@
+# SPDX-FileCopyrightText: 2026 contributors
+# SPDX-License-Identifier: GPL-2.0-only
+format: 2
+kind: peripheral
+id: rk3588-gic
+name: RK3588 GICv3 regular interrupt boot programming
+orientation: 'Terms: INTID is the architectural interrupt identifier; SPI is a shared peripheral interrupt;
+  PPI is a per-CPU peripheral interrupt; SGI is a software-generated interrupt; PE is a processing
+  element; RD and SGI are separate redistributor frames; RWP is Register Write Pending; SRE enables
+  CPU system register access; EOI drops interrupt priority. See the repository glossary and the existing
+  rk3588 SoC spec for instance placement. This bounded GPL peripheral combines public architecture
+  with Linux observations. Reusable architecture IP composition is deferred to integration.'
+resources:
+  documents:
+  - name: arm-ihi0069g.pdf
+    class: standard
+    title: Arm Generic Interrupt Controller Architecture Specification, GIC architecture version 3
+      and version 4
+    revision: Arm IHI 0069G ID011821
+    url: https://developer.arm.com/documentation/ihi0069/latest
+    retrieval:
+    - url: https://documentation-service.arm.com/static/601412d54ccc190e5e681269
+    sha256: f5461ced0b908141c87f655e602ff6340a90f14028ea009239c388ed69b78ac6
+    pages: 930
+    page_numbering: pdf
+    access: public
+    note: Non-confidential. Arm copyright and proprietary notices remain applicable; document bytes
+      are not redistributed.
+  repos:
+  - name: linux-gic
+    url: https://github.com/torvalds/linux
+    commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+    license: GPL-2.0-only
+    role: source
+    files:
+    - path: drivers/irqchip/irq-gic-v3.c
+      license_from: spdx-line
+    - path: include/linux/irqchip/arm-gic-v3.h
+      license_from: spdx-line
+    - path: arch/arm64/include/asm/arch_gicv3.h
+      license_from: spdx-line
+    - path: drivers/irqchip/irq-gic-common.c
+      license_from: spdx-line
+    - path: include/linux/irqchip/arm-gic.h
+      license_from: spdx-line
+notices:
+- repo: linux-gic
+  path: drivers/irqchip/irq-gic-v3.c
+  text: 'Copyright (C) 2013-2017 ARM Limited, All Rights Reserved. Author: Marc Zyngier. GPL-2.0-only.'
+- repo: linux-gic
+  path: include/linux/irqchip/arm-gic-v3.h
+  text: 'Copyright (C) 2013, 2014 ARM Limited, All Rights Reserved. Author: Marc Zyngier. GPL-2.0-only.'
+- repo: linux-gic
+  path: arch/arm64/include/asm/arch_gicv3.h
+  text: Copyright (C) 2015 ARM Ltd. GPL-2.0-only.
+- repo: linux-gic
+  path: drivers/irqchip/irq-gic-common.c
+  text: Copyright (C) 2002 ARM Limited, All Rights Reserved. GPL-2.0-only.
+- repo: linux-gic
+  path: include/linux/irqchip/arm-gic.h
+  text: Copyright (C) 2002 ARM Limited, All Rights Reserved. GPL-2.0-only.
+areas:
+- area: Regular interrupt programming
+  level: document-and-code
+  note: Architecture lifecycle and requirements; source-defined bounded MMIO offsets/masks and Linux
+    policy. Hardware applicability and firmware handoff remain gaps.
+facts:
+- id: architecture-interface
+  section: identity
+  claim: The bounded programming model is GICv3 with affinity routing and the AArch64 CPU system register
+    interface. Distributor state routes SPIs; redistributors hold SGI/PPI configuration; each CPU
+    interface serves one processing element (PE). This identifies an interface, not a GIC-600 product
+    or revision.
+  support:
+  - class: standard
+    doc: arm-ihi0069g.pdf
+    at:
+    - page: '32'
+      section: '2.1'
+  - class: standard
+    doc: arm-ihi0069g.pdf
+    at:
+    - page: '48'
+      section: 4.1.1
+  - class: standard
+    doc: arm-ihi0069g.pdf
+    at:
+    - page: '37'
+      section: 2.3 Affinity routing
+- id: rk3588-interface-applicability
+  section: identity
+  claim: The existing RK3588 device-tree evidence advertises arm,gic-v3, so this architectural interface
+    is the selected software contract for integration. Actual register accessibility and silicon identity
+    remain unmeasured.
+  support:
+  - class: inference
+    premises:
+    - fact: rk3588@hardware-specs-gpl#dt-gic-node
+    derivation: The published device-tree compatible selects the GICv3 interface, without identifying
+      an implementation product or establishing firmware access permissions.
+  todo:
+    check: hardware
+    text: Validate the interface on the board using identification registers and the firmware handoff
+      state.
+- id: driver-scope
+  section: identity
+  claim: Linux header offsets describe a Non-secure, affinity-routing-enabled view; its comment excludes
+    Secure-only and non-ARE registers. Sequences below record this Linux driver, not a universally
+    mandatory boot recipe.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 9
+      - 12
+      symbol: Distributor registers
+      comment: true
+  requirement: comment-explained
+- id: reg-gicd-ctlr
+  section: registers
+  claim: Linux defines GICD_CTLR at this offset relative to the distributor frame. This is a base
+    offset for an indexed array where applicable; register width, whole-register access and reset
+    are unspecified here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 13
+      - 13
+      symbol: GICD_CTLR
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICD_CTLR
+      offset: '0x0'
+    fields:
+    - id: gicd-ctlr-rwp
+      name: GICD_CTLR_RWP
+      bits:
+      - 31
+      - 31
+      meaning: Linux tests this mask while waiting for writes to drain.
+      support:
+      - class: src
+        anchors:
+        - repo: linux-gic
+          path: include/linux/irqchip/arm-gic-v3.h
+          lines:
+          - 58
+          - 58
+          symbol: GICD_CTLR_RWP
+      - class: src
+        anchors:
+        - repo: linux-gic
+          path: drivers/irqchip/irq-gic-v3.c
+          lines:
+          - 358
+          - 358
+          symbol: gic_dist_wait_for_rwp
+    - id: gicd-ctlr-ds
+      name: GICD_CTLR_DS
+      bits:
+      - 6
+      - 6
+      meaning: Linux tests the security-disabled mask; no recommendation to change security state
+        is implied.
+      support:
+      - class: src
+        anchors:
+        - repo: linux-gic
+          path: include/linux/irqchip/arm-gic-v3.h
+          lines:
+          - 60
+          - 60
+          symbol: GICD_CTLR_DS
+      - class: src
+        anchors:
+        - repo: linux-gic
+          path: drivers/irqchip/irq-gic-v3.c
+          lines:
+          - 162
+          - 162
+          symbol: gic_dist_security_disabled
+    - id: gicd-ctlr-are-ns
+      name: GICD_CTLR_ARE_NS
+      bits:
+      - 4
+      - 4
+      meaning: Linux uses this affinity-routing mask in distributor initialization.
+      support:
+      - class: src
+        anchors:
+        - repo: linux-gic
+          path: include/linux/irqchip/arm-gic-v3.h
+          lines:
+          - 61
+          - 61
+          symbol: GICD_CTLR_ARE_NS
+      - class: src
+        anchors:
+        - repo: linux-gic
+          path: drivers/irqchip/irq-gic-v3.c
+          lines:
+          - 962
+          - 969
+          symbol: gic_dist_init
+    - id: gicd-ctlr-enable-g1a
+      name: GICD_CTLR_ENABLE_G1A
+      bits:
+      - 1
+      - 1
+      meaning: Linux includes this mask in the Non-secure distributor enable value.
+      support:
+      - class: src
+        anchors:
+        - repo: linux-gic
+          path: include/linux/irqchip/arm-gic-v3.h
+          lines:
+          - 62
+          - 62
+          symbol: GICD_CTLR_ENABLE_G1A
+      - class: src
+        anchors:
+        - repo: linux-gic
+          path: drivers/irqchip/irq-gic-v3.c
+          lines:
+          - 962
+          - 969
+          symbol: gic_dist_init
+    - id: gicd-ctlr-enable-g1
+      name: GICD_CTLR_ENABLE_G1
+      bits:
+      - 0
+      - 0
+      meaning: Linux includes this mask in the Non-secure distributor enable value.
+      support:
+      - class: src
+        anchors:
+        - repo: linux-gic
+          path: include/linux/irqchip/arm-gic-v3.h
+          lines:
+          - 63
+          - 63
+          symbol: GICD_CTLR_ENABLE_G1
+      - class: src
+        anchors:
+        - repo: linux-gic
+          path: drivers/irqchip/irq-gic-v3.c
+          lines:
+          - 962
+          - 969
+          symbol: gic_dist_init
+- id: reg-gicd-typer
+  section: registers
+  claim: Linux defines GICD_TYPER at this offset relative to the distributor frame. This is a base
+    offset for an indexed array where applicable; register width, whole-register access and reset
+    are unspecified here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 14
+      - 14
+      symbol: GICD_TYPER
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICD_TYPER
+      offset: '0x4'
+- id: reg-gicd-iidr
+  section: registers
+  claim: Linux defines GICD_IIDR at this offset relative to the distributor frame. This is a base
+    offset for an indexed array where applicable; register width, whole-register access and reset
+    are unspecified here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 15
+      - 15
+      symbol: GICD_IIDR
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICD_IIDR
+      offset: '0x8'
+    fields:
+    - id: gicd-iidr-implementer-mask
+      name: GICD_IIDR_IMPLEMENTER_MASK
+      bits:
+      - 0
+      - 11
+      meaning: Linux implementer field mask.
+      support:
+      - class: src
+        anchors:
+        - repo: linux-gic
+          path: include/linux/irqchip/arm-gic-v3.h
+          lines:
+          - 65
+          - 66
+          symbol: GICD_IIDR_IMPLEMENTER_MASK
+    - id: gicd-iidr-revision-mask
+      name: GICD_IIDR_REVISION_MASK
+      bits:
+      - 12
+      - 15
+      meaning: Linux revision field mask.
+      support:
+      - class: src
+        anchors:
+        - repo: linux-gic
+          path: include/linux/irqchip/arm-gic-v3.h
+          lines:
+          - 67
+          - 68
+          symbol: GICD_IIDR_REVISION_MASK
+    - id: gicd-iidr-variant-mask
+      name: GICD_IIDR_VARIANT_MASK
+      bits:
+      - 16
+      - 19
+      meaning: Linux variant field mask.
+      support:
+      - class: src
+        anchors:
+        - repo: linux-gic
+          path: include/linux/irqchip/arm-gic-v3.h
+          lines:
+          - 69
+          - 70
+          symbol: GICD_IIDR_VARIANT_MASK
+    - id: gicd-iidr-product-id-mask
+      name: GICD_IIDR_PRODUCT_ID_MASK
+      bits:
+      - 24
+      - 31
+      meaning: Linux product field mask.
+      support:
+      - class: src
+        anchors:
+        - repo: linux-gic
+          path: include/linux/irqchip/arm-gic-v3.h
+          lines:
+          - 71
+          - 72
+          symbol: GICD_IIDR_PRODUCT_ID_MASK
+- id: reg-gicd-igroupr
+  section: registers
+  claim: Linux defines GICD_IGROUPR at this offset relative to the distributor frame. This is a base
+    offset for an indexed array where applicable; register width, whole-register access and reset
+    are unspecified here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 22
+      - 22
+      symbol: GICD_IGROUPR
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICD_IGROUPR
+      offset: '0x80'
+- id: reg-gicd-isenabler
+  section: registers
+  claim: Linux defines GICD_ISENABLER at this offset relative to the distributor frame. This is a
+    base offset for an indexed array where applicable; register width, whole-register access and reset
+    are unspecified here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 23
+      - 23
+      symbol: GICD_ISENABLER
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICD_ISENABLER
+      offset: '0x100'
+- id: reg-gicd-icenabler
+  section: registers
+  claim: Linux defines GICD_ICENABLER at this offset relative to the distributor frame. This is a
+    base offset for an indexed array where applicable; register width, whole-register access and reset
+    are unspecified here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 24
+      - 24
+      symbol: GICD_ICENABLER
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICD_ICENABLER
+      offset: '0x180'
+- id: reg-gicd-ispendr
+  section: registers
+  claim: Linux defines GICD_ISPENDR at this offset relative to the distributor frame. This is a base
+    offset for an indexed array where applicable; register width, whole-register access and reset
+    are unspecified here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 25
+      - 25
+      symbol: GICD_ISPENDR
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICD_ISPENDR
+      offset: '0x200'
+- id: reg-gicd-icpendr
+  section: registers
+  claim: Linux defines GICD_ICPENDR at this offset relative to the distributor frame. This is a base
+    offset for an indexed array where applicable; register width, whole-register access and reset
+    are unspecified here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 26
+      - 26
+      symbol: GICD_ICPENDR
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICD_ICPENDR
+      offset: '0x280'
+- id: reg-gicd-isactiver
+  section: registers
+  claim: Linux defines GICD_ISACTIVER at this offset relative to the distributor frame. This is a
+    base offset for an indexed array where applicable; register width, whole-register access and reset
+    are unspecified here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 27
+      - 27
+      symbol: GICD_ISACTIVER
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICD_ISACTIVER
+      offset: '0x300'
+- id: reg-gicd-icactiver
+  section: registers
+  claim: Linux defines GICD_ICACTIVER at this offset relative to the distributor frame. This is a
+    base offset for an indexed array where applicable; register width, whole-register access and reset
+    are unspecified here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 28
+      - 28
+      symbol: GICD_ICACTIVER
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICD_ICACTIVER
+      offset: '0x380'
+- id: reg-gicd-ipriorityr
+  section: registers
+  claim: Linux defines GICD_IPRIORITYR at this offset relative to the distributor frame. This is a
+    base offset for an indexed array where applicable; register width, whole-register access and reset
+    are unspecified here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 29
+      - 29
+      symbol: GICD_IPRIORITYR
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICD_IPRIORITYR
+      offset: '0x400'
+- id: reg-gicd-icfgr
+  section: registers
+  claim: Linux defines GICD_ICFGR at this offset relative to the distributor frame. This is a base
+    offset for an indexed array where applicable; register width, whole-register access and reset
+    are unspecified here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 30
+      - 30
+      symbol: GICD_ICFGR
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICD_ICFGR
+      offset: '0xc00'
+- id: reg-gicd-irouter
+  section: registers
+  claim: Linux defines GICD_IROUTER at this offset relative to the distributor frame. This is a base
+    offset for an indexed array where applicable; register width, whole-register access and reset
+    are unspecified here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 42
+      - 42
+      symbol: GICD_IROUTER
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICD_IROUTER
+      offset: '0x6000'
+- id: reg-gicd-pidr2
+  section: registers
+  claim: Linux defines GICD_PIDR2 at this offset relative to the distributor frame. This is a base
+    offset for an indexed array where applicable; register width, whole-register access and reset
+    are unspecified here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 45
+      - 45
+      symbol: GICD_PIDR2
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICD_PIDR2
+      offset: '0xffe8'
+- id: reg-gicr-ctlr
+  section: registers
+  claim: Linux defines GICR_CTLR at this offset relative to the RD frame. This is a base offset for
+    an indexed array where applicable; register width, whole-register access and reset are unspecified
+    here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 114
+      - 114
+      symbol: GICR_CTLR
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 13
+      - 13
+      symbol: GICD_CTLR
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICR_CTLR
+      offset: '0x0'
+    fields:
+    - id: gicr-ctlr-rwp
+      name: GICR_CTLR_RWP
+      bits:
+      - 3
+      - 3
+      meaning: Linux polls this redistributor write-pending mask.
+      support:
+      - class: src
+        anchors:
+        - repo: linux-gic
+          path: include/linux/irqchip/arm-gic-v3.h
+          lines:
+          - 132
+          - 132
+          symbol: GICR_CTLR_RWP
+      - class: src
+        anchors:
+        - repo: linux-gic
+          path: drivers/irqchip/irq-gic-v3.c
+          lines:
+          - 364
+          - 364
+          symbol: gic_redist_wait_for_rwp
+- id: reg-gicr-iidr
+  section: registers
+  claim: Linux defines GICR_IIDR at this offset relative to the RD frame. This is a base offset for
+    an indexed array where applicable; register width, whole-register access and reset are unspecified
+    here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 115
+      - 115
+      symbol: GICR_IIDR
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICR_IIDR
+      offset: '0x4'
+- id: reg-gicr-typer
+  section: registers
+  claim: Linux defines GICR_TYPER at this offset relative to the RD frame. This is a base offset for
+    an indexed array where applicable; register width, whole-register access and reset are unspecified
+    here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 116
+      - 116
+      symbol: GICR_TYPER
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICR_TYPER
+      offset: '0x8'
+    fields:
+    - id: gicr-typer-last
+      name: GICR_TYPER_LAST
+      bits:
+      - 4
+      - 4
+      meaning: Linux stops redistributor frame traversal when this bit is set.
+      support:
+      - class: src
+        anchors:
+        - repo: linux-gic
+          path: include/linux/irqchip/arm-gic-v3.h
+          lines:
+          - 246
+          - 246
+          symbol: GICR_TYPER_LAST
+      - class: src
+        anchors:
+        - repo: linux-gic
+          path: drivers/irqchip/irq-gic-v3.c
+          lines:
+          - 1017
+          - 1017
+          symbol: gic_iterate_rdists
+    - id: gicr-typer-affinity
+      name: GICR_TYPER_AFFINITY
+      bits:
+      - 32
+      - 63
+      meaning: Linux matches these upper bits to packed CPU affinity.
+      support:
+      - class: src
+        anchors:
+        - repo: linux-gic
+          path: include/linux/irqchip/arm-gic-v3.h
+          lines:
+          - 249
+          - 249
+          symbol: GICR_TYPER_AFFINITY
+      - class: src
+        anchors:
+        - repo: linux-gic
+          path: drivers/irqchip/irq-gic-v3.c
+          lines:
+          - 1035
+          - 1041
+          symbol: __gic_populate_rdist
+- id: reg-gicr-waker
+  section: registers
+  claim: Linux defines GICR_WAKER at this offset relative to the RD frame. This is a base offset for
+    an indexed array where applicable; register width, whole-register access and reset are unspecified
+    here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 118
+      - 118
+      symbol: GICR_WAKER
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICR_WAKER
+      offset: '0x14'
+    fields:
+    - id: gicr-waker-processorsleep
+      name: GICR_WAKER_ProcessorSleep
+      bits:
+      - 1
+      - 1
+      meaning: Linux clears this mask to wake and sets it to sleep.
+      support:
+      - class: src
+        anchors:
+        - repo: linux-gic
+          path: include/linux/irqchip/arm-gic-v3.h
+          lines:
+          - 148
+          - 148
+          symbol: GICR_WAKER_ProcessorSleep
+      - class: src
+        anchors:
+        - repo: linux-gic
+          path: drivers/irqchip/irq-gic-v3.c
+          lines:
+          - 378
+          - 384
+          symbol: gic_enable_redist
+    - id: gicr-waker-childrenasleep
+      name: GICR_WAKER_ChildrenAsleep
+      bits:
+      - 2
+      - 2
+      meaning: Linux waits for this status to match the requested sleep state.
+      support:
+      - class: src
+        anchors:
+        - repo: linux-gic
+          path: include/linux/irqchip/arm-gic-v3.h
+          lines:
+          - 149
+          - 149
+          symbol: GICR_WAKER_ChildrenAsleep
+      - class: src
+        anchors:
+        - repo: linux-gic
+          path: drivers/irqchip/irq-gic-v3.c
+          lines:
+          - 392
+          - 394
+          symbol: gic_enable_redist
+- id: reg-gicr-pidr2
+  section: registers
+  claim: Linux defines GICR_PIDR2 at this offset relative to the RD frame. This is a base offset for
+    an indexed array where applicable; register width, whole-register access and reset are unspecified
+    here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 127
+      - 127
+      symbol: GICR_PIDR2
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 45
+      - 45
+      symbol: GICD_PIDR2
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICR_PIDR2
+      offset: '0xffe8'
+- id: reg-gicr-igroupr0
+  section: registers
+  claim: Linux defines GICR_IGROUPR0 at this offset relative to the SGI frame. This is a base offset
+    for an indexed array where applicable; register width, whole-register access and reset are unspecified
+    here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 230
+      - 230
+      symbol: GICR_IGROUPR0
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 22
+      - 22
+      symbol: GICD_IGROUPR
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICR_IGROUPR0
+      offset: '0x80'
+- id: reg-gicr-isenabler0
+  section: registers
+  claim: Linux defines GICR_ISENABLER0 at this offset relative to the SGI frame. This is a base offset
+    for an indexed array where applicable; register width, whole-register access and reset are unspecified
+    here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 231
+      - 231
+      symbol: GICR_ISENABLER0
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 23
+      - 23
+      symbol: GICD_ISENABLER
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICR_ISENABLER0
+      offset: '0x100'
+- id: reg-gicr-icenabler0
+  section: registers
+  claim: Linux defines GICR_ICENABLER0 at this offset relative to the SGI frame. This is a base offset
+    for an indexed array where applicable; register width, whole-register access and reset are unspecified
+    here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 232
+      - 232
+      symbol: GICR_ICENABLER0
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 24
+      - 24
+      symbol: GICD_ICENABLER
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICR_ICENABLER0
+      offset: '0x180'
+- id: reg-gicr-ispendr0
+  section: registers
+  claim: Linux defines GICR_ISPENDR0 at this offset relative to the SGI frame. This is a base offset
+    for an indexed array where applicable; register width, whole-register access and reset are unspecified
+    here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 233
+      - 233
+      symbol: GICR_ISPENDR0
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 25
+      - 25
+      symbol: GICD_ISPENDR
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICR_ISPENDR0
+      offset: '0x200'
+- id: reg-gicr-icpendr0
+  section: registers
+  claim: Linux defines GICR_ICPENDR0 at this offset relative to the SGI frame. This is a base offset
+    for an indexed array where applicable; register width, whole-register access and reset are unspecified
+    here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 234
+      - 234
+      symbol: GICR_ICPENDR0
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 26
+      - 26
+      symbol: GICD_ICPENDR
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICR_ICPENDR0
+      offset: '0x280'
+- id: reg-gicr-isactiver0
+  section: registers
+  claim: Linux defines GICR_ISACTIVER0 at this offset relative to the SGI frame. This is a base offset
+    for an indexed array where applicable; register width, whole-register access and reset are unspecified
+    here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 235
+      - 235
+      symbol: GICR_ISACTIVER0
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 27
+      - 27
+      symbol: GICD_ISACTIVER
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICR_ISACTIVER0
+      offset: '0x300'
+- id: reg-gicr-icactiver0
+  section: registers
+  claim: Linux defines GICR_ICACTIVER0 at this offset relative to the SGI frame. This is a base offset
+    for an indexed array where applicable; register width, whole-register access and reset are unspecified
+    here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 236
+      - 236
+      symbol: GICR_ICACTIVER0
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 28
+      - 28
+      symbol: GICD_ICACTIVER
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICR_ICACTIVER0
+      offset: '0x380'
+- id: reg-gicr-ipriorityr0
+  section: registers
+  claim: Linux defines GICR_IPRIORITYR0 at this offset relative to the SGI frame. This is a base offset
+    for an indexed array where applicable; register width, whole-register access and reset are unspecified
+    here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 237
+      - 237
+      symbol: GICR_IPRIORITYR0
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 29
+      - 29
+      symbol: GICD_IPRIORITYR
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICR_IPRIORITYR0
+      offset: '0x400'
+- id: reg-gicr-icfgr0
+  section: registers
+  claim: Linux defines GICR_ICFGR0 at this offset relative to the SGI frame. This is a base offset
+    for an indexed array where applicable; register width, whole-register access and reset are unspecified
+    here.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 238
+      - 238
+      symbol: GICR_ICFGR0
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 30
+      - 30
+      symbol: GICD_ICFGR
+  critical: true
+  requirement: as-implemented
+  data:
+    register:
+      name: GICR_ICFGR0
+      offset: '0xc00'
+- id: frame-selection
+  section: interrupts
+  claim: For regular INTIDs, Linux selects the current CPU SGI frame for SGIs/PPIs and the distributor
+    for SPIs. Its SGI frame is RD base plus 64 KiB. Do not add an SGI-relative offset directly to
+    RD base.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 238
+      - 240
+      symbol: gic_data_rdist_sgi_base
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 327
+      - 337
+      symbol: gic_dist_base
+  critical: true
+  requirement: as-implemented
+- id: interrupt-numbering
+  section: interrupts
+  claim: Architectural regular INTIDs are SGI 0-15, PPI 16-31 and SPI 32-1019; 1020-1023 are special
+    identifiers, not ordinary interrupts. The supported SPI count is implementation dependent.
+  support:
+  - class: standard
+    doc: arm-ihi0069g.pdf
+    at:
+    - page: '33'
+      section: 2.2; Table 2-1
+  critical: true
+  requirement: hw-required
+- id: raw-dt-numbering
+  section: interrupts
+  claim: Linux translates a device-tree interrupt type cell 0 (SPI) and number n to hwirq n + 32;
+    type cell 1 (PPI) and n to hwirq n + 16. The third cell supplies the sense flags after masking.
+    Raw cell numbers, architectural INTIDs and OS-assigned IRQ numbers must remain distinct.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 1604
+      - 1614
+      symbol: gic_irq_domain_translate
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 1632
+      - 1632
+      symbol: gic_irq_domain_translate
+  critical: true
+  requirement: as-implemented
+- id: spi-count-decode
+  section: interrupts
+  claim: Linux decodes ((GICD_TYPER & 31) + 1) * 32 and caps the total at 1020. That total includes
+    INTIDs 0-31; its printed regular SPI count subtracts 32. Never label the unadjusted total as the
+    number of SPIs.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 89
+      - 89
+      symbol: GICD_TYPER_SPIS
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 87
+      - 87
+      symbol: GIC_LINE_NR
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 2009
+      - 2009
+      symbol: gic_init_bases
+  critical: true
+  requirement: as-implemented
+- id: bitmap-operation
+  section: interrupts
+  claim: For ordinary SGI/PPI/SPI INTIDs, Linux uses the INTID as index, computes mask 1 shifted by
+    (INTID modulo 32), and writes that mask to frame + register-array offset + 4 * floor(INTID/32).
+    Disable selects ICENABLER and then waits for that frame RWP; enable selects ISENABLER. Pending/active
+    set and clear select their separate banks.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 407
+      - 411
+      symbol: convert_offset_index
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 470
+      - 492
+      symbol: gic_poke_irq
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 511
+      - 512
+      symbol: gic_unmask_irq
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 530
+      - 535
+      symbol: gic_irq_set_irqchip_state
+  critical: true
+  requirement: as-implemented
+- id: priority-write
+  section: interrupts
+  claim: Linux updates a single regular interrupt priority with a byte write at selected frame + IPRIORITYR
+    base + INTID. This is a source access width, not a claim that the whole register is 8 bits.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 589
+      - 594
+      symbol: gic_irq_set_prio
+  critical: true
+  requirement: as-implemented
+- id: priority-threshold
+  section: interrupts
+  claim: 'ICC_PMR_EL1 is the CPU priority threshold: only pending interrupts of higher priority are
+    signaled. Zero masks all; priority grouping does not participate in this comparison. Security-state
+    priority views must be checked before comparing distributor bytes with PMR.'
+  support:
+  - class: standard
+    doc: arm-ihi0069g.pdf
+    at:
+    - page: '75'
+      section: 4.8.5
+  - class: standard
+    doc: arm-ihi0069g.pdf
+    at:
+    - page: '69'
+      section: 4.8.1
+  critical: true
+  requirement: hw-required
+- id: group-enables
+  section: interrupts
+  claim: 'Individual enable is insufficient: interrupt-group forwarding in the distributor and signaling
+    in the CPU interface must also be enabled. PPIs and SGIs use redistributor enable banks with affinity
+    routing; SPIs use distributor banks.'
+  support:
+  - class: standard
+    doc: arm-ihi0069g.pdf
+    at:
+    - page: '66'
+      section: 4.7; 4.7.1
+  - class: standard
+    doc: arm-ihi0069g.pdf
+    at:
+    - page: '67'
+      section: 4.7.2
+  critical: true
+  requirement: hw-required
+- id: trigger-selection
+  section: interrupts
+  claim: Linux rejects non-edge-rising SGI requests and permits regular SPIs only level-high or edge-rising.
+    The common helper RMWs bit 1 in each two-bit configuration field, at configuration base + 4 *
+    floor(INTID/16), clearing for level and setting for edge, and checks readback. A failed PPI configuration
+    is warned and returned as success by this driver.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 710
+      - 734
+      symbol: gic_set_type
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-common.c
+      lines:
+      - 51
+      - 66
+      symbol: gic_configure_irq
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-common.c
+      lines:
+      - 82
+      - 84
+      symbol: gic_configure_irq
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 727
+      - 732
+      symbol: gic_set_type
+  critical: true
+  requirement: as-implemented
+- id: spi-routing
+  section: interrupts
+  claim: For ordinary SPIs Linux writes a 64-bit affinity value at distributor + IROUTER base + 8
+    * INTID. Aff0/1/2 occupy bits 0-7/8-15/16-23 and Aff3 bits 32-39; the ordinary path selects one
+    PE (IRM bit 31 clear). Retargeting disables an enabled interrupt first, writes affinity and restores
+    its previous enable.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 759
+      - 762
+      symbol: gic_cpu_to_affinity
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 1449
+      - 1464
+      symbol: gic_set_affinity
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: arch/arm64/include/asm/arch_gicv3.h
+      lines:
+      - 144
+      - 144
+      symbol: gic_write_irouter
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 97
+      - 98
+      symbol: GICD_IROUTER_SPI_MODE_ONE
+  critical: true
+  requirement: as-implemented
+- id: cpu-register-interface
+  section: interrupts
+  claim: CPU interface operations use ICC_SRE_EL1, ICC_PMR_EL1, ICC_BPR1_EL1, ICC_CTLR_EL1, ICC_IGRPEN1_EL1,
+    ICC_IAR1_EL1, ICC_EOIR1_EL1 and ICC_DIR_EL1 as system registers. They have no MMIO offsets in
+    this catalog. ICC_SRE_EL1.SRE is bit 0; ICC_CTLR_EL1.EOImode is bit 1; PMR has an 8-bit field,
+    BPR1 three bits, and IGRPEN1 enable bit 0.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: arch/arm64/include/asm/arch_gicv3.h
+      lines:
+      - 29
+      - 41
+      symbol: gic_write_dir
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: arch/arm64/include/asm/arch_gicv3.h
+      lines:
+      - 90
+      - 136
+      symbol: gic_write_ctlr
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 670
+      - 673
+      symbol: gic_eoi_irq
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 549
+      - 579
+      symbol: ICC_CTLR_EL1_EOImode_SHIFT
+  critical: true
+  requirement: as-implemented
+- id: architecture-ack-eoi
+  section: interrupts
+  claim: A Group 1 acknowledge reads ICC_IAR1_EL1. Preserve its entire returned value for the corresponding
+    EOIR1 write on the same PE. Priority drops occur in reverse acknowledge order. With EOImode 0,
+    EOIR1 drops priority and deactivates; with EOImode 1, EOIR1 drops priority and DIR later deactivates.
+    DIR without the corresponding EOI, or with mode 0, is unpredictable.
+  support:
+  - class: standard
+    doc: arm-ihi0069g.pdf
+    at:
+    - page: '49'
+      section: 4.1.1 Activation
+  - class: standard
+    doc: arm-ihi0069g.pdf
+    at:
+    - page: '50'
+      section: 4.1.1 Priority drop
+  - class: standard
+    doc: arm-ihi0069g.pdf
+    at:
+    - page: '51'
+      section: 4.1.1 Deactivation
+  critical: true
+  requirement: hw-required
+- id: level-source-lifecycle
+  section: interrupts
+  claim: Acknowledging a level interrupt whose level remains asserted leaves it active and pending;
+    deactivation permits delivery again when pending. Controller EOI/deactivate operations do not
+    establish that the originating peripheral condition was cleared.
+  support:
+  - class: standard
+    doc: arm-ihi0069g.pdf
+    at:
+    - page: '49'
+      section: 4.1.1 Physical CPU interface
+  - class: standard
+    doc: arm-ihi0069g.pdf
+    at:
+    - page: '48'
+      section: 4.1 Interrupt lifecycle
+  critical: true
+  requirement: hw-required
+- id: wake-security-prerequisite
+  section: gotchas
+  claim: Architecture power-up requires clearing ProcessorSleep and waiting for ChildrenAsleep clear;
+    a 1-to-0 ProcessorSleep transition while ChildrenAsleep is not 1 is unpredictable. With DS=0,
+    WAKER is Secure and Non-secure accesses are read-as-zero/write-ignored. Verify firmware ownership
+    rather than assuming a successful Non-secure zero read proves wake control.
+  support:
+  - class: standard
+    doc: arm-ihi0069g.pdf
+    at:
+    - page: '711'
+      section: 12.11.40
+  - class: standard
+    doc: arm-ihi0069g.pdf
+    at:
+    - page: '712'
+      section: 12.11.40
+  critical: true
+  requirement: hw-required
+- id: sleep-prerequisite
+  section: gotchas
+  claim: Before sleeping a PE, CPU physical interrupt-group enables must be zero; set ProcessorSleep
+    and wait for ChildrenAsleep=1 before powerdown. Writes to CPU interface registers other than SRE
+    are unpredictable while ProcessorSleep or ChildrenAsleep is 1.
+  support:
+  - class: standard
+    doc: arm-ihi0069g.pdf
+    at:
+    - page: '184'
+      section: '11.1'
+  - class: standard
+    doc: arm-ihi0069g.pdf
+    at:
+    - page: '712'
+      section: 12.11.40
+  critical: true
+  requirement: hw-required
+- id: identify-and-find-redist
+  section: sequences
+  claim: Linux interface validation and redistributor selection.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 2077
+      - 2080
+      symbol: gic_validate_dist_version
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 100
+      - 102
+      symbol: GIC_PIDR2_ARCH_MASK
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 994
+      - 1017
+      symbol: gic_iterate_rdists
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 1033
+      - 1045
+      symbol: __gic_populate_rdist
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 1062
+      - 1070
+      symbol: gic_populate_rdist
+  critical: true
+  requirement: as-implemented
+  data:
+    sequence:
+      steps:
+      - id: validate
+        action: Read distributor PIDR2, mask with 0xf0, accept 0x30 (v3) or 0x40 (v4), otherwise return
+          ENODEV.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 2077
+            - 2080
+            symbol: gic_validate_dist_version
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: include/linux/irqchip/arm-gic-v3.h
+            lines:
+            - 100
+            - 102
+            symbol: GIC_PIDR2_ARCH_MASK
+      - id: walk
+        action: Validate each region PIDR2, read TYPER and try the frame. Explicit stride wins; otherwise
+          advance two 64-KiB frames, with two more if VLPIS; stop on LAST or a single-frame region.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 994
+            - 1017
+            symbol: gic_iterate_rdists
+      - id: match
+        action: Pack current CPU affinity as Aff3:Aff2:Aff1:Aff0 in 32 bits and compare with TYPER
+          bits 63:32; record matching RD base. Missing match returns ENODEV.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 1033
+            - 1045
+            symbol: __gic_populate_rdist
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 1062
+            - 1070
+            symbol: gic_populate_rdist
+- id: redist-wake
+  section: sequences
+  claim: Linux redistributor wake and wait; timeout reports an error rather than aborting initialization.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 373
+      - 385
+      symbol: gic_enable_redist
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 392
+      - 397
+      symbol: gic_enable_redist
+  critical: true
+  requirement: as-implemented
+  data:
+    sequence:
+      steps:
+      - id: wake
+        action: Unless the named MSM8996 workaround skips it, read WAKER, clear ProcessorSleep, and
+          write back.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 373
+            - 385
+            symbol: gic_enable_redist
+      - id: wait
+        action: Poll until ChildrenAsleep is clear with 1-us interval and one-second timeout; on timeout
+          log an error.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 392
+            - 397
+            symbol: gic_enable_redist
+- id: distributor-init
+  section: sequences
+  claim: Linux ordinary SPI distributor initialization, under the driver Non-secure assumptions. Extended
+    ranges and nASSGI enhancements are outside this recipe.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 931
+      - 933
+      symbol: gic_dist_init
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 941
+      - 942
+      symbol: gic_dist_init
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 960
+      - 960
+      symbol: gic_dist_init
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-common.c
+      lines:
+      - 98
+      - 100
+      symbol: gic_dist_config
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic.h
+      lines:
+      - 54
+      - 54
+      symbol: GIC_DIST_CONFIG
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic.h
+      lines:
+      - 61
+      - 61
+      symbol: GICD_INT_ACTLOW_LVLTRIG
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-common.c
+      lines:
+      - 105
+      - 107
+      symbol: gic_dist_config
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 225
+      - 227
+      symbol: gic_prio_init
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-common.c
+      lines:
+      - 113
+      - 117
+      symbol: gic_dist_config
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic.h
+      lines:
+      - 51
+      - 51
+      symbol: GIC_DIST_ACTIVE_CLEAR
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic.h
+      lines:
+      - 47
+      - 47
+      symbol: GIC_DIST_ENABLE_CLEAR
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic.h
+      lines:
+      - 62
+      - 62
+      symbol: GICD_INT_EN_CLR_X32
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 962
+      - 970
+      symbol: gic_dist_init
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 976
+      - 978
+      symbol: gic_dist_init
+  critical: true
+  requirement: as-implemented
+  data:
+    sequence:
+      steps:
+      - id: disable
+        action: Write zero to CTLR, then poll distributor RWP.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 931
+            - 933
+            symbol: gic_dist_init
+      - id: group
+        action: For regular SPI blocks starting INTID 32, write all ones to IGROUPR.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 941
+            - 942
+            symbol: gic_dist_init
+      - id: trigger
+        action: Common setup writes zero to each regular SPI configuration word, giving level configuration;
+          do not carry the common helper comment about active-low polarity into an RK3588 hardware
+          claim.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 960
+            - 960
+            symbol: gic_dist_init
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-common.c
+            lines:
+            - 98
+            - 100
+            symbol: gic_dist_config
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: include/linux/irqchip/arm-gic.h
+            lines:
+            - 54
+            - 54
+            symbol: GIC_DIST_CONFIG
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: include/linux/irqchip/arm-gic.h
+            lines:
+            - 61
+            - 61
+            symbol: GICD_INT_ACTLOW_LVLTRIG
+      - id: priority
+        action: Write the selected dist_prio_irq replicated across four priority bytes per word. The
+          value can be adjusted by security-state policy; no fixed value is specified here.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-common.c
+            lines:
+            - 105
+            - 107
+            symbol: gic_dist_config
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 225
+            - 227
+            symbol: gic_prio_init
+      - id: inactive-disabled
+        action: Write all-ones to SPI active-clear and enable-clear words.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-common.c
+            lines:
+            - 113
+            - 117
+            symbol: gic_dist_config
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: include/linux/irqchip/arm-gic.h
+            lines:
+            - 51
+            - 51
+            symbol: GIC_DIST_ACTIVE_CLEAR
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: include/linux/irqchip/arm-gic.h
+            lines:
+            - 47
+            - 47
+            symbol: GIC_DIST_ENABLE_CLEAR
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: include/linux/irqchip/arm-gic.h
+            lines:
+            - 62
+            - 62
+            symbol: GICD_INT_EN_CLR_X32
+      - id: enable
+        action: Write ARE_NS | ENABLE_G1A | ENABLE_G1 to CTLR and wait RWP; Linux may additionally
+          enable nASSGI on capable implementations.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 962
+            - 970
+            symbol: gic_dist_init
+      - id: route
+        action: Write each regular SPI IROUTER to boot CPU affinity.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 976
+            - 978
+            symbol: gic_dist_init
+- id: private-interrupt-init
+  section: sequences
+  claim: Linux initialization of this CPU ordinary SGIs/PPIs.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 1280
+      - 1283
+      symbol: gic_cpu_init
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 1293
+      - 1294
+      symbol: gic_cpu_init
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 1296
+      - 1296
+      symbol: gic_cpu_init
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-common.c
+      lines:
+      - 129
+      - 133
+      symbol: gic_cpu_config
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic.h
+      lines:
+      - 47
+      - 47
+      symbol: GIC_DIST_ENABLE_CLEAR
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic.h
+      lines:
+      - 51
+      - 51
+      symbol: GIC_DIST_ACTIVE_CLEAR
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic.h
+      lines:
+      - 62
+      - 62
+      symbol: GICD_INT_EN_CLR_X32
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-common.c
+      lines:
+      - 139
+      - 141
+      symbol: gic_cpu_config
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 1296
+      - 1300
+      symbol: gic_cpu_init
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic.h
+      lines:
+      - 52
+      - 52
+      symbol: GIC_DIST_PRI
+  critical: true
+  requirement: as-implemented
+  data:
+    sequence:
+      steps:
+      - id: locate-wake
+        action: Populate this CPU redistributor and wake it; return early if no redistributor match.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 1280
+            - 1283
+            symbol: gic_cpu_init
+      - id: group
+        action: Write all ones to SGI/PPI IGROUPR0 blocks.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 1293
+            - 1294
+            symbol: gic_cpu_init
+      - id: disable-deactivate
+        action: Common setup writes all-ones to private active-clear and enable-clear.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 1296
+            - 1296
+            symbol: gic_cpu_init
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-common.c
+            lines:
+            - 129
+            - 133
+            symbol: gic_cpu_config
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: include/linux/irqchip/arm-gic.h
+            lines:
+            - 47
+            - 47
+            symbol: GIC_DIST_ENABLE_CLEAR
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: include/linux/irqchip/arm-gic.h
+            lines:
+            - 51
+            - 51
+            symbol: GIC_DIST_ACTIVE_CLEAR
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: include/linux/irqchip/arm-gic.h
+            lines:
+            - 62
+            - 62
+            symbol: GICD_INT_EN_CLR_X32
+      - id: priorities
+        action: Common setup fills SGI/PPI priorities with selected dist_prio_irq; then wait redistributor
+          RWP and initialize CPU system registers.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-common.c
+            lines:
+            - 139
+            - 141
+            symbol: gic_cpu_config
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 1296
+            - 1300
+            symbol: gic_cpu_init
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: include/linux/irqchip/arm-gic.h
+            lines:
+            - 52
+            - 52
+            symbol: GIC_DIST_PRI
+- id: cpu-interface-init
+  section: sequences
+  claim: Linux CPU system register setup; policy depends on firmware and build configuration.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 649
+      - 657
+      symbol: gic_enable_sre
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: arch/arm64/include/asm/arch_gicv3.h
+      lines:
+      - 119
+      - 120
+      symbol: gic_write_sre
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 1148
+      - 1149
+      symbol: gic_cpu_sys_reg_enable
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 243
+      - 243
+      symbol: DEFAULT_PMR_VALUE
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 1166
+      - 1167
+      symbol: gic_cpu_sys_reg_init
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 1186
+      - 1186
+      symbol: gic_cpu_sys_reg_init
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 1188
+      - 1194
+      symbol: gic_cpu_sys_reg_init
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 1987
+      - 1988
+      symbol: gic_init_bases
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 549
+      - 551
+      symbol: ICC_CTLR_EL1_EOImode_SHIFT
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 1197
+      - 1212
+      symbol: gic_cpu_sys_reg_init
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 1215
+      - 1229
+      symbol: gic_cpu_sys_reg_init
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 1232
+      - 1232
+      symbol: gic_cpu_sys_reg_init
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: arch/arm64/include/asm/arch_gicv3.h
+      lines:
+      - 101
+      - 104
+      symbol: gic_write_grpen1
+  critical: true
+  requirement: as-implemented
+  data:
+    sequence:
+      steps:
+      - id: sre
+        action: Read SRE; if not set, RMW set bit 0, write with ISB and read back. Linux logs failure
+          when it cannot enable SRE.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: include/linux/irqchip/arm-gic-v3.h
+            lines:
+            - 649
+            - 657
+            symbol: gic_enable_sre
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: arch/arm64/include/asm/arch_gicv3.h
+            lines:
+            - 119
+            - 120
+            symbol: gic_write_sre
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 1148
+            - 1149
+            symbol: gic_cpu_sys_reg_enable
+      - id: pmr
+        action: When priority masking is not enabled, write PMR=0xf0. Otherwise the selected policy
+          handles PMR; do not force this branch universally.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 243
+            - 243
+            symbol: DEFAULT_PMR_VALUE
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 1166
+            - 1167
+            symbol: gic_cpu_sys_reg_init
+      - id: bpr
+        action: Write BPR1 zero.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 1186
+            - 1186
+            symbol: gic_cpu_sys_reg_init
+      - id: eoi-mode
+        action: Write CTLR EOImode=1 for split deactivate support, else EOImode=0. Linux disables
+          split support when hypervisor mode is unavailable.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 1188
+            - 1194
+            symbol: gic_cpu_sys_reg_init
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 1987
+            - 1988
+            symbol: gic_init_bases
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: include/linux/irqchip/arm-gic-v3.h
+            lines:
+            - 549
+            - 551
+            symbol: ICC_CTLR_EL1_EOImode_SHIFT
+      - id: active-priorities
+        action: Clear implemented AP0R registers when Group0 accessible, then AP1R registers according
+          to priority-bit count, with ISB after each group.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 1197
+            - 1212
+            symbol: gic_cpu_sys_reg_init
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 1215
+            - 1229
+            symbol: gic_cpu_sys_reg_init
+      - id: group-enable
+        action: Write IGRPEN1=1 with ISB.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 1232
+            - 1232
+            symbol: gic_cpu_sys_reg_init
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: arch/arm64/include/asm/arch_gicv3.h
+            lines:
+            - 101
+            - 104
+            symbol: gic_write_grpen1
+- id: linux-ack-eoi
+  section: sequences
+  claim: Linux ordinary non-forwarded, non-LPI interrupt lifecycle, excluding CPU-specific errata.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: arch/arm64/include/asm/arch_gicv3.h
+      lines:
+      - 39
+      - 41
+      symbol: gic_read_iar_common
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 813
+      - 821
+      symbol: gic_irqnr_is_special
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 797
+      - 802
+      symbol: gic_complete_ack
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 823
+      - 823
+      symbol: __gic_handle_irq
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 670
+      - 673
+      symbol: gic_eoi_irq
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 691
+      - 696
+      symbol: gic_eoimode1_eoi_irq
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: arch/arm64/include/asm/arch_gicv3.h
+      lines:
+      - 31
+      - 32
+      symbol: gic_write_dir
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 769
+      - 774
+      symbol: gic_deactivate_unhandled
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 825
+      - 827
+      symbol: __gic_handle_irq
+  critical: true
+  requirement: as-implemented
+  data:
+    sequence:
+      steps:
+      - id: ack
+        action: Read IAR1 then DSB SY through the common accessor; special INTIDs 1020-1023 return
+          without normal dispatch.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: arch/arm64/include/asm/arch_gicv3.h
+            lines:
+            - 39
+            - 41
+            symbol: gic_read_iar_common
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 813
+            - 821
+            symbol: gic_irqnr_is_special
+      - id: split-drop
+        action: When split mode is selected, write EOIR1 before dispatch; perform ISB.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 797
+            - 802
+            symbol: gic_complete_ack
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 823
+            - 823
+            symbol: __gic_handle_irq
+      - id: completion
+        action: At completion, mode0 writes EOIR1 and ISB; mode1 writes DIR and ISB for ordinary non-forwarded
+          INTIDs. Unexpected unhandled ordinary interrupts follow the corresponding deactivate path.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 670
+            - 673
+            symbol: gic_eoi_irq
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 691
+            - 696
+            symbol: gic_eoimode1_eoi_irq
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: arch/arm64/include/asm/arch_gicv3.h
+            lines:
+            - 31
+            - 32
+            symbol: gic_write_dir
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 769
+            - 774
+            symbol: gic_deactivate_unhandled
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 825
+            - 827
+            symbol: __gic_handle_irq
+- id: sgi-send
+  section: sequences
+  claim: Linux regular Group1 software-generated interrupt send.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 1383
+      - 1390
+      symbol: gic_ipi_send_mask
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 1338
+      - 1341
+      symbol: gic_compute_target_list
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 1368
+      - 1376
+      symbol: gic_send_sgi
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 591
+      - 603
+      symbol: ICC_SGI1R_TARGET_LIST_SHIFT
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 1392
+      - 1401
+      symbol: gic_ipi_send_mask
+  critical: true
+  requirement: as-implemented
+  data:
+    sequence:
+      steps:
+      - id: memory
+        action: Reject SGI IDs outside 0-15; execute DSB ISHST before sending to make prior Normal-memory
+          stores visible.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 1383
+            - 1390
+            symbol: gic_ipi_send_mask
+      - id: target
+        action: Build target list from Aff0 low four bits, cluster affinity and optional range-selector
+          bits; encode fields in ICC_SGI1R_EL1 and write it.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 1338
+            - 1341
+            symbol: gic_compute_target_list
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 1368
+            - 1376
+            symbol: gic_send_sgi
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: include/linux/irqchip/arm-gic-v3.h
+            lines:
+            - 591
+            - 603
+            symbol: ICC_SGI1R_TARGET_LIST_SHIFT
+      - id: sync
+        action: Execute ISB after the set of SGI writes.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 1392
+            - 1401
+            symbol: gic_ipi_send_mask
+- id: sgi-architecture
+  section: interrupts
+  claim: SGIs support edge-triggered behavior and are generated through CPU interface SGI registers.
+    A Non-secure write to ICC_SGI1R_EL1 generates Non-secure Group1 SGIs; targets are the encoded
+    list or all participating PEs other than the sender.
+  support:
+  - class: standard
+    doc: arm-ihi0069g.pdf
+    at:
+    - page: '58'
+      section: '4.4'
+  critical: true
+  requirement: hw-required
+- id: cpu-sleep-resume
+  section: sequences
+  claim: Linux CPU power-management notifier behavior. Distributor security being disabled
+    gates redistributor sleep on CPU_PM_ENTER and redistributor wake on CPU_PM_EXIT or
+    CPU_PM_ENTER_FAILED. On either resume event, CPU system-register enable and initialization
+    execute regardless of that condition.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 1490
+      - 1492
+      symbol: gic_cpu_pm_notifier
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 382
+      - 398
+      symbol: gic_enable_redist
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 1485
+      - 1489
+      symbol: gic_cpu_pm_notifier
+  critical: true
+  requirement: as-implemented
+  data:
+    sequence:
+      steps:
+      - id: sleep
+        action: On CPU_PM_ENTER with security disabled, write IGRPEN1=0, then request redistributor
+          sleep. Set ProcessorSleep and poll ChildrenAsleep set; if the bit will not retain, return
+          without further wait.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 1490
+            - 1492
+            symbol: gic_cpu_pm_notifier
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 382
+            - 398
+            symbol: gic_enable_redist
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: arch/arm64/include/asm/arch_gicv3.h
+            lines:
+            - 101
+            - 105
+            symbol: gic_write_grpen1
+      - id: resume
+        action: On CPU_PM_EXIT or ENTER_FAILED, wake redistributor if security disabled, enable system
+          registers and reinitialize the CPU interface.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: drivers/irqchip/irq-gic-v3.c
+            lines:
+            - 1485
+            - 1489
+            symbol: gic_cpu_pm_notifier
+- id: rwp-timeout-policy
+  section: gotchas
+  claim: Linux polls distributor CTLR bit 31 or redistributor CTLR bit 3 with 1-us interval and a
+    one-second timeout. A timeout logs an error; these functions do not return a failure code. This
+    is not evidence that failed initialization is safe to continue.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 349
+      - 365
+      symbol: gic_do_wait_for_rwp
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 58
+      - 58
+      symbol: GICD_CTLR_RWP
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: include/linux/irqchip/arm-gic-v3.h
+      lines:
+      - 132
+      - 132
+      symbol: GICR_CTLR_RWP
+  critical: true
+  requirement: as-implemented
+- id: mapping-error-cleanup
+  section: gotchas
+  claim: Linux device-tree setup returns on distributor mapping failure, rejects an unsupported PIDR2
+    before redistributor allocation, and on later errors unmaps valid redistributor mappings, frees
+    their array and unmaps distributor. This describes software resource cleanup, not a hardware reset
+    sequence.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 2212
+      - 2223
+      symbol: gic_of_init
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 2235
+      - 2253
+      symbol: gic_of_init
+  - class: src
+    anchors:
+    - repo: linux-gic
+      path: drivers/irqchip/irq-gic-v3.c
+      lines:
+      - 2261
+      - 2268
+      symbol: gic_of_init
+  requirement: as-implemented
+- id: exact-product-revision
+  section: open-questions
+  claim: A GIC-600 product/revision and instance-specific redistributor topology are not established
+    by this peripheral spec. Existing RK3588 placement facts stay in the SoC spec.
+  todo:
+    check: hardware
+    text: Read GICD_IIDR and PIDR2 and walk each GICR_TYPER using confirmed SoC windows; compare with
+      admissible public product identification evidence.
+    method: Record identification values, affinity, LAST and actual frame stride for every accessible
+      redistributor without changing security configuration.
+- id: firmware-handoff
+  section: open-questions
+  claim: Exception level, Secure/Non-secure ownership, SRE permission, group ownership, active interrupts,
+    priorities and wake state at firmware handoff are unverified; this blocks an unconditional boot
+    recipe.
+  todo:
+    check: hardware
+    text: Record handoff EL/security state and permitted CTLR, SRE, WAKER and priority state. Establish
+      firmware responsibilities before initialization.
+    method: Use code at the actual entry privilege and firmware-supported Secure diagnostics for inaccessible
+      registers; do not infer EL3 or Secure values from EL1 reads.
+- id: target-os-integration
+  section: target
+  claim: No target operating system is selected. Mapping attributes, exception entry, IRQ allocation,
+    locking, barriers, handler registration, SMP lifecycle and device-tree integration for a new driver
+    remain undefined. Linux observations are reference behavior.
+  todo:
+    check: source
+    text: Select the target OS and pin its source, then document performing integration sites and
+      ownership rules.
+- id: excluded-capabilities
+  section: open-questions
+  claim: ITS, LPI tables, extended interrupt ranges, virtualization, Secure/non-ARE programming, pseudo-NMI
+    policy and implementation-specific errata are outside this bounded regular SGI/PPI/SPI boot scope.
+    This is not a complete GIC implementation specification.
+  todo:
+    check: document
+    text: Before enabling an excluded capability, extend evidence and independent register/sequence
+      review for that capability.
+- id: hardware-validation
+  section: open-questions
+  claim: No rebuilt driver, differential test or hardware boot run validates this draft. Source-defined
+    offsets/masks omit unconfirmed silicon width/access/reset properties.
+  todo:
+    check: hardware
+    text: Validate a controlled regular SPI and per-CPU PPI/SGI lifecycle, enable/disable, routing
+      and EOI modes using recorded firmware state.
+    method: Use a known owned test interrupt and confirm pending/active/delivery state, clearing the
+      peripheral cause before deactivation; record run artifacts and avoid firmware-owned interrupts.

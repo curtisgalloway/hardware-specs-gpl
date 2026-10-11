@@ -1,0 +1,834 @@
+# SPDX-FileCopyrightText: 2026 contributors
+# SPDX-License-Identifier: GPL-2.0-only
+
+format: 2
+spec: rk3588-gpio
+spec_file: rk3588-gpio.spec.yaml
+spec_sha256: b23c1af3d42a1e67ec2083cbf15d5c1584274ea0f39e88b318f2da69b50a5bab
+canonical: fact-v1
+sources:
+- name: linux-gpio
+  commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+  fetch: ok
+  note: All declared local source bytes compared equal to git show at the immutable commit; SPDX lines
+    matched normalized declared licenses. No document bytes or confidential TRM were used.
+- name: linux-dts
+  commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+  fetch: ok
+  note: All declared local source bytes compared equal to git show at the immutable commit; SPDX lines
+    matched normalized declared licenses. No document bytes or confidential TRM were used.
+summary:
+  pass: 29
+  fail: 0
+  unverifiable: 0
+  gap: 6
+  adjudicate: 0
+verdicts:
+  version-selection:
+    basis: 8e1d45f243d490aff846843b8e270e9ea6cdb9c3192c53d66b534c5665e431e4
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'gpio-rockchip.c:34-37,53-69,666-695 exactly supplies zero and the three nonzero IDs, enabled
+      first clock, normalized V2 selection, and unsupported-ID rejection. Read get_bank_data and probe
+      error paths: V2 can subsequently fail acquiring its debounce clock; the claim states selection rather
+      than successful probe. No compatible-only discriminator exists. No TODO is attached; source behavior
+      requires no hardware TODO.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Compared full claim plus all inherited fields/steps/order with its pinned cited ranges. Read
+        adjacent gpio-rockchip.c 34-825, generic-chip.c 1-125, irq.h 1229-1245, binding properties/required
+        list, and every GPIO bank DTS declaration for contrary branches. Source-only scope matches src/DT
+        classification; no hardware behavior inferred. All source bytes independently matched git objects
+        at declared pin.
+  bank-map:
+    basis: 68924ced385400caf6865b056dcb889d3c7e24cb9c9986b9493eb80ab72f98e8
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'rk3588-base.dtsi:3533-3591 matches all five bases, 0x100 sizes, SPI tuples with trailing zero,
+      clock pairs and local/global range starts. Read enclosing pinctrl node and adjacent nodes: these
+      are source cells, not observed hardware or converted INTIDs. No variant or free-pin applicability
+      is inferred. No TODO is attached; source behavior requires no hardware TODO.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Compared full claim plus all inherited fields/steps/order with its pinned cited ranges. Read
+        adjacent gpio-rockchip.c 34-825, generic-chip.c 1-125, irq.h 1229-1245, binding properties/required
+        list, and every GPIO bank DTS declaration for contrary branches. Source-only scope matches src/DT
+        classification; no hardware behavior inferred. All source bytes independently matched git objects
+        at declared pin.
+  binding-clock-order:
+    basis: 6eca3df8bd5dec5cb246d4acf4f54e8ac4111c2e29e8c3c46be8f6161c7d3a73
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'rockchip,gpio-bank.yaml:12-47 matches compatible enum, one resource/IRQ maximum, first APB
+      and optional second debounce clock, and two-cell declarations. Read required/properties/example
+      sections: no runtime version ID is assigned by compatible. No TODO is attached; source behavior
+      requires no hardware TODO.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Compared full claim plus all inherited fields/steps/order with its pinned cited ranges. Read
+        adjacent gpio-rockchip.c 34-825, generic-chip.c 1-125, irq.h 1229-1245, binding properties/required
+        list, and every GPIO bank DTS declaration for contrary branches. Source-only scope matches src/DT
+        classification; no hardware behavior inferred. All source bytes independently matched git objects
+        at declared pin.
+  v2-port-dr:
+    basis: 4ad7314306f8dba3031af5cdbc664cf4bce03a51b49f1d451ca6fd8ef06a4ece
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'Delta rereading: gpio-rockchip.c:54-54,71-137 matches port_dr=0x0 and the full field/limitation
+      text. The added qualifies relation declares the exact #version-selection dependency; independently
+      reread its anchors34-37,53-69,666-695 and confirm the three IDs normalize to V2, zero selects V1
+      and others reject. Read adjacent V1 map, split helpers and direct status/external/divider paths
+      for contrary evidence; none contradicts the scoped source-definition claim. Parent covers fields
+      without their own support. Split mask/data meanings describe Linux emitted words, not proof of physical
+      width/reset/read side effects. No TODO attached. Dependency and local citations together are exact;
+      the former missing-dependency FAIL is resolved.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Delta re-read of whole fact and inherited data against immutable Linux source. Declared version-selection
+        qualifies dependency now tracks the condition. Independently re-read constants 34-37, v2 offsets
+        53-69, helper masks/halves 71-137 and runtime get_bank_data 648-698: precisely three nonzero IDs
+        normalize to V2; zero selects V1; others reject. Offset and inherited bit fields agree. Divider
+        field instead matches GENMASK(23,0) and direct reads/writes at 209-234. Adjacent V1 table and
+        direct status/ext_port/divider access paths checked; no contrary claim found. No physical width/reset/access
+        assertion inferred.'
+  v2-port-ddr:
+    basis: 848821367074e061966d5b7a6aa09364c40bc8a27276664419603fd60b0abd74
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'Delta rereading: gpio-rockchip.c:55-55,71-137 matches port_ddr=0x8 and the full field/limitation
+      text. The added qualifies relation declares the exact #version-selection dependency; independently
+      reread its anchors34-37,53-69,666-695 and confirm the three IDs normalize to V2, zero selects V1
+      and others reject. Read adjacent V1 map, split helpers and direct status/external/divider paths
+      for contrary evidence; none contradicts the scoped source-definition claim. Parent covers fields
+      without their own support. Split mask/data meanings describe Linux emitted words, not proof of physical
+      width/reset/read side effects. No TODO attached. Dependency and local citations together are exact;
+      the former missing-dependency FAIL is resolved.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Delta re-read of whole fact and inherited data against immutable Linux source. Declared version-selection
+        qualifies dependency now tracks the condition. Independently re-read constants 34-37, v2 offsets
+        53-69, helper masks/halves 71-137 and runtime get_bank_data 648-698: precisely three nonzero IDs
+        normalize to V2; zero selects V1; others reject. Offset and inherited bit fields agree. Divider
+        field instead matches GENMASK(23,0) and direct reads/writes at 209-234. Adjacent V1 table and
+        direct status/ext_port/divider access paths checked; no contrary claim found. No physical width/reset/access
+        assertion inferred.'
+  v2-int-en:
+    basis: df43e2c21d6df796647fcf145384af0f5f43c70e587f4565740d2045591ed7e6
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'Delta rereading: gpio-rockchip.c:56-56,71-137 matches int_en=0x10 and the full field/limitation
+      text. The added qualifies relation declares the exact #version-selection dependency; independently
+      reread its anchors34-37,53-69,666-695 and confirm the three IDs normalize to V2, zero selects V1
+      and others reject. Read adjacent V1 map, split helpers and direct status/external/divider paths
+      for contrary evidence; none contradicts the scoped source-definition claim. Parent covers fields
+      without their own support. Split mask/data meanings describe Linux emitted words, not proof of physical
+      width/reset/read side effects. No TODO attached. Dependency and local citations together are exact;
+      the former missing-dependency FAIL is resolved.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Delta re-read of whole fact and inherited data against immutable Linux source. Declared version-selection
+        qualifies dependency now tracks the condition. Independently re-read constants 34-37, v2 offsets
+        53-69, helper masks/halves 71-137 and runtime get_bank_data 648-698: precisely three nonzero IDs
+        normalize to V2; zero selects V1; others reject. Offset and inherited bit fields agree. Divider
+        field instead matches GENMASK(23,0) and direct reads/writes at 209-234. Adjacent V1 table and
+        direct status/ext_port/divider access paths checked; no contrary claim found. No physical width/reset/access
+        assertion inferred.'
+  v2-int-mask:
+    basis: 295cee5246c6ce5aaeb728759498dbab1b8b58054fa4c970686f67c7457b8020
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'Delta rereading: gpio-rockchip.c:57-57,71-137 matches int_mask=0x18 and the full field/limitation
+      text. The added qualifies relation declares the exact #version-selection dependency; independently
+      reread its anchors34-37,53-69,666-695 and confirm the three IDs normalize to V2, zero selects V1
+      and others reject. Read adjacent V1 map, split helpers and direct status/external/divider paths
+      for contrary evidence; none contradicts the scoped source-definition claim. Parent covers fields
+      without their own support. Split mask/data meanings describe Linux emitted words, not proof of physical
+      width/reset/read side effects. No TODO attached. Dependency and local citations together are exact;
+      the former missing-dependency FAIL is resolved.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Delta re-read of whole fact and inherited data against immutable Linux source. Declared version-selection
+        qualifies dependency now tracks the condition. Independently re-read constants 34-37, v2 offsets
+        53-69, helper masks/halves 71-137 and runtime get_bank_data 648-698: precisely three nonzero IDs
+        normalize to V2; zero selects V1; others reject. Offset and inherited bit fields agree. Divider
+        field instead matches GENMASK(23,0) and direct reads/writes at 209-234. Adjacent V1 table and
+        direct status/ext_port/divider access paths checked; no contrary claim found. No physical width/reset/access
+        assertion inferred.'
+  v2-int-type:
+    basis: 8d88048616c4250921f82ae3f9ac0c3fbc2d77e8b40613bd37a54a0b4707ec5b
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'Delta rereading: gpio-rockchip.c:58-58,71-137 matches int_type=0x20 and the full field/limitation
+      text. The added qualifies relation declares the exact #version-selection dependency; independently
+      reread its anchors34-37,53-69,666-695 and confirm the three IDs normalize to V2, zero selects V1
+      and others reject. Read adjacent V1 map, split helpers and direct status/external/divider paths
+      for contrary evidence; none contradicts the scoped source-definition claim. Parent covers fields
+      without their own support. Split mask/data meanings describe Linux emitted words, not proof of physical
+      width/reset/read side effects. No TODO attached. Dependency and local citations together are exact;
+      the former missing-dependency FAIL is resolved.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Delta re-read of whole fact and inherited data against immutable Linux source. Declared version-selection
+        qualifies dependency now tracks the condition. Independently re-read constants 34-37, v2 offsets
+        53-69, helper masks/halves 71-137 and runtime get_bank_data 648-698: precisely three nonzero IDs
+        normalize to V2; zero selects V1; others reject. Offset and inherited bit fields agree. Divider
+        field instead matches GENMASK(23,0) and direct reads/writes at 209-234. Adjacent V1 table and
+        direct status/ext_port/divider access paths checked; no contrary claim found. No physical width/reset/access
+        assertion inferred.'
+  v2-int-polarity:
+    basis: d57e9dd3ef58e71c0d2e0303e09b901845a7c9e0e985cde8bfe07254d0322241
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'Delta rereading: gpio-rockchip.c:59-59,71-137 matches int_polarity=0x28 and the full field/limitation
+      text. The added qualifies relation declares the exact #version-selection dependency; independently
+      reread its anchors34-37,53-69,666-695 and confirm the three IDs normalize to V2, zero selects V1
+      and others reject. Read adjacent V1 map, split helpers and direct status/external/divider paths
+      for contrary evidence; none contradicts the scoped source-definition claim. Parent covers fields
+      without their own support. Split mask/data meanings describe Linux emitted words, not proof of physical
+      width/reset/read side effects. No TODO attached. Dependency and local citations together are exact;
+      the former missing-dependency FAIL is resolved.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Delta re-read of whole fact and inherited data against immutable Linux source. Declared version-selection
+        qualifies dependency now tracks the condition. Independently re-read constants 34-37, v2 offsets
+        53-69, helper masks/halves 71-137 and runtime get_bank_data 648-698: precisely three nonzero IDs
+        normalize to V2; zero selects V1; others reject. Offset and inherited bit fields agree. Divider
+        field instead matches GENMASK(23,0) and direct reads/writes at 209-234. Adjacent V1 table and
+        direct status/ext_port/divider access paths checked; no contrary claim found. No physical width/reset/access
+        assertion inferred.'
+  v2-int-bothedge:
+    basis: 66d3074c8778f2948ae7598abe9ace4d0b9f912c63f2bf2e3bec867967c6cd40
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'Delta rereading: gpio-rockchip.c:60-60,71-137 matches int_bothedge=0x30 and the full field/limitation
+      text. The added qualifies relation declares the exact #version-selection dependency; independently
+      reread its anchors34-37,53-69,666-695 and confirm the three IDs normalize to V2, zero selects V1
+      and others reject. Read adjacent V1 map, split helpers and direct status/external/divider paths
+      for contrary evidence; none contradicts the scoped source-definition claim. Parent covers fields
+      without their own support. Split mask/data meanings describe Linux emitted words, not proof of physical
+      width/reset/read side effects. No TODO attached. Dependency and local citations together are exact;
+      the former missing-dependency FAIL is resolved.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Delta re-read of whole fact and inherited data against immutable Linux source. Declared version-selection
+        qualifies dependency now tracks the condition. Independently re-read constants 34-37, v2 offsets
+        53-69, helper masks/halves 71-137 and runtime get_bank_data 648-698: precisely three nonzero IDs
+        normalize to V2; zero selects V1; others reject. Offset and inherited bit fields agree. Divider
+        field instead matches GENMASK(23,0) and direct reads/writes at 209-234. Adjacent V1 table and
+        direct status/ext_port/divider access paths checked; no contrary claim found. No physical width/reset/access
+        assertion inferred.'
+  v2-debounce:
+    basis: 4fce91e887bd39420eb84a0b0bb97689858e53d43a8054fca7a8cbe17d54efcb
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'Delta rereading: gpio-rockchip.c:63-63,71-137 matches debounce=0x38 and the full field/limitation
+      text. The added qualifies relation declares the exact #version-selection dependency; independently
+      reread its anchors34-37,53-69,666-695 and confirm the three IDs normalize to V2, zero selects V1
+      and others reject. Read adjacent V1 map, split helpers and direct status/external/divider paths
+      for contrary evidence; none contradicts the scoped source-definition claim. Parent covers fields
+      without their own support. Split mask/data meanings describe Linux emitted words, not proof of physical
+      width/reset/read side effects. No TODO attached. Dependency and local citations together are exact;
+      the former missing-dependency FAIL is resolved.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Delta re-read of whole fact and inherited data against immutable Linux source. Declared version-selection
+        qualifies dependency now tracks the condition. Independently re-read constants 34-37, v2 offsets
+        53-69, helper masks/halves 71-137 and runtime get_bank_data 648-698: precisely three nonzero IDs
+        normalize to V2; zero selects V1; others reject. Offset and inherited bit fields agree. Divider
+        field instead matches GENMASK(23,0) and direct reads/writes at 209-234. Adjacent V1 table and
+        direct status/ext_port/divider access paths checked; no contrary claim found. No physical width/reset/access
+        assertion inferred.'
+  v2-dbclk-div-en:
+    basis: 9167b60e372c40ea6909183ddb44c88b708553551ec2f68c39fba95a701055cb
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'Delta rereading: gpio-rockchip.c:64-64,71-137 matches dbclk_div_en=0x40 and the full field/limitation
+      text. The added qualifies relation declares the exact #version-selection dependency; independently
+      reread its anchors34-37,53-69,666-695 and confirm the three IDs normalize to V2, zero selects V1
+      and others reject. Read adjacent V1 map, split helpers and direct status/external/divider paths
+      for contrary evidence; none contradicts the scoped source-definition claim. Parent covers fields
+      without their own support. Split mask/data meanings describe Linux emitted words, not proof of physical
+      width/reset/read side effects. No TODO attached. Dependency and local citations together are exact;
+      the former missing-dependency FAIL is resolved.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Delta re-read of whole fact and inherited data against immutable Linux source. Declared version-selection
+        qualifies dependency now tracks the condition. Independently re-read constants 34-37, v2 offsets
+        53-69, helper masks/halves 71-137 and runtime get_bank_data 648-698: precisely three nonzero IDs
+        normalize to V2; zero selects V1; others reject. Offset and inherited bit fields agree. Divider
+        field instead matches GENMASK(23,0) and direct reads/writes at 209-234. Adjacent V1 table and
+        direct status/ext_port/divider access paths checked; no contrary claim found. No physical width/reset/access
+        assertion inferred.'
+  v2-dbclk-div-con:
+    basis: bc03ae144eb829fcdc09a2a6d05c2fc5c0eccbd822197f0fdc759404e64ac77d
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'Delta rereading: gpio-rockchip.c:65-65,209-234 matches dbclk_div_con=0x48 and the full field/limitation
+      text. The added qualifies relation declares the exact #version-selection dependency; independently
+      reread its anchors34-37,53-69,666-695 and confirm the three IDs normalize to V2, zero selects V1
+      and others reject. Read adjacent V1 map, split helpers and direct status/external/divider paths
+      for contrary evidence; none contradicts the scoped source-definition claim. Parent covers fields
+      without their own support. Split mask/data meanings describe Linux emitted words, not proof of physical
+      width/reset/read side effects. No TODO attached. Dependency and local citations together are exact;
+      the former missing-dependency FAIL is resolved.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Delta re-read of whole fact and inherited data against immutable Linux source. Declared version-selection
+        qualifies dependency now tracks the condition. Independently re-read constants 34-37, v2 offsets
+        53-69, helper masks/halves 71-137 and runtime get_bank_data 648-698: precisely three nonzero IDs
+        normalize to V2; zero selects V1; others reject. Offset and inherited bit fields agree. Divider
+        field instead matches GENMASK(23,0) and direct reads/writes at 209-234. Adjacent V1 table and
+        direct status/ext_port/divider access paths checked; no contrary claim found. No physical width/reset/access
+        assertion inferred.'
+  v2-int-status:
+    basis: f620794f1408878be877dff66d31d04ec4d48db37104a86d8cda3f58cce563d1
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'Delta rereading: gpio-rockchip.c:61-61 matches int_status=0x50 and the full field/limitation
+      text. The added qualifies relation declares the exact #version-selection dependency; independently
+      reread its anchors34-37,53-69,666-695 and confirm the three IDs normalize to V2, zero selects V1
+      and others reject. Read adjacent V1 map, split helpers and direct status/external/divider paths
+      for contrary evidence; none contradicts the scoped source-definition claim. Parent covers fields
+      without their own support. Split mask/data meanings describe Linux emitted words, not proof of physical
+      width/reset/read side effects. No TODO attached. Dependency and local citations together are exact;
+      the former missing-dependency FAIL is resolved.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Delta re-read of whole fact and inherited data against immutable Linux source. Declared version-selection
+        qualifies dependency now tracks the condition. Independently re-read constants 34-37, v2 offsets
+        53-69, helper masks/halves 71-137 and runtime get_bank_data 648-698: precisely three nonzero IDs
+        normalize to V2; zero selects V1; others reject. Offset and inherited bit fields agree. Divider
+        field instead matches GENMASK(23,0) and direct reads/writes at 209-234. Adjacent V1 table and
+        direct status/ext_port/divider access paths checked; no contrary claim found. No physical width/reset/access
+        assertion inferred.'
+  v2-int-rawstatus:
+    basis: f5da6b907caac5f2ebfed706d80f13837fbabc1fbf09b522ed9deddb5f5fb7a9
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'Delta rereading: gpio-rockchip.c:62-62 matches int_rawstatus=0x58 and the full field/limitation
+      text. The added qualifies relation declares the exact #version-selection dependency; independently
+      reread its anchors34-37,53-69,666-695 and confirm the three IDs normalize to V2, zero selects V1
+      and others reject. Read adjacent V1 map, split helpers and direct status/external/divider paths
+      for contrary evidence; none contradicts the scoped source-definition claim. Parent covers fields
+      without their own support. Split mask/data meanings describe Linux emitted words, not proof of physical
+      width/reset/read side effects. No TODO attached. Dependency and local citations together are exact;
+      the former missing-dependency FAIL is resolved.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Delta re-read of whole fact and inherited data against immutable Linux source. Declared version-selection
+        qualifies dependency now tracks the condition. Independently re-read constants 34-37, v2 offsets
+        53-69, helper masks/halves 71-137 and runtime get_bank_data 648-698: precisely three nonzero IDs
+        normalize to V2; zero selects V1; others reject. Offset and inherited bit fields agree. Divider
+        field instead matches GENMASK(23,0) and direct reads/writes at 209-234. Adjacent V1 table and
+        direct status/ext_port/divider access paths checked; no contrary claim found. No physical width/reset/access
+        assertion inferred.'
+  v2-port-eoi:
+    basis: 671a61931e685c1bfc232c8458fabbe85003f9dad0283ce21231b351ec52426c
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'Delta rereading: gpio-rockchip.c:66-66,71-137 matches port_eoi=0x60 and the full field/limitation
+      text. The added qualifies relation declares the exact #version-selection dependency; independently
+      reread its anchors34-37,53-69,666-695 and confirm the three IDs normalize to V2, zero selects V1
+      and others reject. Read adjacent V1 map, split helpers and direct status/external/divider paths
+      for contrary evidence; none contradicts the scoped source-definition claim. Parent covers fields
+      without their own support. Split mask/data meanings describe Linux emitted words, not proof of physical
+      width/reset/read side effects. No TODO attached. Dependency and local citations together are exact;
+      the former missing-dependency FAIL is resolved.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Delta re-read of whole fact and inherited data against immutable Linux source. Declared version-selection
+        qualifies dependency now tracks the condition. Independently re-read constants 34-37, v2 offsets
+        53-69, helper masks/halves 71-137 and runtime get_bank_data 648-698: precisely three nonzero IDs
+        normalize to V2; zero selects V1; others reject. Offset and inherited bit fields agree. Divider
+        field instead matches GENMASK(23,0) and direct reads/writes at 209-234. Adjacent V1 table and
+        direct status/ext_port/divider access paths checked; no contrary claim found. No physical width/reset/access
+        assertion inferred.'
+  v2-ext-port:
+    basis: eac894ec475d5721b36cafb9735eed00b4e1a1dd4c6940ed8bba4c3cc06b5be2
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'Delta rereading: gpio-rockchip.c:67-67 matches ext_port=0x70 and the full field/limitation
+      text. The added qualifies relation declares the exact #version-selection dependency; independently
+      reread its anchors34-37,53-69,666-695 and confirm the three IDs normalize to V2, zero selects V1
+      and others reject. Read adjacent V1 map, split helpers and direct status/external/divider paths
+      for contrary evidence; none contradicts the scoped source-definition claim. Parent covers fields
+      without their own support. Split mask/data meanings describe Linux emitted words, not proof of physical
+      width/reset/read side effects. No TODO attached. Dependency and local citations together are exact;
+      the former missing-dependency FAIL is resolved.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Delta re-read of whole fact and inherited data against immutable Linux source. Declared version-selection
+        qualifies dependency now tracks the condition. Independently re-read constants 34-37, v2 offsets
+        53-69, helper masks/halves 71-137 and runtime get_bank_data 648-698: precisely three nonzero IDs
+        normalize to V2; zero selects V1; others reject. Offset and inherited bit fields agree. Divider
+        field instead matches GENMASK(23,0) and direct reads/writes at 209-234. Adjacent V1 table and
+        direct status/ext_port/divider access paths checked; no contrary claim found. No physical width/reset/access
+        assertion inferred.'
+  v2-version-id:
+    basis: 5efc5cd226d555ae0e100a6f788fb15ee60555c8e5f3ddf8250bceab90455130
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'Delta rereading: gpio-rockchip.c:68-68,670-695 matches version_id=0x78 and the full field/limitation
+      text. The added qualifies relation declares the exact #version-selection dependency; independently
+      reread its anchors34-37,53-69,666-695 and confirm the three IDs normalize to V2, zero selects V1
+      and others reject. Read adjacent V1 map, split helpers and direct status/external/divider paths
+      for contrary evidence; none contradicts the scoped source-definition claim. Parent covers fields
+      without their own support. Split mask/data meanings describe Linux emitted words, not proof of physical
+      width/reset/read side effects. No TODO attached. Dependency and local citations together are exact;
+      the former missing-dependency FAIL is resolved.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Delta re-read of whole fact and inherited data against immutable Linux source. Declared version-selection
+        qualifies dependency now tracks the condition. Independently re-read constants 34-37, v2 offsets
+        53-69, helper masks/halves 71-137 and runtime get_bank_data 648-698: precisely three nonzero IDs
+        normalize to V2; zero selects V1; others reject. Offset and inherited bit fields agree. Divider
+        field instead matches GENMASK(23,0) and direct reads/writes at 209-234. Adjacent V1 table and
+        direct status/ext_port/divider access paths checked; no contrary claim found. No physical width/reset/access
+        assertion inferred.'
+  split-access:
+    basis: ba55ea6e689a670cb670a2f015f3c3f0e82ac56f302bb8376e321faa5d9e0c9f
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: gpio-rockchip.c:71-137 matches both sequential full writes, per-pin mask/data selection and
+      half-address decision, unmasked combined read expression, and non-V2 direct/RMW alternatives. Read
+      lines 129-145 as adjacent context. The claim specifies a read expression, not high-before-low read
+      sequencing; C operand evaluation does not establish that order. Upper-half read semantics remain
+      open. No TODO is attached; source behavior requires no hardware TODO.
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Compared full claim plus all inherited fields/steps/order with its pinned cited ranges. Read
+        adjacent gpio-rockchip.c 34-825, generic-chip.c 1-125, irq.h 1229-1245, binding properties/required
+        list, and every GPIO bank DTS declaration for contrary branches. Source-only scope matches src/DT
+        classification; no hardware behavior inferred. All source bytes independently matched git objects
+        at declared pin.
+  v1-boundary:
+    basis: 796fc4871ab21ad1a4fea5ba75df3aa0f611c5bd1e56410f7f60dd7fc466ba8f
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'Delta rereading: new gpio-rockchip.c:34-34 anchor explicitly defines GPIO_TYPE_V1 as zero;39-51
+      provides all eleven v1 offsets and689-695 selects that table. Read adjacent V2 table and full discriminator:
+      no installed-silicon applicability follows. All offsets and omitted-entry scope match. The added
+      macro citation resolves previous imprecision; no contrary source path found. No TODO attached.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Delta re-read of whole fact and inherited data against immutable Linux source. New line-34
+        citation directly establishes zero; v1 table 39-51 and switch 689-695 jointly establish every
+        stated offset and branch. Full switch/adjacent V2 table show alternate runtime paths without establishing
+        V1 applicability to RK3588.
+  direction-and-data:
+    basis: ec47ff8e8dcd3bc284cabaac9ce69d1b67a4a9828929f616a6a93412c405a713
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: gpio-rockchip.c:139-196,259-271 matches direction encoding, separately locked DR write before
+      DDR write, and direct full-word EXT sampling. Both output operations are sequential calls, not one
+      atomic lock region. The four unseparately-supported steps and supported output-value/output-direction
+      order edge match those calls. Read input and set callbacks; no split input sample path exists here.
+      No TODO is attached; source behavior requires no hardware TODO.
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Compared full claim plus all inherited fields/steps/order with its pinned cited ranges. Read
+        adjacent gpio-rockchip.c 34-825, generic-chip.c 1-125, irq.h 1229-1245, binding properties/required
+        list, and every GPIO bank DTS declaration for contrary branches. Source-only scope matches src/DT
+        classification; no hardware behavior inferred. All source bytes independently matched git objects
+        at declared pin. Output value setter precedes direction setter; separate lock acquisitions, no
+        aggregate atomicity claimed; sample direct ext_port read/shift/mask.
+  bank-setup:
+    basis: dabb94b766521ae9e294985030fb29436dcb870fbe78b67dc1a407c0f7e42c55
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'Delta rereading: gpio-rockchip.c:648-698,720-797 supplies resource/IRQ/clock/revision order,
+      parent defer and alias fallback, managed debounce-handle release and locked deferred list. New519-574
+      and577-638 anchors supply actual IRQ-domain/chip and GPIO registration bodies. Read complete success/error
+      branches: resource failures stop before VERSION, V2 clock acquisition alone does not enable it,
+      legacy missing-node returns differ from fail-label cleanup. Five steps and four supported order
+      edges still match. The added registration citations resolve previous imprecision; no contrary source
+      path found. No TODO attached.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Delta re-read of whole fact and inherited data against immutable Linux source. Added 519-574
+        and 577-638 now expose GPIO registration, IRQ domain creation and callback configuration. Independently
+        re-read all steps/order plus 648-698 and 720-797, including prerequisite failures, managed cleanup,
+        deferred lock/list drain and legacy registration error paths. All inherited claims supported;
+        citation precision repaired.
+  interrupt-initialization:
+    basis: 521b4fe2ac52905fd3f863e9ef92be8cb31f71f69389458b9d830976a5b5880a
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'gpio-rockchip.c:519-572 matches domain/chip creation, V2 callback installation, mask/ack offsets,
+      ordered all-one writes to MASK then EOI then EN, cache update and chained handler attachment. Four
+      steps and three supported order edges match. Read allocation failure path and generic callbacks:
+      these are initialization policy, not reset defaults or required silicon order. No TODO is attached;
+      source behavior requires no hardware TODO.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Compared full claim plus all inherited fields/steps/order with its pinned cited ranges. Read
+        adjacent gpio-rockchip.c 34-825, generic-chip.c 1-125, irq.h 1229-1245, binding properties/required
+        list, and every GPIO bank DTS declaration for contrary branches. Source-only scope matches src/DT
+        classification; no hardware behavior inferred. All source bytes independently matched git objects
+        at declared pin.
+  interrupt-mask-ack:
+    basis: 07cd06b8e339bc24d5c9ae8bd233f4c091090129e19df4e2a3e7de7de845f7ec
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'gpio-rockchip.c:539-550 installs mask/unmask/ack callbacks and71-75 emits the V2 two-half writes.
+      generic-chip.c:56-118 performs locked cache OR/AND and full-cache writes, while ack writes d->mask
+      with no EOI read. irq.h:1229-1236 dispatches through custom write callback. Read neighboring ack_clr_bit
+      and mask_disable helpers: they are different, unassigned paths. Acknowledge ones and clear mask-only
+      words are correctly distinguished; hardware W1C/races are not proved. No TODO is attached; source
+      behavior requires no hardware TODO.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Compared full claim plus all inherited fields/steps/order with its pinned cited ranges. Read
+        adjacent gpio-rockchip.c 34-825, generic-chip.c 1-125, irq.h 1229-1245, binding properties/required
+        list, and every GPIO bank DTS declaration for contrary branches. Source-only scope matches src/DT
+        classification; no hardware behavior inferred. All source bytes independently matched git objects
+        at declared pin. Cache OR/AND and full-cache writes match; ack writes d->mask without EOI read;
+        irq_reg_writel dispatch plus v2 helper emits two full-mask halves. W1C/race effects remain unclaimed.
+  interrupt-type:
+    basis: 6e73174c99f88a0f17b5e26958b66f2f7aad884a90419a0bb9a5bae8f4a2b940
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'gpio-rockchip.c:385-467 matches initial input DDR change, handler selection, locked TYPE/POLARITY
+      reads, V2 both-edge early goto, other-type BOT HEDGE clear, four bit pairs, and invalid-type exit
+      after earlier state changes. Four steps and two supported order edges match. Read V1 alternative
+      and handler setup: invalid types may also change the Linux flow handler; no rollback is promised.
+      No TODO is attached; source behavior requires no hardware TODO.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Compared full claim plus all inherited fields/steps/order with its pinned cited ranges. Read
+        adjacent gpio-rockchip.c 34-825, generic-chip.c 1-125, irq.h 1229-1245, binding properties/required
+        list, and every GPIO bank DTS declaration for contrary branches. Source-only scope matches src/DT
+        classification; no hardware behavior inferred. All source bytes independently matched git objects
+        at declared pin. Handler selection also precedes config, including invalid types. Input direction
+        and both-edge clear may occur before EINVAL; v2 both-edge jumps past type/polarity writes; v1
+        toggling distinct.
+  interrupt-status-demux:
+    basis: 587d40dcbeec6606b1de083d06ca4cfc00c265b05dec68e9018910a9b65491bb
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'gpio-rockchip.c:333-382,413-438 matches direct relaxed STATUS snapshot, 32-bit scan and domain
+      dispatch before chained exit, no RAWSTATUS read/split helper there, and V1 polarity software-toggle
+      retry until sampled bit stability. Read V2 set_type early exit: V2 hardware both-edge is distinct.
+      One snapshot is scanned; no claim of continuous re-read or loss-free handling follows. No TODO is
+      attached; source behavior requires no hardware TODO.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Compared full claim plus all inherited fields/steps/order with its pinned cited ranges. Read
+        adjacent gpio-rockchip.c 34-825, generic-chip.c 1-125, irq.h 1229-1245, binding properties/required
+        list, and every GPIO bank DTS declaration for contrary branches. Source-only scope matches src/DT
+        classification; no hardware behavior inferred. All source bytes independently matched git objects
+        at declared pin.
+  debounce-programming:
+    basis: 36248166539fbce7f3b097e8aff4e1dcb37797c043ed1f887552a19664211d6b
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'Delta rereading: gpio-rockchip.c:198-256 matches the new precise statement that clk_prepare_enable
+      is called after unlocking and its return is ignored; zero calls clk_disable_unprepare. Full arithmetic,
+      supported-clock predicate, raise-only divider update, per-pin enable/clear paths and both supported
+      sequence order edges independently reread. Read V1/non-divider alternatives and nearby misleading
+      v1 comment: executed predicate is V2, and no guaranteed electrical filtering is claimed. Exact citation;
+      no contradictory executed path found. No TODO attached.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Delta re-read of whole fact and inherited data against immutable Linux source. Re-read 198-256:
+        arithmetic, maximum rejection, monotonic divider, bit clear/set, unlocked clock call order match.
+        New claim and clock-last step accurately identify clk_prepare_enable invocation with ignored return.
+        Checked false-support, zero, failed-large-request paths. No zero-frequency guard and rounding
+        subtraction may underflow, but claim does not promise successful clock enable or a physical filter
+        guarantee.'
+  debounce-callback-limit:
+    basis: a67f94f0496c17e5a229330fc18c0c993c201a6b7cfd48e14f5e2bd591996a2e
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'gpio-rockchip.c:278-300 passes true, ignores helper return, returns -ENOTSUPP, and attributes
+      rather than endorses the clock-period comment. Read helper198-256 and default generic config alternative:
+      requested pinconf delay is not extracted in this case. No TODO is attached; source behavior requires
+      no hardware TODO.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Compared full claim plus all inherited fields/steps/order with its pinned cited ranges. Read
+        adjacent gpio-rockchip.c 34-825, generic-chip.c 1-125, irq.h 1229-1245, binding properties/required
+        list, and every GPIO bank DTS declaration for contrary branches. Source-only scope matches src/DT
+        classification; no hardware behavior inferred. All source bytes independently matched git objects
+        at declared pin.
+  unwind-remove-boundary:
+    basis: de4b074d3f37091445d1b0e2a7792d629dfadbefbf968be3098ce51e0f2fe108
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'gpio-rockchip.c:527-535,590-638,641-646,684-687,800-825 matches domain allocation unwind, fail-label
+      GPIO cleanup, direct legacy-node/pinctrl error returns after registration, remove detachment and
+      domain/chip cleanup, and managed debounce clk_put action. Read full registration/probe/remove and
+      neighboring cleanup calls: no explicit remove-body MMIO write proves framework/hardware quiescence.
+      Deferred registration errors do not establish safe firmware transfer. No TODO is attached; source
+      behavior requires no hardware TODO.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Compared full claim plus all inherited fields/steps/order with its pinned cited ranges. Read
+        adjacent gpio-rockchip.c 34-825, generic-chip.c 1-125, irq.h 1229-1245, binding properties/required
+        list, and every GPIO bank DTS declaration for contrary branches. Source-only scope matches src/DT
+        classification; no hardware behavior inferred. All source bytes independently matched git objects
+        at declared pin.
+  actual-version-and-mmio:
+    basis: 3189f3633dfd1759234de30a2f0aff800855a97799d9fd8c1f778003c7c0ff78
+    verdict: GAP
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: 'Delta rereading: hardware TODO now explicitly limits VERSION reads and three-ID comparison
+      to discriminator/access at that location, then requires separate public-document investigation and
+      safe owned-line tests for matching programming semantics. Read current register-hardware-semantics
+      and pin-ownership-electrical TODO prerequisites: applicable nonconfidential manual, owned net/current
+      consumer, electrical limits and input-before-authorized-bounded-output are feasible conditional
+      methods. No physical revision, free pin or completed measurement is assumed. No support exists,
+      so GAP remains; citation precision is imprecise and contrary evidence for a supported value is not
+      checked. No claim that VERSION alone validates programming semantics remains.'
+    contrary_evidence: not-checked
+    citation_precision: imprecise
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: GAP
+      date: '2026-10-11'
+      note: 'Delta re-read of whole fact and inherited data against immutable Linux source. New TODO explicitly
+        limits VERSION reads to discriminator/access and separately directs semantic investigation to
+        register-hardware-semantics and pin-ownership-electrical. Read those TODOs: applicable public
+        document plus explicitly owned-line tests with firmware/clock/power prerequisites can investigate
+        semantics. Not executed. No support means no cited value/contrary comparison; GAP remains appropriate.'
+  register-hardware-semantics:
+    basis: c84599d9caf9acfacb3af400ec5da25951e34cdc46de5263c84793362c563a56
+    verdict: GAP
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: Public-document search and selected owned-line tests can settle each named property only if
+      the manual covers the actual IP revision and measurements bound races/read behavior. The pinctrl
+      header comment int_status=int_rawstatus&int_mask was read as contrary context, but is explicitly
+      excluded by this gap. No document or electrical evidence was obtained; no confidential TRM was used.
+      No supported value is cited, so citation precision is imprecise and contrary evidence for such a
+      value is not checked.
+    contrary_evidence: not-checked
+    citation_precision: imprecise
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: GAP
+      date: '2026-10-11'
+      note: 'Unsupported fact: GAP. Proposed future method feasible subject to stated ownership/firmware/document
+        access prerequisites. No supported value to compare; no citation precision or contrary-evidence
+        claim possible.'
+  clock-reset-power-handoff:
+    basis: 7649b1c65038ff5c6158366ab5f4300b63573f79e705b9e9281ceb40b8069d19
+    verdict: GAP
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: Inspecting approved clock/reset documentation and firmware ownership can establish bank prerequisites;
+      passive read-first checks are feasible. Source absence does not prove no reset exists. The DT nodes
+      and setup body were inspected and contain no reset property/acquisition, but this remains an unsupported
+      gap record rather than proof of all physical state. No supported value is cited, so citation precision
+      is imprecise and contrary evidence for such a value is not checked.
+    contrary_evidence: not-checked
+    citation_precision: imprecise
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: GAP
+      date: '2026-10-11'
+      note: 'Unsupported fact: GAP. Proposed future method feasible subject to stated ownership/firmware/document
+        access prerequisites. No supported value to compare; no citation precision or contrary-evidence
+        claim possible.'
+  pin-ownership-electrical:
+    basis: 22b3335388b62f9b6f718054850bea00a8f4a3acf01e8f2ef78fc6a1b834fe5b
+    verdict: GAP
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: The proposed method first identifies board net/owner and electrical limits, then an input test
+      before authorized bounded output. Feasible only after authentic revision-specific routing evidence
+      and current consumer ownership exist. A successful input test alone does not prove safe output or
+      voltage/current limits. No net, physical revision or free pin was assumed. No supported value is
+      cited, so citation precision is imprecise and contrary evidence for such a value is not checked.
+    contrary_evidence: not-checked
+    citation_precision: imprecise
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: GAP
+      date: '2026-10-11'
+      note: 'Unsupported fact: GAP. Proposed future method feasible subject to stated ownership/firmware/document
+        access prerequisites. No supported value to compare; no citation precision or contrary-evidence
+        claim possible.'
+  shutdown-and-irq-lifecycle:
+    basis: 4a561528ff12d47e60001e9375d1a830adee6f918ba56476d6073d5c9f34b065
+    verdict: GAP
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: Pinned flow-handler/framework cleanup tracing plus explicit owned-line experiments and public
+      hardware evidence is a feasible combined method. Source tracing alone cannot prove safe pin transfer
+      or controller end-of-interrupt behavior; method explicitly includes those other evidence classes.
+      No full teardown/flow-handler or hardware validation was performed. No supported value is cited,
+      so citation precision is imprecise and contrary evidence for such a value is not checked.
+    contrary_evidence: not-checked
+    citation_precision: imprecise
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: GAP
+      date: '2026-10-11'
+      note: 'Unsupported fact: GAP. Proposed future method feasible subject to stated ownership/firmware/document
+        access prerequisites. No supported value to compare; no citation precision or contrary-evidence
+        claim possible.'
+  target-os-integration:
+    basis: 539a822dddc2ea35a9c33d906be919eb124285ac246d1f4f01e6aecfb9816f1a
+    verdict: GAP
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m6_a primary reader
+    note: After choosing a target OS, source pinned resource/clock/reset/GPIO/IRQ/teardown contracts can
+      specify integration. No OS choice is needed to preserve this gap; no implementation is claimed.
+      Method is feasible and deliberately future work. No supported value is cited, so citation precision
+      is imprecise and contrary evidence for such a value is not checked.
+    contrary_evidence: not-checked
+    citation_precision: imprecise
+    readers:
+    - verifier: GPT-6.1 Sol, Codex, verify_m6_b
+      verdict: GAP
+      date: '2026-10-11'
+      note: 'Unsupported fact: GAP. Proposed future method feasible subject to stated ownership/firmware/document
+        access prerequisites. No supported value to compare; no citation precision or contrary-evidence
+        claim possible.'

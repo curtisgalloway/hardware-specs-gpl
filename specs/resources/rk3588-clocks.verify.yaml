@@ -1,0 +1,1688 @@
+# SPDX-FileCopyrightText: 2026 contributors
+# SPDX-License-Identifier: GPL-2.0-only
+
+format: 2
+spec: rk3588-clocks
+spec_file: rk3588-clocks.spec.yaml
+spec_sha256: ea7aa6106885f9748453f4cbe27c877b9c033f0fa3fbeadef154ae3e5686be16
+canonical: fact-v1
+sources:
+- name: linux
+  commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+  url: https://github.com/torvalds/linux
+  fetch: ok
+  note: All declared cited files matched exact Git object bytes and their declared SPDX license; cache
+    bytes were identical. No document bytes are declared by this spec.
+- name: linux-later
+  commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+  url: https://github.com/torvalds/linux
+  fetch: ok
+  note: All declared cited files matched exact Git object bytes and their declared SPDX license; cache
+    bytes were identical. No document bytes are declared by this spec.
+- name: linux-dts
+  commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+  url: https://github.com/torvalds/linux
+  fetch: ok
+  note: All declared cited files matched exact Git object bytes and their declared SPDX license; cache
+    bytes were identical. No document bytes are declared by this spec.
+summary:
+  pass: 62
+  fail: 0
+  unverifiable: 0
+  gap: 5
+  adjudicate: 0
+verdicts:
+  cru-map:
+    basis: 18ee9d585648077e19c163acb9b46e1911709aad8d4dda00bc76349324a9151f
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'The cru node describes the address and length exactly; PMU offsets remain within its described
+      mapping. Adjacent assigned clocks and provider declarations do not establish live firmware or measured
+      mapping. Cited evidence: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi:742-744. Contrary search
+      covered adjacent qualifications and relevant alternative branches, as described; no conflict with
+      the scoped code observation was found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Compared typed offset, field shifts/widths and parent order against pinned declaration and
+        macro expansion; checked adjacent branches for contrary definitions. Source-program semantics
+        only; no silicon requirement inferred. Rechecked against immutable pinned blobs after full cache
+        identity audit; no conclusion relies on an unvalidated cache.
+  input-rate-descriptions:
+    basis: 8e65680fb6356dfa73d8528384ebe4f34507e2e08ac53043a160b418dc37f3f6
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Both fixed-clock nodes give the stated integer rates. Adjacent node properties provide no accuracy,
+      stability, or firmware selection measurement. Cited evidence: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi:423-435.
+      Contrary search covered adjacent qualifications and relevant alternative branches, as described;
+      no conflict with the scoped code observation was found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Compared typed offset, field shifts/widths and parent order against pinned declaration and
+        macro expansion; checked adjacent branches for contrary definitions. Source-program semantics
+        only; no silicon requirement inferred. Rechecked against immutable pinned blobs after full cache
+        identity audit; no conclusion relies on an unvalidated cache.
+  consumer-clock-pairs:
+    basis: 7a9f06f37ff9e6e9ef9f743b42b374494261e05bc8b88e9f2e014645ebd336bb
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Read complete UART2 and GPIO0 through GPIO4 node bodies: clock identifiers, names/order match,
+      and no resets property occurs. UART2 is disabled in this base tree; no claim of enabled hardware
+      follows. Cited evidence: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi:2811-2824; arch/arm64/boot/dts/rockchip/rk3588-base.dtsi:3533-3591.
+      Contrary search covered adjacent qualifications and relevant alternative branches, as described;
+      no conflict with the scoped code observation was found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Compared typed offset, field shifts/widths and parent order against pinned declaration and
+        macro expansion; checked adjacent branches for contrary definitions. Source-program semantics
+        only; no silicon requirement inferred. Rechecked against immutable pinned blobs after full cache
+        identity audit; no conclusion relies on an unvalidated cache.
+  top-source-selector:
+    basis: 0733edc688ed46876c2a5687bb669bcea1a71514621509c268279c8005991367
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Fresh strict correction reading at immutable Linux commit 8d3ae59288f1e7d58d76558a6ee96d533bc5019f.
+      CLKSEL_CON0 offset0x300 and shifts/widths 0/5,5/1,6/5,11/1 match declarations. Added DFLAGS, COMPOSITE,
+      registration and _get_div anchors establish HIWORD-only ordinary value+1 and null-table construction
+      directly. Parent array GPLL/CPLL agrees; alternative encodings/table branches do not apply. Cited
+      evidence: drivers/clk/rockchip/clk-rk3588.c:688-693; drivers/clk/rockchip/clk-rk3588.c:435-435;
+      drivers/clk/rockchip/clk.h:492-494; drivers/clk/clk-mux.c:27-42; drivers/clk/rockchip/clk-rk3588.c:523-523;
+      drivers/clk/rockchip/clk.h:845-864; drivers/clk/rockchip/clk.c:86-105; drivers/clk/clk-divider.c:93-109.
+      Relevant adjacent qualifications and alternative paths were searched; none conflict with the scoped
+      source observation. Immutable blob SHA256/cache equality and SPDX lines are recorded in strict-source-manifest.json;
+      hardware authority is not inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Added DFLAGS523, COMPOSITE845-864, registration86-105 and _get_div93-109 close ordinary encoding
+        evidence. Macro leaves div_table unspecified (zero-initialized); flags select HIWORD only; generic
+        fallback value+1 applies. CON0 yields0x300; shifts/widths0/5,5/1,6/5,11/1 and ordered gpll/cpll
+        agree. Independently reread new support and relevant source dependencies at immutable Linux8d3ae59288f1e7d58d76558a6ee96d533bc5019f;
+        adjacent alternative flags, branches and errors reveal no contrary evidence.
+    readings:
+    - verifier: GPT-6.1 Sol, Codex, verify_m4_a
+      verdict: PASS
+      reasoning: 'Compared typed register RK3588_CLKSEL_CON0 at 0x300, width32, and every included field:
+        clk-50m-div=[0, 4] (clk_50m_src encoded divisor; ordinary value+1 encoding.); clk-50m-mux=[5,
+        5] (clk_50m_src parent index: 0 gpll, 1 cpll.); clk-100m-div=[6, 10] (clk_100m_src encoded divisor;
+        ordinary value+1 encoding.); clk-100m-mux=[11, 11] (clk_100m_src parent index: 0 gpll, 1 cpll.).
+        Declaration/lookup positions and relative-offset macros match. Cited evidence: drivers/clk/rockchip/clk-rk3588.c:688-693;
+        drivers/clk/rockchip/clk-rk3588.c:435-435; drivers/clk/rockchip/clk.h:492-494; drivers/clk/clk-mux.c:27-42.
+        Contrary search covered neighboring declarations, parent arrays, registration binding and performing
+        I/O/reset arithmetic. No contradictory value or alternative binding was found for this bounded
+        source subset; no silicon reset/access outcome is inferred. Citation completeness improvement:
+        directly cite the relevant ordinary-divider flags/declaration and performing encoding (top selector),
+        supplied shared-lock dispatch and gate inversion operation (binding), or bounded DFLAGS/no-table
+        declaration (integer children); current anchors require tracing beyond their selected passages. '
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: FAIL
+      reasoning: Compared typed offset, field shifts/widths and parent order against pinned declaration
+        and macro expansion; checked adjacent branches for contrary definitions. Source-program semantics
+        only; no silicon requirement inferred. Ordinary divisor=value+1 is not stated by the cited declaration/mux
+        I/O anchors. It depends on DFLAGS, divider registration table/flags and _get_div. Add a tracked
+        relates dependency on integer-divider-update and clock-operation-binding, or cite these exact
+        source passages. Rechecked against immutable pinned blobs after full cache identity audit; no
+        conclusion relies on an unvalidated cache. Ordinary divisor=value+1 is not stated by the cited
+        declaration/mux I/O anchors. It depends on DFLAGS, divider registration table/flags and _get_div.
+        Add a tracked relates dependency on integer-divider-update and clock-operation-binding, or cite
+        these exact source passages.
+    adjudication:
+      decision: Apply the stricter dependency and citation evidence and reverify. Fresh independent readings
+        support the corrected claim.
+      by: user
+      date: '2026-10-11'
+      rule: User approved all eight clock and pin-control disputes and instructed automatic stricter correction
+        and re-verification from now on. Original dissent retained; current PASS requires actual agreeing
+        renewed readings.
+  top-source-gates:
+    basis: 6e7a67036ba0f861d071eaa8d3fc1ddbd9d6fff878b41efa52504df930985316
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Fresh strict correction reading at immutable Linux commit 8d3ae59288f1e7d58d76558a6ee96d533bc5019f.
+      CLKGATE_CON0 offset0x800, low bits0,1,7 match the 50m/100m/400m composite declarations. Corrected
+      709-711 span includes the actual 400m gate bit7; neighboring 350m gate bit6 is outside that declaration.
+      Generic gate helpers provide 32-bit I/O. Cited evidence: drivers/clk/rockchip/clk-rk3588.c:688-693;
+      drivers/clk/rockchip/clk-rk3588.c:709-711; drivers/clk/rockchip/clk.h:492-494; drivers/clk/clk-gate.c:27-42.
+      Relevant adjacent qualifications and alternative paths were searched; none conflict with the scoped
+      source observation. Immutable blob SHA256/cache equality and SPDX lines are recorded in strict-source-manifest.json;
+      hardware authority is not inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Corrected709-711 explicitly includes CLK_400M_SRC gate CON0 bit7. CON0 relative0x800 gates50m/100m
+        bits0/1;400m bit7. Earlier numeric mismatch remains withdrawn; exact pin supports unchanged draft
+        numeric fields. Independently reread new support and relevant source dependencies at immutable
+        Linux8d3ae59288f1e7d58d76558a6ee96d533bc5019f; adjacent alternative flags, branches and errors
+        reveal no contrary evidence.
+  top-400m-selector:
+    basis: 7a757e4aed21c8077ae2b5ef63d03e57be1b2174e94d0a4cd0dd252de6127f0f
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Fresh strict correction reading at immutable Linux commit 8d3ae59288f1e7d58d76558a6ee96d533bc5019f.
+      Corrected 709-711 span identifies the 400m composite rather than ending at preceding gate material.
+      CLKSEL_CON3 expands to0x30c, divisor shift6 width5 and mux shift11 width1; GPLL/CPLL parent order
+      matches. Source names do not establish live frequencies. Cited evidence: drivers/clk/rockchip/clk-rk3588.c:709-711;
+      drivers/clk/rockchip/clk-rk3588.c:435-435; drivers/clk/rockchip/clk.h:492-494; drivers/clk/clk-mux.c:27-42.
+      Relevant adjacent qualifications and alternative paths were searched; none conflict with the scoped
+      source observation. Immutable blob SHA256/cache equality and SPDX lines are recorded in strict-source-manifest.json;
+      hardware authority is not inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Corrected709-711 identifies entire400m declaration. CON3 gives0x30c, divider6..10,mux11,parent0gpll/1cpll.
+        No measured rate or mandatory hardware requirement inferred. Independently reread new support
+        and relevant source dependencies at immutable Linux8d3ae59288f1e7d58d76558a6ee96d533bc5019f; adjacent
+        alternative flags, branches and errors reveal no contrary evidence.
+  top-root-selector:
+    basis: 67ba626b3c1f2d756512957c02155914a9faf6987b5432e8cf63a32846b10d2b
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Compared typed register RK3588_CLKSEL_CON8 at 0x320, width32, and every included field: pclk-top-mux=[7,
+      8] (pclk_top_root indices 0 clk_100m_src,1 clk_50m_src,2 xin24m; encoding 3 has no parent.). Declaration/lookup
+      positions and relative-offset macros match. Cited evidence: drivers/clk/rockchip/clk-rk3588.c:754-756;
+      drivers/clk/rockchip/clk-rk3588.c:454-454; drivers/clk/rockchip/clk.h:492-494; drivers/clk/clk-mux.c:27-42.
+      Contrary search covered neighboring declarations, parent arrays, registration binding and performing
+      I/O/reset arithmetic. No contradictory value or alternative binding was found for this bounded source
+      subset; no silicon reset/access outcome is inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Compared typed offset, field shifts/widths and parent order against pinned declaration and
+        macro expansion; checked adjacent branches for contrary definitions. Source-program semantics
+        only; no silicon requirement inferred. Rechecked against immutable pinned blobs after full cache
+        identity audit; no conclusion relies on an unvalidated cache.
+  top-root-gate:
+    basis: 7283e098fbda6c64a95f3494255cacc7806ffa68e96cc9c8658bccb43d490002
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Compared typed register RK3588_CLKGATE_CON1 at 0x804, width32, and every included field: pclk-top-gate=[1,
+      1] (pclk_top_root gate; Linux marks this shared root CLK_IS_CRITICAL.). Declaration/lookup positions
+      and relative-offset macros match. Cited evidence: drivers/clk/rockchip/clk-rk3588.c:754-756; drivers/clk/rockchip/clk.h:492-494;
+      drivers/clk/clk-gate.c:27-42. Contrary search covered neighboring declarations, parent arrays, registration
+      binding and performing I/O/reset arithmetic. No contradictory value or alternative binding was found
+      for this bounded source subset; no silicon reset/access outcome is inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Gate code computes set=(SET_TO_DISABLE?1:0) XOR enable; inverted enabled write is upper mask
+        only, disabled write adds lower bit. Enabled read XORs selected bit before testing. Conditional
+        lock and endian paths checked. Rechecked against immutable pinned blobs after full cache identity
+        audit; no conclusion relies on an unvalidated cache.
+  uart2-source-selector:
+    basis: 4500cea4b09e6ef34b5a6f9cdcfc6e471f4259dd94e4c59a935d193f2bf5fe3d
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Compared typed register RK3588_CLKSEL_CON43 at 0x3ac, width32, and every included field: uart2-div=[2,
+      6] (clk_uart2_src encoded divisor.); uart2-src-mux=[7, 7] (clk_uart2_src indices 0 gpll,1 cpll.).
+      Declaration/lookup positions and relative-offset macros match. Cited evidence: drivers/clk/rockchip/clk-rk3588.c:1236-1238;
+      drivers/clk/rockchip/clk-rk3588.c:435-435; drivers/clk/rockchip/clk.h:492-494; drivers/clk/clk-mux.c:27-42.
+      Contrary search covered neighboring declarations, parent arrays, registration binding and performing
+      I/O/reset arithmetic. No contradictory value or alternative binding was found for this bounded source
+      subset; no silicon reset/access outcome is inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Compared typed offset, field shifts/widths and parent order against pinned declaration and
+        macro expansion; checked adjacent branches for contrary definitions. Source-program semantics
+        only; no silicon requirement inferred. Rechecked against immutable pinned blobs after full cache
+        identity audit; no conclusion relies on an unvalidated cache.
+  uart2-fraction:
+    basis: 4d3adcf19dc9686fcefc4ea92997c66c3a590bef0d5e505279f2914a56e837f6
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Compared typed register RK3588_CLKSEL_CON44 at 0x3b0, width32, and every included field: uart2-n=[0,
+      15] (clk_uart2_frac denominator, not an upper-half write mask.); uart2-m=[16, 31] (clk_uart2_frac
+      numerator; this full-word fractional register is not a highword-masked selector.). Declaration/lookup
+      positions and relative-offset macros match. Cited evidence: drivers/clk/rockchip/clk-rk3588.c:1239-1242;
+      drivers/clk/rockchip/clk.h:492-494; drivers/clk/rockchip/clk.c:237-246; drivers/clk/clk-fractional-divider.c:213-216;
+      drivers/clk/clk-fractional-divider.c:53-67. Contrary search covered neighboring declarations, parent
+      arrays, registration binding and performing I/O/reset arithmetic. No contradictory value or alternative
+      binding was found for this bounded source subset; no silicon reset/access outcome is inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Compared typed offset, field shifts/widths and parent order against pinned declaration and
+        macro expansion; checked adjacent branches for contrary definitions. Source-program semantics
+        only; no silicon requirement inferred. Rechecked against immutable pinned blobs after full cache
+        identity audit; no conclusion relies on an unvalidated cache.
+  uart2-output-selector:
+    basis: 189927eb1751b107e13ad1e88c4b77858dc12a7cc14e2edabca5a89ed83de82e
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Compared typed register RK3588_CLKSEL_CON45 at 0x3b4, width32, and every included field: uart2-output-mux=[0,
+      1] (clk_uart2 indices 0 clk_uart2_src,1 clk_uart2_frac,2 xin24m; encoding 3 has no parent.). Declaration/lookup
+      positions and relative-offset macros match. Cited evidence: drivers/clk/rockchip/clk-rk3588.c:614-616;
+      drivers/clk/rockchip/clk-rk3588.c:492-492; drivers/clk/rockchip/clk.h:492-494; drivers/clk/clk-mux.c:27-42.
+      Contrary search covered neighboring declarations, parent arrays, registration binding and performing
+      I/O/reset arithmetic. No contradictory value or alternative binding was found for this bounded source
+      subset; no silicon reset/access outcome is inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Compared typed offset, field shifts/widths and parent order against pinned declaration and
+        macro expansion; checked adjacent branches for contrary definitions. Source-program semantics
+        only; no silicon requirement inferred. Rechecked against immutable pinned blobs after full cache
+        identity audit; no conclusion relies on an unvalidated cache.
+  uart2-input-gates:
+    basis: ed772df203b2ac1cc3a28bdce05c309565802f6731f33b828fba67482e038a59
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Compared typed register RK3588_CLKGATE_CON12 at 0x830, width32, and every included field: uart2-pclk-gate=[3,
+      3] (pclk_uart2 parent pclk_top_root.); uart2-src-gate=[14, 14] (clk_uart2_src gate.); uart2-frac-gate=[15,
+      15] (clk_uart2_frac gate.). Declaration/lookup positions and relative-offset macros match. Cited
+      evidence: drivers/clk/rockchip/clk-rk3588.c:1210-1211; drivers/clk/rockchip/clk-rk3588.c:1236-1242;
+      drivers/clk/rockchip/clk.h:492-494; drivers/clk/clk-gate.c:27-42. Contrary search covered neighboring
+      declarations, parent arrays, registration binding and performing I/O/reset arithmetic. No contradictory
+      value or alternative binding was found for this bounded source subset; no silicon reset/access outcome
+      is inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Gate code computes set=(SET_TO_DISABLE?1:0) XOR enable; inverted enabled write is upper mask
+        only, disabled write adds lower bit. Enabled read XORs selected bit before testing. Conditional
+        lock and endian paths checked. Rechecked against immutable pinned blobs after full cache identity
+        audit; no conclusion relies on an unvalidated cache.
+  uart2-output-gate:
+    basis: 89b76a43522184b65ba4d4832d54739028c8932f9937c2d62586b5c08c1f5871
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Compared typed register RK3588_CLKGATE_CON13 at 0x834, width32, and every included field: uart2-sclk-gate=[0,
+      0] (sclk_uart2 parent clk_uart2.). Declaration/lookup positions and relative-offset macros match.
+      Cited evidence: drivers/clk/rockchip/clk-rk3588.c:1243-1244; drivers/clk/rockchip/clk.h:492-494;
+      drivers/clk/clk-gate.c:27-42. Contrary search covered neighboring declarations, parent arrays, registration
+      binding and performing I/O/reset arithmetic. No contradictory value or alternative binding was found
+      for this bounded source subset; no silicon reset/access outcome is inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Gate code computes set=(SET_TO_DISABLE?1:0) XOR enable; inverted enabled write is upper mask
+        only, disabled write adds lower bit. Enabled read XORs selected bit before testing. Conditional
+        lock and endian paths checked. Rechecked against immutable pinned blobs after full cache identity
+        audit; no conclusion relies on an unvalidated cache.
+  gpio12-debounce-selector:
+    basis: a8296b11587b963729693d85e25a68e9ad4cba283575ad672db1fd8b92714c4c
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Compared typed register RK3588_CLKSEL_CON60 at 0x3f0, width32, and every included field: gpio1-db-div=[3,
+      7] (dbclk_gpio1 encoded divisor.); gpio1-db-mux=[8, 8] (dbclk_gpio1 indices 0 xin24m,1 xin32k.);
+      gpio2-db-div=[9, 13] (dbclk_gpio2 encoded divisor.); gpio2-db-mux=[14, 14] (dbclk_gpio2 indices
+      0 xin24m,1 xin32k.). Declaration/lookup positions and relative-offset macros match. Cited evidence:
+      drivers/clk/rockchip/clk-rk3588.c:1097-1104; drivers/clk/rockchip/clk-rk3588.c:451-451; drivers/clk/rockchip/clk.h:492-494;
+      drivers/clk/clk-mux.c:27-42. Contrary search covered neighboring declarations, parent arrays, registration
+      binding and performing I/O/reset arithmetic. No contradictory value or alternative binding was found
+      for this bounded source subset; no silicon reset/access outcome is inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Compared typed offset, field shifts/widths and parent order against pinned declaration and
+        macro expansion; checked adjacent branches for contrary definitions. Source-program semantics
+        only; no silicon requirement inferred. Rechecked against immutable pinned blobs after full cache
+        identity audit; no conclusion relies on an unvalidated cache.
+  gpio34-debounce-selector:
+    basis: a64a122c29911de9a3fd2e5822b63d08a6a8717f9df0d79098ed566353f4d740
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Compared typed register RK3588_CLKSEL_CON61 at 0x3f4, width32, and every included field: gpio3-db-div=[0,
+      4] (dbclk_gpio3 encoded divisor.); gpio3-db-mux=[5, 5] (dbclk_gpio3 indices 0 xin24m,1 xin32k.);
+      gpio4-db-div=[6, 10] (dbclk_gpio4 encoded divisor.); gpio4-db-mux=[11, 11] (dbclk_gpio4 indices
+      0 xin24m,1 xin32k.). Declaration/lookup positions and relative-offset macros match. Cited evidence:
+      drivers/clk/rockchip/clk-rk3588.c:1107-1114; drivers/clk/rockchip/clk-rk3588.c:451-451; drivers/clk/rockchip/clk.h:492-494;
+      drivers/clk/clk-mux.c:27-42. Contrary search covered neighboring declarations, parent arrays, registration
+      binding and performing I/O/reset arithmetic. No contradictory value or alternative binding was found
+      for this bounded source subset; no silicon reset/access outcome is inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Compared typed offset, field shifts/widths and parent order against pinned declaration and
+        macro expansion; checked adjacent branches for contrary definitions. Source-program semantics
+        only; no silicon requirement inferred. Rechecked against immutable pinned blobs after full cache
+        identity audit; no conclusion relies on an unvalidated cache.
+  gpio1-gates:
+    basis: f8d0d54411ef063c7c30ff799bb7739c2584855a0300f9d37040d5a1bbeb5c59
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Compared typed register RK3588_CLKGATE_CON16 at 0x840, width32, and every included field: gpio1-pclk-gate=[14,
+      14] (pclk_gpio1 parent pclk_top_root.); gpio1-db-gate=[15, 15] (dbclk_gpio1 gate.). Declaration/lookup
+      positions and relative-offset macros match. Cited evidence: drivers/clk/rockchip/clk-rk3588.c:1095-1099;
+      drivers/clk/rockchip/clk.h:492-494; drivers/clk/clk-gate.c:27-42. Contrary search covered neighboring
+      declarations, parent arrays, registration binding and performing I/O/reset arithmetic. No contradictory
+      value or alternative binding was found for this bounded source subset; no silicon reset/access outcome
+      is inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Gate code computes set=(SET_TO_DISABLE?1:0) XOR enable; inverted enabled write is upper mask
+        only, disabled write adds lower bit. Enabled read XORs selected bit before testing. Conditional
+        lock and endian paths checked. Rechecked against immutable pinned blobs after full cache identity
+        audit; no conclusion relies on an unvalidated cache.
+  gpio234-gates:
+    basis: 97e2cbfb61b4207f6579b76927d277e2848f90b7eaf2b846391dba698d83b792
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Compared typed register RK3588_CLKGATE_CON17 at 0x844, width32, and every included field: gpio2-pclk-gate=[0,
+      0] (pclk_gpio2 gate; parent pclk_top_root.); gpio2-db-gate=[1, 1] (dbclk_gpio2 gate.); gpio3-pclk-gate=[2,
+      2] (pclk_gpio3 gate; parent pclk_top_root.); gpio3-db-gate=[3, 3] (dbclk_gpio3 gate.); gpio4-pclk-gate=[4,
+      4] (pclk_gpio4 gate; parent pclk_top_root.); gpio4-db-gate=[5, 5] (dbclk_gpio4 gate.). Declaration/lookup
+      positions and relative-offset macros match. Cited evidence: drivers/clk/rockchip/clk-rk3588.c:1100-1114;
+      drivers/clk/rockchip/clk.h:492-494; drivers/clk/clk-gate.c:27-42. Contrary search covered neighboring
+      declarations, parent arrays, registration binding and performing I/O/reset arithmetic. No contradictory
+      value or alternative binding was found for this bounded source subset; no silicon reset/access outcome
+      is inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Gate code computes set=(SET_TO_DISABLE?1:0) XOR enable; inverted enabled write is upper mask
+        only, disabled write adds lower bit. Enabled read XORs selected bit before testing. Conditional
+        lock and endian paths checked. Rechecked against immutable pinned blobs after full cache identity
+        audit; no conclusion relies on an unvalidated cache.
+  pmu-source-dividers:
+    basis: 81823adcfe317a62275fe0b55315dbed8a79ae453d7e68546d2da6c5d79db5aa
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Compared typed register RK3588_PMU_CLKSEL_CON0 at 0x30300, width32, and every included field:
+      pmu-50m-div=[0, 3] (clk_pmu1_50m_src encoded divisor; parent clk_pmu1_400m_src.); pmu-100m-div=[4,
+      6] (clk_pmu1_100m_src encoded divisor; parent clk_pmu1_400m_src.). Declaration/lookup positions
+      and relative-offset macros match. Cited evidence: drivers/clk/rockchip/clk-rk3588.c:2171-2176; drivers/clk/rockchip/clk.h:482-482;
+      drivers/clk/rockchip/clk.h:509-511; drivers/clk/clk-mux.c:27-42. Contrary search covered neighboring
+      declarations, parent arrays, registration binding and performing I/O/reset arithmetic. No contradictory
+      value or alternative binding was found for this bounded source subset; no silicon reset/access outcome
+      is inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Compared typed offset, field shifts/widths and parent order against pinned declaration and
+        macro expansion; checked adjacent branches for contrary definitions. Source-program semantics
+        only; no silicon requirement inferred. Rechecked against immutable pinned blobs after full cache
+        identity audit; no conclusion relies on an unvalidated cache.
+  pmu-source-root-selector:
+    basis: f456a18dc9b1a06922b8c84d8fc0a7984f9d7b38d421d589ed899b83051c38f5
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Compared typed register RK3588_PMU_CLKSEL_CON1 at 0x30304, width32, and every included field:
+      pmu-400m-div=[0, 4] (clk_pmu1_400m_src encoded divisor.); pmu-400m-mux=[5, 5] (clk_pmu1_400m_src
+      indices 0 clk_400m_src,1 xin24m.); pmu-pclk-root-mux=[8, 9] (pclk_pmu1_root indices 0 clk_pmu1_100m_src,1
+      clk_pmu1_50m_src,2 xin24m; encoding3 has no parent.). Declaration/lookup positions and relative-offset
+      macros match. Cited evidence: drivers/clk/rockchip/clk-rk3588.c:2168-2170; drivers/clk/rockchip/clk-rk3588.c:2183-2185;
+      drivers/clk/rockchip/clk-rk3588.c:510-511; drivers/clk/rockchip/clk.h:482-482; drivers/clk/rockchip/clk.h:509-511;
+      drivers/clk/clk-mux.c:27-42. Contrary search covered neighboring declarations, parent arrays, registration
+      binding and performing I/O/reset arithmetic. No contradictory value or alternative binding was found
+      for this bounded source subset; no silicon reset/access outcome is inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Compared typed offset, field shifts/widths and parent order against pinned declaration and
+        macro expansion; checked adjacent branches for contrary definitions. Source-program semantics
+        only; no silicon requirement inferred. Rechecked against immutable pinned blobs after full cache
+        identity audit; no conclusion relies on an unvalidated cache.
+  pmu-source-root-gates:
+    basis: da997eb314c12c9892450ac5f1cd148fba35228801d988c5a1e681dba91669ee
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Compared typed register RK3588_PMU_CLKGATE_CON0 at 0x30800, width32, and every included field:
+      pmu-50m-gate=[0, 0] (clk_pmu1_50m_src gate.); pmu-100m-gate=[1, 1] (clk_pmu1_100m_src gate.); pmu-400m-gate=[4,
+      4] (clk_pmu1_400m_src gate.); pmu-pclk-root-gate=[7, 7] (pclk_pmu1_root gate; Linux marks shared
+      root CLK_IS_CRITICAL.). Declaration/lookup positions and relative-offset macros match. Cited evidence:
+      drivers/clk/rockchip/clk-rk3588.c:2168-2176; drivers/clk/rockchip/clk-rk3588.c:2183-2185; drivers/clk/rockchip/clk.h:482-482;
+      drivers/clk/rockchip/clk.h:509-511; drivers/clk/clk-gate.c:27-42. Contrary search covered neighboring
+      declarations, parent arrays, registration binding and performing I/O/reset arithmetic. No contradictory
+      value or alternative binding was found for this bounded source subset; no silicon reset/access outcome
+      is inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Gate code computes set=(SET_TO_DISABLE?1:0) XOR enable; inverted enabled write is upper mask
+        only, disabled write adds lower bit. Enabled read XORs selected bit before testing. Conditional
+        lock and endian paths checked. Rechecked against immutable pinned blobs after full cache identity
+        audit; no conclusion relies on an unvalidated cache.
+  gpio0-root-gates:
+    basis: 7703ac246a069f240cd552db414d1e437316c96583119a512001f2bb06a94298
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Compared typed register RK3588_PMU_CLKGATE_CON5 at 0x30814, width32, and every included field:
+      pmu0-root-gate=[0, 0] (pclk_pmu0_root parent pclk_pmu1_root; Linux marks shared root CLK_IS_CRITICAL.);
+      gpio0-pclk-gate=[5, 5] (pclk_gpio0 parent pclk_pmu0_root.); gpio0-db-gate=[6, 6] (dbclk_gpio0 gate.).
+      Declaration/lookup positions and relative-offset macros match. Cited evidence: drivers/clk/rockchip/clk-rk3588.c:2186-2187;
+      drivers/clk/rockchip/clk-rk3588.c:2197-2201; drivers/clk/rockchip/clk.h:482-482; drivers/clk/rockchip/clk.h:509-511;
+      drivers/clk/clk-gate.c:27-42. Contrary search covered neighboring declarations, parent arrays, registration
+      binding and performing I/O/reset arithmetic. No contradictory value or alternative binding was found
+      for this bounded source subset; no silicon reset/access outcome is inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Gate code computes set=(SET_TO_DISABLE?1:0) XOR enable; inverted enabled write is upper mask
+        only, disabled write adds lower bit. Enabled read XORs selected bit before testing. Conditional
+        lock and endian paths checked. Rechecked against immutable pinned blobs after full cache identity
+        audit; no conclusion relies on an unvalidated cache.
+  gpio0-debounce-selector:
+    basis: 56b355001de1a56699803d4c09c6fe37432f7ecf44c97b73e54f11dc49699e65
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Compared typed register RK3588_PMU_CLKSEL_CON17 at 0x30344, width32, and every included field:
+      gpio0-db-mux=[0, 0] (dbclk_gpio0 indices 0 xin24m,1 xin32k; this branch has no divider.). Declaration/lookup
+      positions and relative-offset macros match. Cited evidence: drivers/clk/rockchip/clk-rk3588.c:2199-2201;
+      drivers/clk/rockchip/clk-rk3588.c:451-451; drivers/clk/rockchip/clk.h:482-482; drivers/clk/rockchip/clk.h:509-511;
+      drivers/clk/clk-mux.c:27-42. Contrary search covered neighboring declarations, parent arrays, registration
+      binding and performing I/O/reset arithmetic. No contradictory value or alternative binding was found
+      for this bounded source subset; no silicon reset/access outcome is inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Compared typed offset, field shifts/widths and parent order against pinned declaration and
+        macro expansion; checked adjacent branches for contrary definitions. Source-program semantics
+        only; no silicon requirement inferred. Rechecked against immutable pinned blobs after full cache
+        identity audit; no conclusion relies on an unvalidated cache.
+  uart2-pclk-reset:
+    basis: 54662398ba146772f21c337c7e1b6e89ec266531e0d0d996e31049c8e3cb7133
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Fresh strict correction reading at immutable Linux commit 8d3ae59288f1e7d58d76558a6ee96d533bc5019f.
+      All reset fields and offset checked: RK3588_SOFTRST_CON12=0xa30, width32; srst-p-uart2 bits[3, 3].
+      Lookup macro entries, init reset base, corrected num_per_reg109-110 and performing assert address
+      agree. API ID is translated before bank/bit arithmetic; PMU contribution in bit-index units yields
+      byte offset0x30000. Neighboring main/PMU/secure entries and non-HIWORD alternatives were checked;
+      no contradictory mapping was found for these entries. Cited evidence: drivers/clk/rockchip/rst-rk3588.c:139-139;
+      drivers/clk/rockchip/clk.h:492-494; drivers/clk/rockchip/rst-rk3588.c:13-23; drivers/clk/rockchip/rst-rk3588.c:851-858;
+      drivers/clk/rockchip/softrst.c:32-39; drivers/clk/rockchip/softrst.c:109-110; drivers/clk/rockchip/softrst.c:38-40.
+      Relevant adjacent qualifications and alternative paths were searched; none conflict with the scoped
+      source observation. Immutable blob SHA256/cache equality and SPDX lines are recorded in strict-source-manifest.json;
+      hardware authority is not inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Tightened num_per_reg109-110 now directly supports HIWORD16-slot LUT address calculation.
+        Exact reset mappings independently rechecked: UART APB reg12bit3=0xa30,serial reg13bit0=0xa34;GPIO1reg16bits14/15=0xa40;GPIO2-4reg17bits0..5=0xa44;GPIO0PMUreg5bits5/6=0x30a14.
+        API IDs are lookup indices, not physical bit positions. Assert source uses32-bit writel and upper
+        mask. No hardware reset values/access guarantees inferred. Independently reread new support and
+        relevant source dependencies at immutable Linux8d3ae59288f1e7d58d76558a6ee96d533bc5019f; adjacent
+        alternative flags, branches and errors reveal no contrary evidence.'
+  uart2-sclk-reset:
+    basis: 646b90b7673cbd8aff8bf1f5b51c8a5ac51057f21e4e0bcab4e5cb9ef9ad43e5
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Fresh strict correction reading at immutable Linux commit 8d3ae59288f1e7d58d76558a6ee96d533bc5019f.
+      All reset fields and offset checked: RK3588_SOFTRST_CON13=0xa34, width32; srst-s-uart2 bits[0, 0].
+      Lookup macro entries, init reset base, corrected num_per_reg109-110 and performing assert address
+      agree. API ID is translated before bank/bit arithmetic; PMU contribution in bit-index units yields
+      byte offset0x30000. Neighboring main/PMU/secure entries and non-HIWORD alternatives were checked;
+      no contradictory mapping was found for these entries. Cited evidence: drivers/clk/rockchip/rst-rk3588.c:150-150;
+      drivers/clk/rockchip/clk.h:492-494; drivers/clk/rockchip/rst-rk3588.c:13-23; drivers/clk/rockchip/rst-rk3588.c:851-858;
+      drivers/clk/rockchip/softrst.c:32-39; drivers/clk/rockchip/softrst.c:109-110; drivers/clk/rockchip/softrst.c:38-40.
+      Relevant adjacent qualifications and alternative paths were searched; none conflict with the scoped
+      source observation. Immutable blob SHA256/cache equality and SPDX lines are recorded in strict-source-manifest.json;
+      hardware authority is not inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Tightened num_per_reg109-110 now directly supports HIWORD16-slot LUT address calculation.
+        Exact reset mappings independently rechecked: UART APB reg12bit3=0xa30,serial reg13bit0=0xa34;GPIO1reg16bits14/15=0xa40;GPIO2-4reg17bits0..5=0xa44;GPIO0PMUreg5bits5/6=0x30a14.
+        API IDs are lookup indices, not physical bit positions. Assert source uses32-bit writel and upper
+        mask. No hardware reset values/access guarantees inferred. Independently reread new support and
+        relevant source dependencies at immutable Linux8d3ae59288f1e7d58d76558a6ee96d533bc5019f; adjacent
+        alternative flags, branches and errors reveal no contrary evidence.'
+  gpio1-resets:
+    basis: d0bc241440fee5f267a44539c9981dd479d0eb5337867e51fa6e63036b94554f
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Fresh strict correction reading at immutable Linux commit 8d3ae59288f1e7d58d76558a6ee96d533bc5019f.
+      All reset fields and offset checked: RK3588_SOFTRST_CON16=0xa40, width32; srst-p-gpio1 bits[14,
+      14]; srst-gpio1 bits[15, 15]. Lookup macro entries, init reset base, corrected num_per_reg109-110
+      and performing assert address agree. API ID is translated before bank/bit arithmetic; PMU contribution
+      in bit-index units yields byte offset0x30000. Neighboring main/PMU/secure entries and non-HIWORD
+      alternatives were checked; no contradictory mapping was found for these entries. Cited evidence:
+      drivers/clk/rockchip/rst-rk3588.c:200-201; drivers/clk/rockchip/clk.h:492-494; drivers/clk/rockchip/rst-rk3588.c:13-23;
+      drivers/clk/rockchip/rst-rk3588.c:851-858; drivers/clk/rockchip/softrst.c:32-39; drivers/clk/rockchip/softrst.c:109-110;
+      drivers/clk/rockchip/softrst.c:38-40. Relevant adjacent qualifications and alternative paths were
+      searched; none conflict with the scoped source observation. Immutable blob SHA256/cache equality
+      and SPDX lines are recorded in strict-source-manifest.json; hardware authority is not inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Tightened num_per_reg109-110 now directly supports HIWORD16-slot LUT address calculation.
+        Exact reset mappings independently rechecked: UART APB reg12bit3=0xa30,serial reg13bit0=0xa34;GPIO1reg16bits14/15=0xa40;GPIO2-4reg17bits0..5=0xa44;GPIO0PMUreg5bits5/6=0x30a14.
+        API IDs are lookup indices, not physical bit positions. Assert source uses32-bit writel and upper
+        mask. No hardware reset values/access guarantees inferred. Independently reread new support and
+        relevant source dependencies at immutable Linux8d3ae59288f1e7d58d76558a6ee96d533bc5019f; adjacent
+        alternative flags, branches and errors reveal no contrary evidence.'
+  gpio234-resets:
+    basis: 8fa465fffb32f06effc8276508028deb40738af0ec8cdf6be0f7819197439cfc
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Fresh strict correction reading at immutable Linux commit 8d3ae59288f1e7d58d76558a6ee96d533bc5019f.
+      All reset fields and offset checked: RK3588_SOFTRST_CON17=0xa44, width32; srst-p-gpio2 bits[0, 0];
+      srst-gpio2 bits[1, 1]; srst-p-gpio3 bits[2, 2]; srst-gpio3 bits[3, 3]; srst-p-gpio4 bits[4, 4];
+      srst-gpio4 bits[5, 5]. Lookup macro entries, init reset base, corrected num_per_reg109-110 and performing
+      assert address agree. API ID is translated before bank/bit arithmetic; PMU contribution in bit-index
+      units yields byte offset0x30000. Neighboring main/PMU/secure entries and non-HIWORD alternatives
+      were checked; no contradictory mapping was found for these entries. Cited evidence: drivers/clk/rockchip/rst-rk3588.c:204-209;
+      drivers/clk/rockchip/clk.h:492-494; drivers/clk/rockchip/rst-rk3588.c:13-23; drivers/clk/rockchip/rst-rk3588.c:851-858;
+      drivers/clk/rockchip/softrst.c:32-39; drivers/clk/rockchip/softrst.c:109-110; drivers/clk/rockchip/softrst.c:38-40.
+      Relevant adjacent qualifications and alternative paths were searched; none conflict with the scoped
+      source observation. Immutable blob SHA256/cache equality and SPDX lines are recorded in strict-source-manifest.json;
+      hardware authority is not inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Tightened num_per_reg109-110 now directly supports HIWORD16-slot LUT address calculation.
+        Exact reset mappings independently rechecked: UART APB reg12bit3=0xa30,serial reg13bit0=0xa34;GPIO1reg16bits14/15=0xa40;GPIO2-4reg17bits0..5=0xa44;GPIO0PMUreg5bits5/6=0x30a14.
+        API IDs are lookup indices, not physical bit positions. Assert source uses32-bit writel and upper
+        mask. No hardware reset values/access guarantees inferred. Independently reread new support and
+        relevant source dependencies at immutable Linux8d3ae59288f1e7d58d76558a6ee96d533bc5019f; adjacent
+        alternative flags, branches and errors reveal no contrary evidence.'
+  gpio0-resets:
+    basis: a26b15e99a480c6ac080dcfd944c572c53948f829555c37cb03fe26f1c3154ca
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Fresh strict correction reading at immutable Linux commit 8d3ae59288f1e7d58d76558a6ee96d533bc5019f.
+      All reset fields and offset checked: RK3588_PMU_SOFTRST_CON5=0x30a14, width32; srst-p-gpio0 bits[5,
+      5]; srst-gpio0 bits[6, 6]. Lookup macro entries, init reset base, corrected num_per_reg109-110 and
+      performing assert address agree. API ID is translated before bank/bit arithmetic; PMU contribution
+      in bit-index units yields byte offset0x30000. Neighboring main/PMU/secure entries and non-HIWORD
+      alternatives were checked; no contradictory mapping was found for these entries. Cited evidence:
+      drivers/clk/rockchip/rst-rk3588.c:808-809; drivers/clk/rockchip/clk.h:482-482; drivers/clk/rockchip/clk.h:509-511;
+      drivers/clk/rockchip/rst-rk3588.c:13-23; drivers/clk/rockchip/rst-rk3588.c:851-858; drivers/clk/rockchip/softrst.c:32-39;
+      drivers/clk/rockchip/softrst.c:109-110; drivers/clk/rockchip/softrst.c:38-40. Relevant adjacent
+      qualifications and alternative paths were searched; none conflict with the scoped source observation.
+      Immutable blob SHA256/cache equality and SPDX lines are recorded in strict-source-manifest.json;
+      hardware authority is not inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Tightened num_per_reg109-110 now directly supports HIWORD16-slot LUT address calculation.
+        Exact reset mappings independently rechecked: UART APB reg12bit3=0xa30,serial reg13bit0=0xa34;GPIO1reg16bits14/15=0xa40;GPIO2-4reg17bits0..5=0xa44;GPIO0PMUreg5bits5/6=0x30a14.
+        API IDs are lookup indices, not physical bit positions. Assert source uses32-bit writel and upper
+        mask. No hardware reset values/access guarantees inferred. Independently reread new support and
+        relevant source dependencies at immutable Linux8d3ae59288f1e7d58d76558a6ee96d533bc5019f; adjacent
+        alternative flags, branches and errors reveal no contrary evidence.'
+  clock-operation-binding:
+    basis: 0d564b68ed7c496503991de49adea15c8c7e2b1541f399b5a0c92c6e1d8a9e28
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Fresh strict correction reading at immutable Linux commit 8d3ae59288f1e7d58d76558a6ee96d533bc5019f.
+      Added composite dispatch617-627 and fractional dispatch583-590 supply ctx->lock to registration.
+      Registration assigns base+offset, flags, shifts/masks and operation objects as stated; supplied
+      generic gate performing lines establish HIWORD update and SET_TO_DISABLE inversion directly. Fractional
+      widths/shifts and initial UART2 zero flags agree. Allocation/registration error branches prevent
+      treating construction as guaranteed success. Cited evidence: drivers/clk/rockchip/clk.c:58-112;
+      drivers/clk/rockchip/clk.c:229-251; drivers/clk/rockchip/clk-rk3588.c:522-524; drivers/clk/rockchip/clk-rk3588.c:1239-1242;
+      drivers/clk/clk-gate.c:56-124; drivers/clk/rockchip/clk.c:617-627; drivers/clk/rockchip/clk.c:583-590.
+      Relevant adjacent qualifications and alternative paths were searched; none conflict with the scoped
+      source observation. Immutable blob SHA256/cache equality and SPDX lines are recorded in strict-source-manifest.json;
+      hardware authority is not inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Added generic gate56-124 establishes SET_TO_DISABLE XOR enable and inversion. Dispatch617-627
+        supplies declared composite table/flags/offsets and shared ctx lock to registration; dispatch583-590
+        supplies fractional flags and shared lock. Registration selects generic ops, fractions16/16+0/16,UART2
+        div_flags0 and Rockchip callback. Previous missing gate-behavior dependency settled. Independently
+        reread new support and relevant source dependencies at immutable Linux8d3ae59288f1e7d58d76558a6ee96d533bc5019f;
+        adjacent alternative flags, branches and errors reveal no contrary evidence.
+    readings:
+    - verifier: GPT-6.1 Sol, Codex, verify_m4_a
+      verdict: PASS
+      reasoning: 'Registration assigns base plus offsets, shifts, masks, tables, flags and supplied lock
+        and selects generic operations. The fractional registration assigns widths/shifts 16/16 and 0/16,
+        initial div flags from its declaration, and Rockchip approximation. Allocation/registration failure
+        branches were inspected; this claim describes construction rather than guaranteed registration.
+        The approximation later adds POWER_OF_TWO_PS, without selecting BIG_ENDIAN or ZERO_BASED. Cited
+        evidence: drivers/clk/rockchip/clk.c:58-112; drivers/clk/rockchip/clk.c:229-251; drivers/clk/rockchip/clk-rk3588.c:522-524;
+        drivers/clk/rockchip/clk-rk3588.c:1239-1242. Contrary search covered adjacent qualifications and
+        relevant alternative branches, as described; no conflict with the scoped code observation was
+        found. Citation completeness improvement: directly cite the relevant ordinary-divider flags/declaration
+        and performing encoding (top selector), supplied shared-lock dispatch and gate inversion operation
+        (binding), or bounded DFLAGS/no-table declaration (integer children); current anchors require
+        tracing beyond their selected passages. '
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: FAIL
+      reasoning: Compared typed offset, field shifts/widths and parent order against pinned declaration
+        and macro expansion; checked adjacent branches for contrary definitions. Source-program semantics
+        only; no silicon requirement inferred. The declaration GFLAGS names SET_TO_DISABLE but the claim
+        that set-bit disables requires generic gate implementation; cited registration/flags do not perform
+        the inversion. Add relates gate-update or cite clk-gate.c56-124. Rechecked against immutable pinned
+        blobs after full cache identity audit; no conclusion relies on an unvalidated cache. The declaration
+        GFLAGS names SET_TO_DISABLE but the claim that set-bit disables requires generic gate implementation;
+        cited registration/flags do not perform the inversion. Add relates gate-update or cite clk-gate.c56-124.
+    adjudication:
+      decision: Apply the stricter dependency and citation evidence and reverify. Fresh independent readings
+        support the corrected claim.
+      by: user
+      date: '2026-10-11'
+      rule: User approved all eight clock and pin-control disputes and instructed automatic stricter correction
+        and re-verification from now on. Original dissent retained; current PASS requires actual agreeing
+        renewed readings.
+  gate-update:
+    basis: e5c406599ea9212805d5a3e054b0ff109301f1897bfc5cd200c37dda0d61ff15
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Generic gates compute inversion XOR enable, perform HIWORD writes without register read, and
+      conditionally lock. Readback inversion and endian alternatives match. Gate registration rejects
+      HIWORD bit indices above 15, and allocation/registration errors are possible; operation return zero
+      is not hardware validation. Cited evidence: drivers/clk/clk-gate.c:56-100; drivers/clk/clk-gate.c:108-124;
+      drivers/clk/clk-gate.c:27-42; drivers/clk/rockchip/clk-rk3588.c:524-524. Contrary search covered
+      adjacent qualifications and relevant alternative branches, as described; no conflict with the scoped
+      code observation was found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Gate code computes set=(SET_TO_DISABLE?1:0) XOR enable; inverted enabled write is upper mask
+        only, disabled write adds lower bit. Enabled read XORs selected bit before testing. Conditional
+        lock and endian paths checked. Rechecked against immutable pinned blobs after full cache identity
+        audit; no conclusion relies on an unvalidated cache.
+  mux-update:
+    basis: 305997e5a6f2d1e27958414373007f4b34b40c328cafff3345b24e48fd9c0760
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Read helpers map field values to declared parent indices and return -EINVAL for out-of-range
+      values; the get_parent callback itself returns u8, so the helper error is not an errno returned
+      directly to every caller. HIWORD selection writes mask and shifted value, with conditional lock
+      and endian branches. No independent hardware order is inferred. Cited evidence: drivers/clk/clk-mux.c:44-65;
+      drivers/clk/clk-mux.c:87-96; drivers/clk/clk-mux.c:69-85; drivers/clk/clk-mux.c:99-126; drivers/clk/clk-mux.c:27-42;
+      drivers/clk/rockchip/clk-rk3588.c:522-522. Contrary search covered adjacent qualifications and relevant
+      alternative branches, as described; no conflict with the scoped code observation was found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Mux no-table/no-index flags maps values directly, rejects >=parent count in helper; get_parent
+        returns that helper through u8. Setter writes upper mask plus shifted mapped value under conditional
+        lock. Alternate table/index/endian/read-modify-write branches reviewed. Rechecked against immutable
+        pinned blobs after full cache identity audit; no conclusion relies on an unvalidated cache.
+  integer-divider-update:
+    basis: f94a0638f22e1cae39e7458d28ef41cd30ae92101347bf5c434bc8ea22698707
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Fresh strict correction reading at immutable Linux commit 8d3ae59288f1e7d58d76558a6ee96d533bc5019f.
+      Expanded parent/child support closes the bounded declarations, COMPOSITE/COMPOSITE_NOMUX null-table
+      construction, DFLAGS HIWORD-only and registration binding into generic operations. Read path value+1,
+      ceil(parent/divisor), encode ceil(parent/rate) then divisor-1 clamped to mask, negative-result propagation
+      and HIWORD write match. Generic alternate encodings/table paths were read and do not apply; requested
+      rate must remain nonzero. Cited evidence: drivers/clk/clk-divider.c:93-109; drivers/clk/clk-divider.c:136-165;
+      drivers/clk/clk-divider.c:120-134; drivers/clk/clk-divider.c:409-440; drivers/clk/clk-divider.c:29-43;
+      drivers/clk/clk-divider.c:441-460; drivers/clk/rockchip/clk-rk3588.c:523-523; drivers/clk/rockchip/clk.h:845-864;
+      drivers/clk/rockchip/clk.c:86-105; drivers/clk/rockchip/clk.h:888-904; drivers/clk/rockchip/clk-rk3588.c:688-693;
+      drivers/clk/rockchip/clk-rk3588.c:709-711; drivers/clk/rockchip/clk-rk3588.c:1236-1238; drivers/clk/rockchip/clk-rk3588.c:1097-1114;
+      drivers/clk/rockchip/clk-rk3588.c:2168-2176. Relevant adjacent qualifications and alternative paths
+      were searched; none conflict with the scoped source observation. Immutable blob SHA256/cache equality
+      and SPDX lines are recorded in strict-source-manifest.json; hardware authority is not inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Added COMPOSITE/COMPOSITE_NOMUX initialization, bounded declarations and registration close
+        flags/no-table evidence. Generic read value+1, upward-rounded rate, setter upward-rounded divisor
+        then value-1 capped width, prewrite negative propagation and highword write agree; no hardware
+        frequency measurement inferred. Independently reread new support and relevant source dependencies
+        at immutable Linux8d3ae59288f1e7d58d76558a6ee96d533bc5019f; adjacent alternative flags, branches
+        and errors reveal no contrary evidence.
+  fractional-divider-update:
+    basis: 709799cad4921e5b2dda375b4d33f833ffbcddf247f8940ef44205f0c47e05e8
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Raw M/N extraction, zero numerator/denominator bypass, floor product division, generic setter
+      rational approximation and full-word read-modify-write all match. Generic ZERO_BASED and BIG_ENDIAN
+      alternatives were read. UART2 declaration and registration supply width16 and initial zero flags,
+      and later approximation adds POWER_OF_TWO_PS only. Cited evidence: drivers/clk/clk-fractional-divider.c:69-119;
+      drivers/clk/rockchip/clk.c:237-246; drivers/clk/rockchip/clk-rk3588.c:1239-1242; drivers/clk/clk-fractional-divider.c:182-225;
+      drivers/clk/clk-fractional-divider.c:53-67. Contrary search covered adjacent qualifications and
+      relevant alternative branches, as described; no conflict with the scoped code observation was found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Registration selects Mshift16/Mwidth16,Nshift0/Nwidth16, UART2 flags0. Recalc zero M or N
+        returns parent; otherwise u64 multiplication and division truncate. Setter rational approximation
+        maxima65535, full-word mask clear/OR/write. No highword update. Rockchip callback preserves PRE/POST
+        conditional remux and ignores other event branches; return is initialized-zero notifier status,
+        not propagated mux status. Approximation grandparent substitution requires both rate*20>p_rate
+        and nonzero remainder. Rechecked against immutable pinned blobs after full cache identity audit;
+        no conclusion relies on an unvalidated cache.
+  fractional-rate-policy:
+    basis: 4100bd2d69d7535b0ba8a0f2ee0511a9efd0e5b6e8ab931c4316f11ea85ff223
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'PRE saves parent and remuxes only on differing fractional index; POST restores only after remux;
+      ABORT/other events do neither. set_parent return values are ignored, ret remains zero. The approximation
+      conjunction and grandparent substitution match; general determine-rate zero/nonpropagating-rate
+      guards match. Registration only registers notifier when fractional parent is found, and logs notifier
+      failure rather than failing registration; this is available policy rather than guaranteed notification.
+      Cited evidence: drivers/clk/rockchip/clk.c:152-159; drivers/clk/rockchip/clk.c:148-174; drivers/clk/rockchip/clk.c:185-198;
+      drivers/clk/clk-fractional-divider.c:121-178; drivers/clk/rockchip/clk.c:264-267; drivers/clk/rockchip/clk.c:292-302.
+      Contrary search covered adjacent qualifications and relevant alternative branches, as described;
+      no conflict with the scoped code observation was found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Registration selects Mshift16/Mwidth16,Nshift0/Nwidth16, UART2 flags0. Recalc zero M or N
+        returns parent; otherwise u64 multiplication and division truncate. Setter rational approximation
+        maxima65535, full-word mask clear/OR/write. No highword update. Rockchip callback preserves PRE/POST
+        conditional remux and ignores other event branches; return is initialized-zero notifier status,
+        not propagated mux status. Approximation grandparent substitution requires both rate*20>p_rate
+        and nonzero remainder. Rechecked against immutable pinned blobs after full cache identity audit;
+        no conclusion relies on an unvalidated cache.
+  reset-update:
+    basis: 3cc87fb467948022f078e1807ea0685751fcafdf8e71ba14c78f4d02e0640a8c
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Fresh strict correction reading at immutable Linux commit 8d3ae59288f1e7d58d76558a6ee96d533bc5019f.
+      Corrected num_per_reg109-110 sets16 under HIWORD and corrected deassert63-84 includes LUT translation,
+      bank/bit arithmetic, HIWORD write and zero return. RK3588 init supplies LUT, base+SOFTRST_CON0 and
+      HIWORD. Assert data+mask and deassert mask-only operate on translated bank address; non-HIWORD locks/RMW
+      and no callback wait/status poll were checked. Cited evidence: drivers/clk/rockchip/rst-rk3588.c:13-23;
+      drivers/clk/rockchip/rst-rk3588.c:851-858; drivers/clk/rockchip/softrst.c:32-36; drivers/clk/rockchip/softrst.c:63-67;
+      drivers/clk/rockchip/softrst.c:109-110; drivers/clk/rockchip/softrst.c:38-54; drivers/clk/rockchip/softrst.c:63-84.
+      Relevant adjacent qualifications and alternative paths were searched; none conflict with the scoped
+      source observation. Immutable blob SHA256/cache equality and SPDX lines are recorded in strict-source-manifest.json;
+      hardware authority is not inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Tightened source snippets now include HIWORD-dependent num_per_reg16 at109-110, deassert LUT63-67
+        and write at70 within63-84. Init base0xa00/table/HIWORD; translation precedes bank/bit; assert
+        mask+data,deassert mask-only,no callback poll/wait. Source semantics only. Independently reread
+        new support and relevant source dependencies at immutable Linux8d3ae59288f1e7d58d76558a6ee96d533bc5019f;
+        adjacent alternative flags, branches and errors reveal no contrary evidence.
+  uart-clock-reset-lifecycle:
+    basis: 365c07647266621737396d6c1fcc051936d20d059d461f998c11c4463e1505a7
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Fresh strict correction reading at immutable Linux commit 8d3ae59288f1e7d58d76558a6ee96d533bc5019f.
+      Added DT2811-2824 directly shows the complete UART2 body contains no resets property. Probe optional-clock/reset
+      operations, NULL-only baud fallback, zero uartclk rejection, error propagation, managed assert cleanup
+      and runtime APB-first resume/rollback match pinned performing code. DT absence prevents treating
+      optional reset code as a reset request by this node. Cited evidence: drivers/tty/serial/8250/8250_dw.c:709-725;
+      drivers/tty/serial/8250/8250_dw.c:727-737; drivers/tty/serial/8250/8250_dw.c:611-614; drivers/tty/serial/8250/8250_dw.c:811-820;
+      drivers/tty/serial/8250/8250_dw.c:827-838; arch/arm64/boot/dts/rockchip/rk3588-base.dtsi:2811-2824.
+      Relevant adjacent qualifications and alternative paths were searched; none conflict with the scoped
+      source observation. Immutable blob SHA256/cache equality and SPDX lines are recorded in strict-source-manifest.json;
+      hardware authority is not inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: New DT support2811-2824 shows UART2 node body contains no resets property; separate UART code
+        optional reset acquisition/deassert/managed assert cannot establish a reset operation for that
+        node. Probe NULL-only fallback/errors/zero uartclk, suspend ordering and resume APB rollback unchanged.
+        Previous missing DT dependency settled. Independently reread new support and relevant source dependencies
+        at immutable Linux8d3ae59288f1e7d58d76558a6ee96d533bc5019f; adjacent alternative flags, branches
+        and errors reveal no contrary evidence.
+    readings:
+    - verifier: GPT-6.1 Sol, Codex, verify_m4_a
+      verdict: PASS
+      reasoning: 'Probe retries unnamed optional baud clock only for NULL, checks pointer errors and zero
+        uartclk, then gets optional enabled APB clock. Optional reset acquisition, deassert and cleanup
+        registration propagate errors. Runtime suspend order and APB-first resume with rollback match.
+        UART2 base node has no reset property, so optional reset code proves no reset request for that
+        node. Cited evidence: drivers/tty/serial/8250/8250_dw.c:709-725; drivers/tty/serial/8250/8250_dw.c:727-737;
+        drivers/tty/serial/8250/8250_dw.c:611-614; drivers/tty/serial/8250/8250_dw.c:811-820; drivers/tty/serial/8250/8250_dw.c:827-838.
+        Contrary search covered adjacent qualifications and relevant alternative branches, as described;
+        no conflict with the scoped code observation was found. '
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: FAIL
+      reasoning: Probe only retries unnamed baud clock on NULL, propagates pointer errors, rejects zero
+        uartclk, gets apb clock then optional exclusive resets and propagates deassert/cleanup errors.
+        Suspend disables baud then APB; resume APB then baud and rolls APB back on baud failure. The parent
+        asserts UART2 DT node has no resets but cites only UART code. Add tracked relates consumer-clock-pairs
+        or exact DT node citation. Optional reset call does not prove actual reset operations on this
+        node. Rechecked against immutable pinned blobs after full cache identity audit; no conclusion
+        relies on an unvalidated cache. The parent asserts UART2 DT node has no resets but cites only
+        UART code. Add tracked relates consumer-clock-pairs or exact DT node citation. Optional reset
+        call does not prove actual reset operations on this node.
+    adjudication:
+      decision: Apply the stricter dependency and citation evidence and reverify. Fresh independent readings
+        support the corrected claim.
+      by: user
+      date: '2026-10-11'
+      rule: User approved all eight clock and pin-control disputes and instructed automatic stricter correction
+        and re-verification from now on. Original dissent retained; current PASS requires actual agreeing
+        renewed readings.
+  gpio-clock-lifecycle:
+    basis: d03cb6e77a1ccf5acdb65c26c9a43b85e6cf67a393404fce41d7f11143c5a4b3
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'First clock acquisition/enable precedes version read. V2, V2_1 and V2_2 are normalized to GPIO_TYPE_V2
+      and acquire clock index1; V1 does not. Errors match PTR_ERR, -EINVAL, managed action return, and
+      -ENODEV branches. Debounce gating occurs after unlock only under GPIO_TYPE_V2 and nonerror db_clk
+      guard; excessive debounce exits before it and clk_prepare_enable return is ignored. Cited evidence:
+      drivers/gpio/gpio-rockchip.c:666-670; drivers/gpio/gpio-rockchip.c:672-696; drivers/gpio/gpio-rockchip.c:641-646;
+      drivers/gpio/gpio-rockchip.c:201-211; drivers/gpio/gpio-rockchip.c:245-257. Contrary search covered
+      adjacent qualifications and relevant alternative branches, as described; no conflict with the scoped
+      code observation was found.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Driver gets enabled unnamed clock before version read; recognized V2 IDs acquire clock index1,
+        error -EINVAL; managed clk_put registration errors propagate, V1 skips acquisition and default
+        -ENODEV. Debounce guard is V2 and valid db_clk; enabled clock return is unchecked. Adjacent limit
+        check may return -EINVAL before programming. Rechecked against immutable pinned blobs after full
+        cache identity audit; no conclusion relies on an unvalidated cache.
+  hardware-programming-authority:
+    basis: a36d883f759a1063f6dfac0cddb8e2cbf675acbdf5c3b4772a8f9fd1c17c26a9
+    verdict: GAP
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Unsupported open question, with no asserted supported value to compare and no citation to grade.
+      TODO check and method were read: Obtain a public non-confidential RK3588 programming reference covering
+      this exact block/revision, and independently compare masks/access/side effects before executing
+      operations. This is feasible conditional on obtaining the specified public authority, access, selection,
+      or prerequisites; it has not been performed. Confidential TRM material was not accessed.'
+    contrary_evidence: not-checked
+    citation_precision: imprecise
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: GAP
+      date: '2026-10-11'
+      note: No support is present. Proposed TODO can seek public programming authority, record firmware/read-only
+        state, establish ownership/OS interfaces, or perform later board validation as appropriate. Confidential
+        TRM excluded; no supported value or executed TODO is established. Rechecked against immutable
+        pinned blobs after full cache identity audit; no conclusion relies on an unvalidated cache.
+  firmware-clock-state:
+    basis: 52cba2f44af55aa8ebc2a1fc3839fa5d393036e30f077feb82fbcd846d484b64
+    verdict: GAP
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Unsupported open question, with no asserted supported value to compare and no citation to grade.
+      TODO check and method were read: With board revision and firmware recorded, use privileged read-only
+      clock/reset observations and independent frequency measurement; establish source rates and stability
+      before applying rate arithmetic or changing shared roots. This is feasible conditional on obtaining
+      the specified public authority, access, selection, or prerequisites; it has not been performed.
+      Confidential TRM material was not accessed.'
+    contrary_evidence: not-checked
+    citation_precision: imprecise
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: GAP
+      date: '2026-10-11'
+      note: No support is present. Proposed TODO can seek public programming authority, record firmware/read-only
+        state, establish ownership/OS interfaces, or perform later board validation as appropriate. Confidential
+        TRM excluded; no supported value or executed TODO is established. Rechecked against immutable
+        pinned blobs after full cache identity audit; no conclusion relies on an unvalidated cache.
+  boot-sequencing-safety:
+    basis: 8a43849d137dec6cbd672837fb7e6789fa9d1b14214a9552fee80c0b8aa115e1
+    verdict: GAP
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Unsupported open question, with no asserted supported value to compare and no citation to grade.
+      TODO check and method were read: Trace exact firmware/consumer ownership and applicable public requirements,
+      then integrate the accepted family specs; quiesce affected consumers only under an established supported
+      procedure. This is feasible conditional on obtaining the specified public authority, access, selection,
+      or prerequisites; it has not been performed. Confidential TRM material was not accessed.'
+    contrary_evidence: not-checked
+    citation_precision: imprecise
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: GAP
+      date: '2026-10-11'
+      note: No support is present. Proposed TODO can seek public programming authority, record firmware/read-only
+        state, establish ownership/OS interfaces, or perform later board validation as appropriate. Confidential
+        TRM excluded; no supported value or executed TODO is established. Rechecked against immutable
+        pinned blobs after full cache identity audit; no conclusion relies on an unvalidated cache.
+  target-os-integration:
+    basis: 9451d60fd2abcd48c3ad3f6e61184266b1aaed22ba5caa0752353f2e85a10710
+    verdict: GAP
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Unsupported open question, with no asserted supported value to compare and no citation to grade.
+      TODO check and method were read: After an OS is selected, inspect its clock/reset and UART/GPIO
+      interfaces and add separately pinned target-role support. This is feasible conditional on obtaining
+      the specified public authority, access, selection, or prerequisites; it has not been performed.
+      Confidential TRM material was not accessed.'
+    contrary_evidence: not-checked
+    citation_precision: imprecise
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: GAP
+      date: '2026-10-11'
+      note: No support is present. Proposed TODO can seek public programming authority, record firmware/read-only
+        state, establish ownership/OS interfaces, or perform later board validation as appropriate. Confidential
+        TRM excluded; no supported value or executed TODO is established. Rechecked against immutable
+        pinned blobs after full cache identity audit; no conclusion relies on an unvalidated cache.
+  physical-validation:
+    basis: 3fcc1e3da041a715dfdb7a46eef1d67b591b39035f0285d432c91241a96c7865
+    verdict: GAP
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Unsupported open question, with no asserted supported value to compare and no citation to grade.
+      TODO check and method were read: After the missing programming authority and handoff prerequisites
+      are settled, independently implement the bounded operations and compare observations on the stated
+      board revision. This is feasible conditional on obtaining the specified public authority, access,
+      selection, or prerequisites; it has not been performed. Confidential TRM material was not accessed.'
+    contrary_evidence: not-checked
+    citation_precision: imprecise
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: GAP
+      date: '2026-10-11'
+      note: No support is present. Proposed TODO can seek public programming authority, record firmware/read-only
+        state, establish ownership/OS interfaces, or perform later board validation as appropriate. Confidential
+        TRM excluded; no supported value or executed TODO is established. Rechecked against immutable
+        pinned blobs after full cache identity audit; no conclusion relies on an unvalidated cache.
+  gate-update.enable-disable:
+    basis: b80199aab349c099519017cf88f2140f809d6719ef26854bc2ae2a6975598541
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'XOR inversion, conditional lock/unlock, bit+16 mask and optional data bit match the performing
+      statements; enable callback returns zero. Non-HIWORD read-modify-write was checked as an alternative.
+      Cited evidence: drivers/clk/clk-gate.c:56-100. Adjacent and alternative paths described here were
+      checked; no contrary behavior was found within those conditions.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Gate code computes set=(SET_TO_DISABLE?1:0) XOR enable; inverted enabled write is upper mask
+        only, disabled write adds lower bit. Enabled read XORs selected bit before testing. Conditional
+        lock and endian paths checked. Rechecked against immutable pinned blobs after full cache identity
+        audit; no conclusion relies on an unvalidated cache.
+  gate-update.enabled-read:
+    basis: 32b31166079d8d1d481d5a1e841c5b5758f7cd7e5dd3195ab2a3eb6805734872
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Readback, selected-bit inversion under SET_TO_DISABLE, masking, and Boolean result match. Without
+      inversion the value is read directly. Cited evidence: drivers/clk/clk-gate.c:108-124. Adjacent and
+      alternative paths described here were checked; no contrary behavior was found within those conditions.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Gate code computes set=(SET_TO_DISABLE?1:0) XOR enable; inverted enabled write is upper mask
+        only, disabled write adds lower bit. Enabled read XORs selected bit before testing. Conditional
+        lock and endian paths checked. Rechecked against immutable pinned blobs after full cache identity
+        audit; no conclusion relies on an unvalidated cache.
+  gate-update.access:
+    basis: 56e8d04fed5fa118763180606e8b02d3245f608acdacc8dd62b5f78184563d0a
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Endian conditional read/write helpers match; GFLAGS includes HIWORD and inversion, with no
+      BIG_ENDIAN. Cited evidence: drivers/clk/clk-gate.c:27-42; drivers/clk/rockchip/clk-rk3588.c:524-524.
+      Adjacent and alternative paths described here were checked; no contrary behavior was found within
+      those conditions.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Gate code computes set=(SET_TO_DISABLE?1:0) XOR enable; inverted enabled write is upper mask
+        only, disabled write adds lower bit. Enabled read XORs selected bit before testing. Conditional
+        lock and endian paths checked. Rechecked against immutable pinned blobs after full cache identity
+        audit; no conclusion relies on an unvalidated cache.
+  mux-update.read-parent:
+    basis: f7d958fe4aeb1f3e9f28a63f37bcc22bbc929edc971492881917ab0553015a32
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'The value-to-index helper returns -EINVAL on invalid parent count and no-table/index branches
+      match. get_parent returns u8 and therefore converts helper errors; interpret the claim as helper-level
+      error behavior. Cited evidence: drivers/clk/clk-mux.c:44-65; drivers/clk/clk-mux.c:87-96. Adjacent
+      and alternative paths described here were checked; no contrary behavior was found within those conditions.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Mux no-table/no-index flags maps values directly, rejects >=parent count in helper; get_parent
+        returns that helper through u8. Setter writes upper mask plus shifted mapped value under conditional
+        lock. Alternate table/index/endian/read-modify-write branches reviewed. Rechecked against immutable
+        pinned blobs after full cache identity audit; no conclusion relies on an unvalidated cache.
+  mux-update.write-parent:
+    basis: ae7af3b6be468be263d16dfb4848b7e88713e1f394c280c65b1aaddda807b71e
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Index conversion and HIWORD write expression, conditional locking, absence of register read
+      in this branch and return zero match. The callback does not independently validate its supplied
+      index. Cited evidence: drivers/clk/clk-mux.c:69-85; drivers/clk/clk-mux.c:99-126. Adjacent and alternative
+      paths described here were checked; no contrary behavior was found within those conditions.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Mux no-table/no-index flags maps values directly, rejects >=parent count in helper; get_parent
+        returns that helper through u8. Setter writes upper mask plus shifted mapped value under conditional
+        lock. Alternate table/index/endian/read-modify-write branches reviewed. Rechecked against immutable
+        pinned blobs after full cache identity audit; no conclusion relies on an unvalidated cache.
+  mux-update.access:
+    basis: 203088e1efa1ee59fa8ba9526f83e4d753946d1e3104c61b181c9e7b7ff64ea0
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Endian branches match and MFLAGS is HIWORD only. Cited evidence: drivers/clk/clk-mux.c:27-42;
+      drivers/clk/rockchip/clk-rk3588.c:522-522. Adjacent and alternative paths described here were checked;
+      no contrary behavior was found within those conditions.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Mux no-table/no-index flags maps values directly, rejects >=parent count in helper; get_parent
+        returns that helper through u8. Setter writes upper mask plus shifted mapped value under conditional
+        lock. Alternate table/index/endian/read-modify-write branches reviewed. Rechecked against immutable
+        pinned blobs after full cache identity audit; no conclusion relies on an unvalidated cache.
+  integer-divider-update.recalculate:
+    basis: badc90e11bf781d5f364493f5b2194ef0d11f3b2ee6d502f7255205b898453b7
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Fresh strict correction reading at immutable Linux commit 8d3ae59288f1e7d58d76558a6ee96d533bc5019f.
+      New anchors cover every bounded ordinary divider family, DFLAGS, both construction macros and registration
+      flags/table. The table is not initialized by these static declaration macros and is null; DFLAGS
+      selects no alternative arithmetic encoding. Performing extraction and _get_div return value+1; ceil
+      division follows. Generic zero/alternate/table branches were compared and do not contradict the
+      scoped ordinary path. Cited evidence: drivers/clk/clk-divider.c:93-109; drivers/clk/clk-divider.c:136-165;
+      drivers/clk/rockchip/clk-rk3588.c:523-523; drivers/clk/rockchip/clk.h:845-864; drivers/clk/rockchip/clk.c:86-105;
+      drivers/clk/rockchip/clk.h:888-904; drivers/clk/rockchip/clk-rk3588.c:688-693; drivers/clk/rockchip/clk-rk3588.c:709-711;
+      drivers/clk/rockchip/clk-rk3588.c:1236-1238; drivers/clk/rockchip/clk-rk3588.c:1097-1114; drivers/clk/rockchip/clk-rk3588.c:2168-2176.
+      Relevant adjacent qualifications and alternative paths were searched; none conflict with the scoped
+      source observation. Immutable blob SHA256/cache equality and SPDX lines are recorded in strict-source-manifest.json;
+      hardware authority is not inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Independent child now cites DFLAGS, COMPOSITE/COMPOSITE_NOMUX, bounded declarations and registration.
+        Unspecified div_table zero; HIWORD-only DFLAGS avoid alternate encodings, so value+1 and ceil(parent/divisor)
+        apply. Ordinary value+1 cannot yield zero. Previous missing flags/table support settled. Independently
+        reread new support and relevant source dependencies at immutable Linux8d3ae59288f1e7d58d76558a6ee96d533bc5019f;
+        adjacent alternative flags, branches and errors reveal no contrary evidence.
+    readings:
+    - verifier: GPT-6.1 Sol, Codex, verify_m4_a
+      verdict: PASS
+      reasoning: 'Source extracts shifted/masked value, ordinary no-table path returns value+1, and recalculation
+        uses ceiling division. Zero-divisor warning/parent bypass and alternate encodings were inspected.
+        Cited evidence: drivers/clk/clk-divider.c:93-109; drivers/clk/clk-divider.c:136-165. Adjacent
+        and alternative paths described here were checked; no contrary behavior was found within those
+        conditions. Citation completeness improvement: directly cite the relevant ordinary-divider flags/declaration
+        and performing encoding (top selector), supplied shared-lock dispatch and gate inversion operation
+        (binding), or bounded DFLAGS/no-table declaration (integer children); current anchors require
+        tracing beyond their selected passages. '
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: FAIL
+      reasoning: Generic divider uses value+1 only after excluding alternate flag/table branches; recalc
+        rounds upward, setter rounds parent/request upward, validates then value-1 and caps to width mask.
+        HIWORD path writes mask shifted16 plus encoded data; no read-modify-write. Known parent and nonzero
+        requested rate remain stated arithmetic conditions. The child says with these flags and no table,
+        but its own support identifies only generic _get_div/recalc, not actual bounded registration flags
+        or absent table. Add tracked dependency on clock-operation-binding and the declaration evidence
+        selecting DFLAGS with no table; otherwise scope as conditional generic behavior. Rechecked against
+        immutable pinned blobs after full cache identity audit; no conclusion relies on an unvalidated
+        cache. The child says with these flags and no table, but its own support identifies only generic
+        _get_div/recalc, not actual bounded registration flags or absent table. Add tracked dependency
+        on clock-operation-binding and the declaration evidence selecting DFLAGS with no table; otherwise
+        scope as conditional generic behavior.
+    adjudication:
+      decision: Apply the stricter dependency and citation evidence and reverify. Fresh independent readings
+        support the corrected claim.
+      by: user
+      date: '2026-10-11'
+      rule: User approved all eight clock and pin-control disputes and instructed automatic stricter correction
+        and re-verification from now on. Original dissent retained; current PASS requires actual agreeing
+        renewed readings.
+  integer-divider-update.encode:
+    basis: e01656b9a14b5f848c672eed52e9f128b706bce6abafa26856dd1c36a06a168e
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Fresh strict correction reading at immutable Linux commit 8d3ae59288f1e7d58d76558a6ee96d533bc5019f.
+      New declaration/macro/registration support establishes ordinary no-table behavior for all bounded
+      fields. _get_val returns divisor-1; divider_get_val computes ceil(parent/rate), returns -EINVAL
+      for an invalid divisor, clamps encoded value and setter propagates negative result before writing.
+      Generic invalid/table/power-of-two paths were inspected. Nonzero requested rate remains an explicit
+      input condition. Cited evidence: drivers/clk/clk-divider.c:120-134; drivers/clk/clk-divider.c:409-440;
+      drivers/clk/rockchip/clk-rk3588.c:523-523; drivers/clk/rockchip/clk.h:845-864; drivers/clk/rockchip/clk.c:86-105;
+      drivers/clk/clk-divider.c:93-109; drivers/clk/rockchip/clk.h:888-904; drivers/clk/rockchip/clk-rk3588.c:688-693;
+      drivers/clk/rockchip/clk-rk3588.c:709-711; drivers/clk/rockchip/clk-rk3588.c:1236-1238; drivers/clk/rockchip/clk-rk3588.c:1097-1114;
+      drivers/clk/rockchip/clk-rk3588.c:2168-2176. Relevant adjacent qualifications and alternative paths
+      were searched; none conflict with the scoped source observation. Immutable blob SHA256/cache equality
+      and SPDX lines are recorded in strict-source-manifest.json; hardware authority is not inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Child added identical bounded flag/table closure. Generic _get_val default divisor-1, divider_get_val
+        ceil(parent/request), validation -EINVAL and min(fieldmask), setter negative-return guard before
+        lock/write verified. Nonzero requested rate is explicit. Independently reread new support and
+        relevant source dependencies at immutable Linux8d3ae59288f1e7d58d76558a6ee96d533bc5019f; adjacent
+        alternative flags, branches and errors reveal no contrary evidence.
+  integer-divider-update.write:
+    basis: cae767a2c68ba2865f5ba89724ae63fe2069b29a43b25ad434d6d08be08d06fe
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'HIWORD mask composition, shifted encoded value, conditional lock/unlock and byte-order branches
+      match; DFLAGS excludes BIG_ENDIAN. Cited evidence: drivers/clk/clk-divider.c:29-43; drivers/clk/clk-divider.c:441-460;
+      drivers/clk/rockchip/clk-rk3588.c:523-523. Adjacent and alternative paths described here were checked;
+      no contrary behavior was found within those conditions.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Generic divider uses value+1 only after excluding alternate flag/table branches; recalc rounds
+        upward, setter rounds parent/request upward, validates then value-1 and caps to width mask. HIWORD
+        path writes mask shifted16 plus encoded data; no read-modify-write. Known parent and nonzero requested
+        rate remain stated arithmetic conditions. Rechecked against immutable pinned blobs after full
+        cache identity audit; no conclusion relies on an unvalidated cache.
+  fractional-divider-update.recalculate:
+    basis: e5e829046eced360c80a6292bbfb16f2f5a83233b5e9fb1921fe617e2c08c093
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Registration and UART2 declaration establish width16/raw M/N; generic extraction and zero numerator/denominator
+      parent bypass match floor arithmetic. ZERO_BASED alternative was read. Cited evidence: drivers/clk/clk-fractional-divider.c:69-119;
+      drivers/clk/rockchip/clk.c:237-246; drivers/clk/rockchip/clk-rk3588.c:1239-1242. Adjacent and alternative
+      paths described here were checked; no contrary behavior was found within those conditions.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Registration selects Mshift16/Mwidth16,Nshift0/Nwidth16, UART2 flags0. Recalc zero M or N
+        returns parent; otherwise u64 multiplication and division truncate. Setter rational approximation
+        maxima65535, full-word mask clear/OR/write. No highword update. Rockchip callback preserves PRE/POST
+        conditional remux and ignores other event branches; return is initialized-zero notifier status,
+        not propagated mux status. Approximation grandparent substitution requires both rate*20>p_rate
+        and nonzero remainder. Rechecked against immutable pinned blobs after full cache identity audit;
+        no conclusion relies on an unvalidated cache.
+  fractional-divider-update.choose-write:
+    basis: 3df846290c54453d61448860ec8961e6596c5ff14e69c0b52ec8cf9296b2fe51
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: Renewed child after citation correction. Re-read immutable Linux commit 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+      blobs; all three source-cache files match their Git bytes. clk-rk3588.c:1239-1242 supplies UART2
+      initial divider flags zero; clk.c:237-246 supplies M/N widths16 and shifts16/0. clk-fractional-divider.c:182-225
+      consequently uses GENMASK(15,0) maxima65535 in the non-ZERO_BASED path, calls rational_best_approximation,
+      and performs conditional-lock full-word read-modify-write followed by zero return. Alternative ZERO_BASED
+      maximum/decrement branches, conditional locking, and adjacent code were checked; no conflict was
+      found with the scoped source claim. New direct support tracks the UART2 settings within this independent
+      child basis.
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Reread changed child support: immutable clk.c237-246 establishes widths16/shifts16 and0;
+        clk-rk3588.c1239-1242 supplies div_flags0. Generic setter182-225 therefore uses both maxima GENMASK(15,0)=65535,
+        no ZERO_BASED decrement, conditional lock/full-word read-mask-OR-write/unlock and return0. Added
+        citations settle previous missing dependency finding. Rechecked against immutable pinned blobs
+        after full cache identity audit; no conclusion relies on an unvalidated cache.'
+  fractional-divider-update.access:
+    basis: 53af160c59f8a423a260785964cdcde36ea7eb368cb9d2dcbffc8789b41242ed
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Endian helpers match; UART2 declaration sets initial divider flags zero. Later POWER_OF_TWO_PS
+      mutation does not select BIG_ENDIAN. Cited evidence: drivers/clk/clk-fractional-divider.c:53-67;
+      drivers/clk/rockchip/clk-rk3588.c:1239-1242. Adjacent and alternative paths described here were
+      checked; no contrary behavior was found within those conditions.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Registration selects Mshift16/Mwidth16,Nshift0/Nwidth16, UART2 flags0. Recalc zero M or N
+        returns parent; otherwise u64 multiplication and division truncate. Setter rational approximation
+        maxima65535, full-word mask clear/OR/write. No highword update. Rockchip callback preserves PRE/POST
+        conditional remux and ignores other event branches; return is initialized-zero notifier status,
+        not propagated mux status. Approximation grandparent substitution requires both rate*20>p_rate
+        and nonzero remainder. Rechecked against immutable pinned blobs after full cache identity audit;
+        no conclusion relies on an unvalidated cache.
+  fractional-rate-policy.pre-change:
+    basis: 2768584fbc874a43865b840e57568772ae18279ea33f61a990fb9a67e66f2429
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'PRE branch saves current parent, compares fractional index, calls set_parent and records remux.
+      The call result is ignored; this is an operation description, not a success guarantee. Cited evidence:
+      drivers/clk/rockchip/clk.c:152-159. Adjacent and alternative paths described here were checked;
+      no contrary behavior was found within those conditions.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Registration selects Mshift16/Mwidth16,Nshift0/Nwidth16, UART2 flags0. Recalc zero M or N
+        returns parent; otherwise u64 multiplication and division truncate. Setter rational approximation
+        maxima65535, full-word mask clear/OR/write. No highword update. Rockchip callback preserves PRE/POST
+        conditional remux and ignores other event branches; return is initialized-zero notifier status,
+        not propagated mux status. Approximation grandparent substitution requires both rate*20>p_rate
+        and nonzero remainder. Rechecked against immutable pinned blobs after full cache identity audit;
+        no conclusion relies on an unvalidated cache.
+  fractional-rate-policy.post-change:
+    basis: 38ef6abd63f9921dbfa2f5459e109f23c14964158e83e5e0ba3f0e51ab9f9f22
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'POST restores only under remux flag then clears it. Other event values skip branches; ret starts
+      zero and is passed to notifier_from_errno. Cited evidence: drivers/clk/rockchip/clk.c:148-174. Adjacent
+      and alternative paths described here were checked; no contrary behavior was found within those conditions.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Registration selects Mshift16/Mwidth16,Nshift0/Nwidth16, UART2 flags0. Recalc zero M or N
+        returns parent; otherwise u64 multiplication and division truncate. Setter rational approximation
+        maxima65535, full-word mask clear/OR/write. No highword update. Rockchip callback preserves PRE/POST
+        conditional remux and ignores other event branches; return is initialized-zero notifier status,
+        not propagated mux status. Approximation grandparent substitution requires both rate*20>p_rate
+        and nonzero remainder. Rechecked against immutable pinned blobs after full cache identity audit;
+        no conclusion relies on an unvalidated cache.
+  fractional-rate-policy.approximate:
+    basis: 86b1c4896baace2cc78b2caf28507672f35aee112b017ba122355b2490bdf846
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Immediate parent rate and conjunction rate*20>p_rate AND p_rate%rate!=0 match; only then is
+      grandparent rate substituted. POWER_OF_TWO_PS is added and generic approximation invoked. Cited
+      evidence: drivers/clk/rockchip/clk.c:185-198. Adjacent and alternative paths described here were
+      checked; no contrary behavior was found within those conditions.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Registration selects Mshift16/Mwidth16,Nshift0/Nwidth16, UART2 flags0. Recalc zero M or N
+        returns parent; otherwise u64 multiplication and division truncate. Setter rational approximation
+        maxima65535, full-word mask clear/OR/write. No highword update. Rockchip callback preserves PRE/POST
+        conditional remux and ignores other event branches; return is initialized-zero notifier status,
+        not propagated mux status. Approximation grandparent substitution requires both rate*20>p_rate
+        and nonzero remainder. Rechecked against immutable pinned blobs after full cache identity audit;
+        no conclusion relies on an unvalidated cache.
+  fractional-rate-policy.general:
+    basis: 59cd7477b5076efc20647dfa3208ebbd8ce658482fbee117b59f0cfd8dac5ef7
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Scale expression, conditional left shift, ZERO_BASED maxima alternative and rational approximation
+      match. Determine-rate returns parent for zero requested rate or nonpropagating rate at/above parent;
+      otherwise computes floor product division. Cited evidence: drivers/clk/clk-fractional-divider.c:121-178.
+      Adjacent and alternative paths described here were checked; no contrary behavior was found within
+      those conditions.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Registration selects Mshift16/Mwidth16,Nshift0/Nwidth16, UART2 flags0. Recalc zero M or N
+        returns parent; otherwise u64 multiplication and division truncate. Setter rational approximation
+        maxima65535, full-word mask clear/OR/write. No highword update. Rockchip callback preserves PRE/POST
+        conditional remux and ignores other event branches; return is initialized-zero notifier status,
+        not propagated mux status. Approximation grandparent substitution requires both rate*20>p_rate
+        and nonzero remainder. Rechecked against immutable pinned blobs after full cache identity audit;
+        no conclusion relies on an unvalidated cache.
+  reset-update.translate:
+    basis: bebd9b1efdccfefa8c347787968e655802b3547a2fd038f28f4eafdd2ea54afa
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Final citation-only renewal: reread current translate child and immutable Linux commit 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+      softrst.c blob, SHA256 38f5bd31b0af9b75434c040466b3e8a9e0a3f1cecb2e5635218c29f2fc8a342e; cache matches.
+      Newly cited softrst.c38-39 directly writes at reg_base+bank*4. Existing LUT-before-bank/bit division,
+      num_per_reg16 under HIWORD, RK3588 reset initialization/base and PMU bit-index contribution were
+      independently established at this same immutable pin in the preceding reading. Added performing
+      address citation now covers the complete address claim exactly. Adjacent non-HIWORD path and HIWORD
+      guard were rechecked; no contrary evidence was found within this scoped source behavior. No hardware
+      programming guarantee follows.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent child now directly cites deassert LUT63-67 and num_per_reg109-110. RK3588 init
+        supplies HIWORD/base0xa00,so LUT value divided/mod16 then bank*4. PMU LUT0x30000*4 recovers0x30000
+        byte displacement. Explicit source operands; no silicon guarantee. Independently reread new support
+        and relevant source dependencies at immutable Linux8d3ae59288f1e7d58d76558a6ee96d533bc5019f; adjacent
+        alternative flags, branches and errors reveal no contrary evidence. Final citation-only reread:
+        added immutable softrst.c38-39 directly establishes reg_base+bank*4 performing address; LUT translation
+        and HIWORD16 remain supported by32-36,63-67,109-110 and pinned init/macro sources. PASS/exact;
+        adjacent alternative RMW path does not contradict address.'
+  reset-update.assert:
+    basis: 5e71df54058a0c0696ffb41d8dbe0b6a33053545b8c1412ae3aadb53ea4956c8
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'HIWORD writes low data bit plus upper mask to translated address and returns zero; non-HIWORD
+      alternative locks and read-modify-writes. Cited evidence: drivers/clk/rockchip/softrst.c:38-54.
+      Adjacent and alternative paths described here were checked; no contrary behavior was found within
+      those conditions.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Independently computed API89 -> LUT195 -> bank12 bit3 ->0xa30; API98 -> LUT208 -> bank13 bit0
+        ->0xa34. GPIO1 API142/143 ->270/271 ->0xa40 bits14/15. GPIO2-4 API144-149 ->272-277 ->0xa44 bits0-5.
+        GPIO0 API627/628 ->0xc0055/0xc0056 -> bank0xc005 -> reset-base0xa00+4*bank=0x30a14 bits5/6. API
+        index is not register bit number. Assert adds lower bit plus upper mask; deassert writes upper
+        mask only. No poll/wait in callbacks. Rechecked against immutable pinned blobs after full cache
+        identity audit; no conclusion relies on an unvalidated cache.
+  reset-update.deassert:
+    basis: 9526fdab05282710d2761ce3ff9356526113f2dc87702554146eb5d1a7a919cd
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Fresh strict correction reading at immutable Linux commit 8d3ae59288f1e7d58d76558a6ee96d533bc5019f.
+      Corrected63-84 includes HIWORD branch writel(BIT(offset)<<16), derived bank address, alternate locked
+      read-modify-write clear, and zero return. Adjacent complete assert/deassert callbacks contain no
+      reset-status poll or pulse-duration wait. The claim remains source behavior only. Cited evidence:
+      drivers/clk/rockchip/softrst.c:63-84. Relevant adjacent qualifications and alternative paths were
+      searched; none conflict with the scoped source observation. Immutable blob SHA256/cache equality
+      and SPDX lines are recorded in strict-source-manifest.json; hardware authority is not inferred.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Expanded63-84 includes LUT,bank/bit derivation and full HIWORD write70 plus alternative locked
+        RMW,return0. Full callback has no polling or pulse wait. Both paths retain source scope. Independently
+        reread new support and relevant source dependencies at immutable Linux8d3ae59288f1e7d58d76558a6ee96d533bc5019f;
+        adjacent alternative flags, branches and errors reveal no contrary evidence.
+  uart-clock-reset-lifecycle.probe-clock:
+    basis: e635bd523a5172daafb9943606a6bc3660e9cef8ef5e2fc80b82a1f6a4d2a3dd
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'NULL-only unnamed fallback, pointer-error propagation, conditional rate read, zero-rate rejection
+      and optional APB acquisition match. Existing uartclk may have been supplied separately, so a missing
+      optional baud clock alone is not necessarily fatal. Cited evidence: drivers/tty/serial/8250/8250_dw.c:709-725.
+      Adjacent and alternative paths described here were checked; no contrary behavior was found within
+      those conditions.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Probe only retries unnamed baud clock on NULL, propagates pointer errors, rejects zero uartclk,
+        gets apb clock then optional exclusive resets and propagates deassert/cleanup errors. Suspend
+        disables baud then APB; resume APB then baud and rolls APB back on baud failure. Rechecked against
+        immutable pinned blobs after full cache identity audit; no conclusion relies on an unvalidated
+        cache.
+  uart-clock-reset-lifecycle.probe-reset:
+    basis: f471cb903096fed5e9cb548675a1842bf82be14ee49e54b13c04496c5365bbed
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Optional exclusive array acquisition errors, reset deassert error and managed cleanup registration
+      error all propagate. Cleanup function invokes assert and ignores its return; no asserted hardware
+      outcome is claimed. Cited evidence: drivers/tty/serial/8250/8250_dw.c:727-737; drivers/tty/serial/8250/8250_dw.c:611-614.
+      Adjacent and alternative paths described here were checked; no contrary behavior was found within
+      those conditions.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Probe only retries unnamed baud clock on NULL, propagates pointer errors, rejects zero uartclk,
+        gets apb clock then optional exclusive resets and propagates deassert/cleanup errors. Suspend
+        disables baud then APB; resume APB then baud and rolls APB back on baud failure. Rechecked against
+        immutable pinned blobs after full cache identity audit; no conclusion relies on an unvalidated
+        cache.
+  uart-clock-reset-lifecycle.runtime-suspend:
+    basis: fb526858989ba1c9a4e236f73950072dbbc0c953f1ebe04360561c005ee260f4
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Baud clock disable/unprepare precedes APB clock disable/unprepare, then zero return. Cited
+      evidence: drivers/tty/serial/8250/8250_dw.c:811-820. Adjacent and alternative paths described here
+      were checked; no contrary behavior was found within those conditions.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Probe only retries unnamed baud clock on NULL, propagates pointer errors, rejects zero uartclk,
+        gets apb clock then optional exclusive resets and propagates deassert/cleanup errors. Suspend
+        disables baud then APB; resume APB then baud and rolls APB back on baud failure. Rechecked against
+        immutable pinned blobs after full cache identity audit; no conclusion relies on an unvalidated
+        cache.
+  uart-clock-reset-lifecycle.runtime-resume:
+    basis: dd740bce2436889298d37eef7b2be60ac82abe62a877fe8027e563f6adfee2b0
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'APB enable first and error return match. Baud enable failure disables APB and returns that
+      error; otherwise zero. Cited evidence: drivers/tty/serial/8250/8250_dw.c:827-838. Adjacent and alternative
+      paths described here were checked; no contrary behavior was found within those conditions.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Probe only retries unnamed baud clock on NULL, propagates pointer errors, rejects zero uartclk,
+        gets apb clock then optional exclusive resets and propagates deassert/cleanup errors. Suspend
+        disables baud then APB; resume APB then baud and rolls APB back on baud failure. Rechecked against
+        immutable pinned blobs after full cache identity audit; no conclusion relies on an unvalidated
+        cache.
+  gpio-clock-lifecycle.first-clock:
+    basis: dfdc135a61601d8db7bdc4824674706ccac2e22750adf7345989d309698d0db7
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Enabled first unnamed clock acquisition, pointer-error return and following version read match;
+      earlier mapping/IRQ failures were inspected. Cited evidence: drivers/gpio/gpio-rockchip.c:666-670.
+      Adjacent and alternative paths described here were checked; no contrary behavior was found within
+      those conditions.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Driver gets enabled unnamed clock before version read; recognized V2 IDs acquire clock index1,
+        error -EINVAL; managed clk_put registration errors propagate, V1 skips acquisition and default
+        -ENODEV. Debounce guard is V2 and valid db_clk; enabled clock return is unchecked. Adjacent limit
+        check may return -EINVAL before programming. Rechecked against immutable pinned blobs after full
+        cache identity audit; no conclusion relies on an unvalidated cache.
+  gpio-clock-lifecycle.debounce-clock:
+    basis: dfadf8cdc25220649e55a3f7c5b3c7ac37cb19d45d01a2a054b426be26626326
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'Three recognized V2 IDs select common V2 model and clock index1; error returns -EINVAL. Managed
+      clk_put registration return propagates; V1 avoids acquisition and default returns -ENODEV. Cited
+      evidence: drivers/gpio/gpio-rockchip.c:672-696; drivers/gpio/gpio-rockchip.c:641-646. Adjacent and
+      alternative paths described here were checked; no contrary behavior was found within those conditions.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Driver gets enabled unnamed clock before version read; recognized V2 IDs acquire clock index1,
+        error -EINVAL; managed clk_put registration errors propagate, V1 skips acquisition and default
+        -ENODEV. Debounce guard is V2 and valid db_clk; enabled clock return is unchecked. Adjacent limit
+        check may return -EINVAL before programming. Rechecked against immutable pinned blobs after full
+        cache identity audit; no conclusion relies on an unvalidated cache.
+  gpio-clock-lifecycle.debounce-gating:
+    basis: 6f0bad862e75c703cf068b24dc281177fcfa0e1f71e6501b9a4cae21cfc8efd1
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, verify_m4_a
+    note: 'GPIO_TYPE_V2/nonerror db_clk establishes support guard; too-large debounce returns -EINVAL
+      earlier. After register programming and unlock, nonzero enables and zero disables only under the
+      guard; prepare-enable return is unchecked. Cited evidence: drivers/gpio/gpio-rockchip.c:201-211;
+      drivers/gpio/gpio-rockchip.c:245-257. Adjacent and alternative paths described here were checked;
+      no contrary behavior was found within those conditions.'
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / independent verify_m4_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: Driver gets enabled unnamed clock before version read; recognized V2 IDs acquire clock index1,
+        error -EINVAL; managed clk_put registration errors propagate, V1 skips acquisition and default
+        -ENODEV. Debounce guard is V2 and valid db_clk; enabled clock return is unchecked. Adjacent limit
+        check may return -EINVAL before programming. Rechecked against immutable pinned blobs after full
+        cache identity audit; no conclusion relies on an unvalidated cache.

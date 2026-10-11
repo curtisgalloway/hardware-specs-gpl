@@ -1,0 +1,67 @@
+# SPDX-FileCopyrightText: 2026 contributors
+# SPDX-License-Identifier: GPL-2.0-only
+format: 2
+kind: ip
+id: rockchip-gpio-bank-ip
+name: Source-declared rockchip-gpio-bank-ip interface family
+triggers:
+- rockchip-gpio-bank-ip
+resources:
+  repos:
+  - name: linux-dts
+    url: https://github.com/torvalds/linux
+    commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+    license: GPL-2.0-or-later OR MIT
+    role: source
+    status: merged
+    files:
+    - path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      license_from: spdx-line
+    verified: 2026-10-09
+    fetch: ok
+    fetch_via: git
+    note: Linux v7.2. The RK3588 device-tree sources are dual-licensed (GPL-2.0+ OR MIT).
+orientation: Source-declared rockchip-gpio-bank-ip interface family
+facts:
+- id: compatible-identity
+  section: variants-quirks
+  title: Source-declared compatible identity
+  claim: The pinned RK3588 device tree uses rockchip,gpio-bank for GPIO0 through GPIO4. This reusable
+    compatible identity does not select a hardware register revision; the programming spec conditions
+    its map on the VERSION_ID read.
+  support:
+  - class: DT
+    anchors:
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      lines:
+      - 3534
+      - 3534
+      node: gpio@fd8a0000
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      lines:
+      - 3546
+      - 3546
+      node: gpio@fec20000
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      lines:
+      - 3558
+      - 3558
+      node: gpio@fec30000
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      lines:
+      - 3570
+      - 3570
+      node: gpio@fec40000
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      lines:
+      - 3582
+      - 3582
+      node: gpio@fec50000
+  relates:
+  - fact: rk3588-gpio#version-selection
+    relation: qualifies

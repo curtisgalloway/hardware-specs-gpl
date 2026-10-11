@@ -1,0 +1,2257 @@
+# SPDX-FileCopyrightText: 2026 contributors
+# SPDX-License-Identifier: GPL-2.0-only
+format: 2
+spec: rk3588-gic
+spec_file: rk3588-gic.spec.yaml
+spec_sha256: e06428d7a5004aebe80be9a7e8e43db979eead6ea44cdc888f955da34cd7cd7a
+canonical: fact-v1
+sources:
+- name: linux-gic
+  url: https://github.com/torvalds/linux
+  commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+  fetch: ok
+  note: All five full cited source files read; cached bytes match pinned git objects; SPDX GPL-2.0-only
+    headers confirmed. RK3588 DTS dependency read at same pin.
+- name: arm-ihi0069g.pdf
+  url: https://developer.arm.com/documentation/ihi0069/latest
+  sha256: f5461ced0b908141c87f655e602ff6340a90f14028ea009239c388ed69b78ac6
+  fetch: ok
+  note: SHA-256 and930 PDF pages verified; cited sections and neighboring qualifications read. Non-confidential
+    architecture; no implementation identity established.
+summary:
+  pass: 101
+  fail: 0
+  unverifiable: 0
+  gap: 5
+  adjudicate: 0
+verdicts:
+  architecture-interface:
+    basis: 87fdef4b4132e0d3c336fa2a1daedee1481dd61677a1dafd7583045a630b66c6
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: 'Citation delta independently reread: PDF page32 section2.1; PDF page48 section4.1.1; PDF
+      page37 section2.3 Affinity routing. Added performing-use anchors directly establish the behavioral
+      meaning alongside the mask definitions; architecture page37 section2.3 directly establishes
+      affinity routing and the system-register prerequisite. Original claim and conditions are unchanged.
+      Checked surrounding control flow,security/optional-feature branches and architecture qualifications;
+      no contrary evidence found. Citation now identifies the whole claim precisely.'
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Round2 independent reading: IHI0069G PDF p.32 section2.1 directly assigns SPI routing
+        to Distributor and SGI/PPI configuration to Redistributor; p.48 section4.1.1 assigns one PE
+        per CPU interface; added p.37 section2.3 explicitly couples affinity routing to enabled system-register
+        access, including AArch64 affinity hierarchy. These are the selected interface model, not
+        evidence of a GIC-600 product. Adjacent legacy/three-level qualifications checked; no contrary
+        evidence for selected model.'
+  rk3588-interface-applicability:
+    basis: c39f16f3fa527bd9db8af8bef537386d5a71acd3a1b4ffd435932e5852370718
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    upstream:
+      rk3588@hardware-specs-docs#gic-instance: 36efed6661b6cc2cb9acab4f3ff0db09d572f6bfa9e40daea5c3aa18624be0ef
+    note: 'Read the referenced dt-gic-node and pinned DTS2587-2627: compatible is arm,gic-v3. The
+      inference selects a software contract only; neither access permissions nor GIC-600 identity
+      follows. Hardware TODO is feasible and remains unperformed. Read adjacent architecture qualifications
+      and full cited source closure for contrary paths; none contradicts the scoped claim.'
+  driver-scope:
+    basis: 63b3c5c02e158bbe92abe447440a330e663f53c355236d3b65f7d6ae6fd7c9e3
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Header9-12 explicitly comments that the described distributor view assumes Non-secure ARE
+      and excludes Secure-only/non-ARE registers. Comment attribution and limited software scope are
+      correct. Read adjacent architecture qualifications and full cited source closure for contrary
+      paths; none contradicts the scoped claim.
+  reg-gicd-ctlr:
+    basis: 3a9fbd6135a3a240674ee90d34d6e0c7f2f9e25ef5719f76652a456b7fd4248c
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICD_CTLR offset 0x0. Header frame headings and
+      driver base selection agree. Read complete headers and access paths; no contrary offset found.
+      Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICD_CTLR at this offset relative to the
+        distributor frame. This is a base offset for an indexed array where applicable; register width,
+        whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:13-13.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. Macro aliases
+        were expanded in the same pinned header; RD-relative versus SGI-relative bases were checked
+        against header comments and gic_data_rdist_sgi_base. Only Linux definitions, not silicon access/reset
+        guarantees, are verified.'
+  reg-gicd-typer:
+    basis: e9040a591d0f27e6ad7011f21243e9952e47410c5e2134d138c4731c822e3ff7
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICD_TYPER offset 0x4. Header frame headings
+      and driver base selection agree. Read complete headers and access paths; no contrary offset
+      found. Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICD_TYPER at this offset relative to
+        the distributor frame. This is a base offset for an indexed array where applicable; register
+        width, whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:14-14.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. Macro aliases
+        were expanded in the same pinned header; RD-relative versus SGI-relative bases were checked
+        against header comments and gic_data_rdist_sgi_base. Only Linux definitions, not silicon access/reset
+        guarantees, are verified.'
+  reg-gicd-iidr:
+    basis: c030ac3ac363e211ebb99db34711b8c436bdf96179857ab18af1f47dc6dc5861
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICD_IIDR offset 0x8. Header frame headings and
+      driver base selection agree. Read complete headers and access paths; no contrary offset found.
+      Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICD_IIDR at this offset relative to the
+        distributor frame. This is a base offset for an indexed array where applicable; register width,
+        whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:15-15.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. Macro aliases
+        were expanded in the same pinned header; RD-relative versus SGI-relative bases were checked
+        against header comments and gic_data_rdist_sgi_base. Only Linux definitions, not silicon access/reset
+        guarantees, are verified.'
+  reg-gicd-igroupr:
+    basis: d0d1beb498aa3713b7105ebdbdf5cac46056e8215416f26fd3371acda0de2e97
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICD_IGROUPR offset 0x80. Header frame headings
+      and driver base selection agree. Read complete headers and access paths; no contrary offset
+      found. Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICD_IGROUPR at this offset relative to
+        the distributor frame. This is a base offset for an indexed array where applicable; register
+        width, whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:22-22.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. Macro aliases
+        were expanded in the same pinned header; RD-relative versus SGI-relative bases were checked
+        against header comments and gic_data_rdist_sgi_base. Only Linux definitions, not silicon access/reset
+        guarantees, are verified.'
+  reg-gicd-isenabler:
+    basis: ff1860b61620bf1f05c3a53c35f1087e44404ddc3543ea37ba2612366879de53
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICD_ISENABLER offset 0x100. Header frame headings
+      and driver base selection agree. Read complete headers and access paths; no contrary offset
+      found. Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICD_ISENABLER at this offset relative
+        to the distributor frame. This is a base offset for an indexed array where applicable; register
+        width, whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:23-23.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. Macro aliases
+        were expanded in the same pinned header; RD-relative versus SGI-relative bases were checked
+        against header comments and gic_data_rdist_sgi_base. Only Linux definitions, not silicon access/reset
+        guarantees, are verified.'
+  reg-gicd-icenabler:
+    basis: aae0a1aad90570419a4dfdef8321ad73d2b317da59da7a1e374457db46ed7cb8
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICD_ICENABLER offset 0x180. Header frame headings
+      and driver base selection agree. Read complete headers and access paths; no contrary offset
+      found. Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICD_ICENABLER at this offset relative
+        to the distributor frame. This is a base offset for an indexed array where applicable; register
+        width, whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:24-24.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. Macro aliases
+        were expanded in the same pinned header; RD-relative versus SGI-relative bases were checked
+        against header comments and gic_data_rdist_sgi_base. Only Linux definitions, not silicon access/reset
+        guarantees, are verified.'
+  reg-gicd-ispendr:
+    basis: 1817320b5b031ff084f9dd4f27695db4a96e9e6994826db81e38cdf2bd34738d
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICD_ISPENDR offset 0x200. Header frame headings
+      and driver base selection agree. Read complete headers and access paths; no contrary offset
+      found. Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICD_ISPENDR at this offset relative to
+        the distributor frame. This is a base offset for an indexed array where applicable; register
+        width, whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:25-25.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. Macro aliases
+        were expanded in the same pinned header; RD-relative versus SGI-relative bases were checked
+        against header comments and gic_data_rdist_sgi_base. Only Linux definitions, not silicon access/reset
+        guarantees, are verified.'
+  reg-gicd-icpendr:
+    basis: cb94f460978e717c47a7fcb5c6cae58ad7fbdcdf6ccb8e378c84905d41e07379
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICD_ICPENDR offset 0x280. Header frame headings
+      and driver base selection agree. Read complete headers and access paths; no contrary offset
+      found. Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICD_ICPENDR at this offset relative to
+        the distributor frame. This is a base offset for an indexed array where applicable; register
+        width, whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:26-26.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. Macro aliases
+        were expanded in the same pinned header; RD-relative versus SGI-relative bases were checked
+        against header comments and gic_data_rdist_sgi_base. Only Linux definitions, not silicon access/reset
+        guarantees, are verified.'
+  reg-gicd-isactiver:
+    basis: 1449965b357e9a52c8737de503e387865a74fe5db40876a8d30b021f9715260c
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICD_ISACTIVER offset 0x300. Header frame headings
+      and driver base selection agree. Read complete headers and access paths; no contrary offset
+      found. Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICD_ISACTIVER at this offset relative
+        to the distributor frame. This is a base offset for an indexed array where applicable; register
+        width, whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:27-27.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. Macro aliases
+        were expanded in the same pinned header; RD-relative versus SGI-relative bases were checked
+        against header comments and gic_data_rdist_sgi_base. Only Linux definitions, not silicon access/reset
+        guarantees, are verified.'
+  reg-gicd-icactiver:
+    basis: dbbace83725c402ce1390165202502ad28e9fd69b4fd358938587f622e33dd91
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICD_ICACTIVER offset 0x380. Header frame headings
+      and driver base selection agree. Read complete headers and access paths; no contrary offset
+      found. Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICD_ICACTIVER at this offset relative
+        to the distributor frame. This is a base offset for an indexed array where applicable; register
+        width, whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:28-28.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. Macro aliases
+        were expanded in the same pinned header; RD-relative versus SGI-relative bases were checked
+        against header comments and gic_data_rdist_sgi_base. Only Linux definitions, not silicon access/reset
+        guarantees, are verified.'
+  reg-gicd-ipriorityr:
+    basis: cd0300b3b34dd29969ce080178cf2078ad6f8fd28c684200be0b96a14d008d40
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICD_IPRIORITYR offset 0x400. Header frame headings
+      and driver base selection agree. Read complete headers and access paths; no contrary offset
+      found. Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICD_IPRIORITYR at this offset relative
+        to the distributor frame. This is a base offset for an indexed array where applicable; register
+        width, whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:29-29.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. Macro aliases
+        were expanded in the same pinned header; RD-relative versus SGI-relative bases were checked
+        against header comments and gic_data_rdist_sgi_base. Only Linux definitions, not silicon access/reset
+        guarantees, are verified.'
+  reg-gicd-icfgr:
+    basis: 376a8758f671d7b3ab0d4ba279dd8fa7954f80be272e02766d49e1836c7f11e3
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICD_ICFGR offset 0xc00. Header frame headings
+      and driver base selection agree. Read complete headers and access paths; no contrary offset
+      found. Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICD_ICFGR at this offset relative to
+        the distributor frame. This is a base offset for an indexed array where applicable; register
+        width, whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:30-30.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. Macro aliases
+        were expanded in the same pinned header; RD-relative versus SGI-relative bases were checked
+        against header comments and gic_data_rdist_sgi_base. Only Linux definitions, not silicon access/reset
+        guarantees, are verified.'
+  reg-gicd-irouter:
+    basis: bd9e15ba29f9765bd06607410e0266b63fd6b98f9d872780bc59ffabc993342d
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICD_IROUTER offset 0x6000. Header frame headings
+      and driver base selection agree. Read complete headers and access paths; no contrary offset
+      found. Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICD_IROUTER at this offset relative to
+        the distributor frame. This is a base offset for an indexed array where applicable; register
+        width, whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:42-42.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. Macro aliases
+        were expanded in the same pinned header; RD-relative versus SGI-relative bases were checked
+        against header comments and gic_data_rdist_sgi_base. Only Linux definitions, not silicon access/reset
+        guarantees, are verified.'
+  reg-gicd-pidr2:
+    basis: 3c6fcba1e2dd318329581268c8fe879f2daebf22c03603586efd79626c08914f
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICD_PIDR2 offset 0xffe8. Header frame headings
+      and driver base selection agree. Read complete headers and access paths; no contrary offset
+      found. Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICD_PIDR2 at this offset relative to
+        the distributor frame. This is a base offset for an indexed array where applicable; register
+        width, whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:45-45.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. Macro aliases
+        were expanded in the same pinned header; RD-relative versus SGI-relative bases were checked
+        against header comments and gic_data_rdist_sgi_base. Only Linux definitions, not silicon access/reset
+        guarantees, are verified.'
+  reg-gicr-ctlr:
+    basis: 2a9c57790edc3b97c87358ae53e2288b2943f65b9cfc531a8c2e43f0ef1d254f
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICR_CTLR offset 0x0. Header frame headings and
+      driver base selection agree. Read complete headers and access paths; no contrary offset found.
+      Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICR_CTLR at this offset relative to the
+        RD frame. This is a base offset for an indexed array where applicable; register width, whole-register
+        access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:114-114;
+        include/linux/irqchip/arm-gic-v3.h:13-13. Contrary search included adjacent branches, security/configuration
+        limitations and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence
+        within that scope. Macro aliases were expanded in the same pinned header; RD-relative versus
+        SGI-relative bases were checked against header comments and gic_data_rdist_sgi_base. Only
+        Linux definitions, not silicon access/reset guarantees, are verified.'
+  reg-gicr-iidr:
+    basis: f49596db1a44ecaf8812d6aa03ed35654d7c038785d92dda32d09ef80c362f18
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICR_IIDR offset 0x4. Header frame headings and
+      driver base selection agree. Read complete headers and access paths; no contrary offset found.
+      Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICR_IIDR at this offset relative to the
+        RD frame. This is a base offset for an indexed array where applicable; register width, whole-register
+        access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:115-115.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. Macro aliases
+        were expanded in the same pinned header; RD-relative versus SGI-relative bases were checked
+        against header comments and gic_data_rdist_sgi_base. Only Linux definitions, not silicon access/reset
+        guarantees, are verified.'
+  reg-gicr-typer:
+    basis: 7c18bdc1469ce2ca7e51d1a701011bc8d326304a17b9ddadaa73f2de004e83df
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICR_TYPER offset 0x8. Header frame headings
+      and driver base selection agree. Read complete headers and access paths; no contrary offset
+      found. Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICR_TYPER at this offset relative to
+        the RD frame. This is a base offset for an indexed array where applicable; register width,
+        whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:116-116.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. Macro aliases
+        were expanded in the same pinned header; RD-relative versus SGI-relative bases were checked
+        against header comments and gic_data_rdist_sgi_base. Only Linux definitions, not silicon access/reset
+        guarantees, are verified.'
+  reg-gicr-waker:
+    basis: d00d97ba535ed76f03af1a53e66ca26b61e001d20885132527ce283c632c8476
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICR_WAKER offset 0x14. Header frame headings
+      and driver base selection agree. Read complete headers and access paths; no contrary offset
+      found. Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICR_WAKER at this offset relative to
+        the RD frame. This is a base offset for an indexed array where applicable; register width,
+        whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:118-118.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. Macro aliases
+        were expanded in the same pinned header; RD-relative versus SGI-relative bases were checked
+        against header comments and gic_data_rdist_sgi_base. Only Linux definitions, not silicon access/reset
+        guarantees, are verified.'
+  reg-gicr-pidr2:
+    basis: 3fbecaa621f34e3f7bfa95e169abd2149f43ae207a248780cd8e7e2611a06ce1
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICR_PIDR2 offset 0xffe8. Header frame headings
+      and driver base selection agree. Read complete headers and access paths; no contrary offset
+      found. Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICR_PIDR2 at this offset relative to
+        the RD frame. This is a base offset for an indexed array where applicable; register width,
+        whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:127-127;
+        include/linux/irqchip/arm-gic-v3.h:45-45. Contrary search included adjacent branches, security/configuration
+        limitations and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence
+        within that scope. Macro aliases were expanded in the same pinned header; RD-relative versus
+        SGI-relative bases were checked against header comments and gic_data_rdist_sgi_base. Only
+        Linux definitions, not silicon access/reset guarantees, are verified.'
+  reg-gicr-igroupr0:
+    basis: d77f0a8224c167232bbb368353469a3a5f0284ed74197fc0c88f06a9937b7d00
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICR_IGROUPR0 offset 0x80. Header frame headings
+      and driver base selection agree. Read complete headers and access paths; no contrary offset
+      found. Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICR_IGROUPR0 at this offset relative
+        to the SGI frame. This is a base offset for an indexed array where applicable; register width,
+        whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:230-230;
+        include/linux/irqchip/arm-gic-v3.h:22-22. Contrary search included adjacent branches, security/configuration
+        limitations and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence
+        within that scope. Macro aliases were expanded in the same pinned header; RD-relative versus
+        SGI-relative bases were checked against header comments and gic_data_rdist_sgi_base. Only
+        Linux definitions, not silicon access/reset guarantees, are verified.'
+  reg-gicr-isenabler0:
+    basis: 4004211d7fb43ffd9e657a9bfd7f446b9968fc5f0021027786731a96a1162cd5
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICR_ISENABLER0 offset 0x100. Header frame headings
+      and driver base selection agree. Read complete headers and access paths; no contrary offset
+      found. Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICR_ISENABLER0 at this offset relative
+        to the SGI frame. This is a base offset for an indexed array where applicable; register width,
+        whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:231-231;
+        include/linux/irqchip/arm-gic-v3.h:23-23. Contrary search included adjacent branches, security/configuration
+        limitations and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence
+        within that scope. Macro aliases were expanded in the same pinned header; RD-relative versus
+        SGI-relative bases were checked against header comments and gic_data_rdist_sgi_base. Only
+        Linux definitions, not silicon access/reset guarantees, are verified.'
+  reg-gicr-icenabler0:
+    basis: acc55b9bbc349489a74af26afe8fca568c4c5397c95387fc0b6531197bb3254f
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICR_ICENABLER0 offset 0x180. Header frame headings
+      and driver base selection agree. Read complete headers and access paths; no contrary offset
+      found. Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICR_ICENABLER0 at this offset relative
+        to the SGI frame. This is a base offset for an indexed array where applicable; register width,
+        whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:232-232;
+        include/linux/irqchip/arm-gic-v3.h:24-24. Contrary search included adjacent branches, security/configuration
+        limitations and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence
+        within that scope. Macro aliases were expanded in the same pinned header; RD-relative versus
+        SGI-relative bases were checked against header comments and gic_data_rdist_sgi_base. Only
+        Linux definitions, not silicon access/reset guarantees, are verified.'
+  reg-gicr-ispendr0:
+    basis: 41ac9311f339e680919e1a379bb4a1841cdd383f92f3dfbb1e0076d0e4f292f4
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICR_ISPENDR0 offset 0x200. Header frame headings
+      and driver base selection agree. Read complete headers and access paths; no contrary offset
+      found. Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICR_ISPENDR0 at this offset relative
+        to the SGI frame. This is a base offset for an indexed array where applicable; register width,
+        whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:233-233;
+        include/linux/irqchip/arm-gic-v3.h:25-25. Contrary search included adjacent branches, security/configuration
+        limitations and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence
+        within that scope. Macro aliases were expanded in the same pinned header; RD-relative versus
+        SGI-relative bases were checked against header comments and gic_data_rdist_sgi_base. Only
+        Linux definitions, not silicon access/reset guarantees, are verified.'
+  reg-gicr-icpendr0:
+    basis: 6fb5079ef251cf7c95b29f47bcd02657934f5d55ec8edbec599b54c19b741c2f
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICR_ICPENDR0 offset 0x280. Header frame headings
+      and driver base selection agree. Read complete headers and access paths; no contrary offset
+      found. Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICR_ICPENDR0 at this offset relative
+        to the SGI frame. This is a base offset for an indexed array where applicable; register width,
+        whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:234-234;
+        include/linux/irqchip/arm-gic-v3.h:26-26. Contrary search included adjacent branches, security/configuration
+        limitations and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence
+        within that scope. Macro aliases were expanded in the same pinned header; RD-relative versus
+        SGI-relative bases were checked against header comments and gic_data_rdist_sgi_base. Only
+        Linux definitions, not silicon access/reset guarantees, are verified.'
+  reg-gicr-isactiver0:
+    basis: b3da62c7a984f79c6efd62a7da7a1d7e585554af7d7defe75aed42a325d0f768
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICR_ISACTIVER0 offset 0x300. Header frame headings
+      and driver base selection agree. Read complete headers and access paths; no contrary offset
+      found. Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICR_ISACTIVER0 at this offset relative
+        to the SGI frame. This is a base offset for an indexed array where applicable; register width,
+        whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:235-235;
+        include/linux/irqchip/arm-gic-v3.h:27-27. Contrary search included adjacent branches, security/configuration
+        limitations and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence
+        within that scope. Macro aliases were expanded in the same pinned header; RD-relative versus
+        SGI-relative bases were checked against header comments and gic_data_rdist_sgi_base. Only
+        Linux definitions, not silicon access/reset guarantees, are verified.'
+  reg-gicr-icactiver0:
+    basis: da2041a7e6a9854e9711137b7906ff039b76667a26dfd91bd1a772fb73066d45
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICR_ICACTIVER0 offset 0x380. Header frame headings
+      and driver base selection agree. Read complete headers and access paths; no contrary offset
+      found. Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICR_ICACTIVER0 at this offset relative
+        to the SGI frame. This is a base offset for an indexed array where applicable; register width,
+        whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:236-236;
+        include/linux/irqchip/arm-gic-v3.h:28-28. Contrary search included adjacent branches, security/configuration
+        limitations and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence
+        within that scope. Macro aliases were expanded in the same pinned header; RD-relative versus
+        SGI-relative bases were checked against header comments and gic_data_rdist_sgi_base. Only
+        Linux definitions, not silicon access/reset guarantees, are verified.'
+  reg-gicr-ipriorityr0:
+    basis: 8a4aa647fcf2bd1c3b868356628f5f7ade301d66d53bd261e7cb5e3a4a8cec17
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICR_IPRIORITYR0 offset 0x400. Header frame headings
+      and driver base selection agree. Read complete headers and access paths; no contrary offset
+      found. Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICR_IPRIORITYR0 at this offset relative
+        to the SGI frame. This is a base offset for an indexed array where applicable; register width,
+        whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:237-237;
+        include/linux/irqchip/arm-gic-v3.h:29-29. Contrary search included adjacent branches, security/configuration
+        limitations and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence
+        within that scope. Macro aliases were expanded in the same pinned header; RD-relative versus
+        SGI-relative bases were checked against header comments and gic_data_rdist_sgi_base. Only
+        Linux definitions, not silicon access/reset guarantees, are verified.'
+  reg-gicr-icfgr0:
+    basis: ef222ec1afa87a6cd23f8208f71f98f1493f1b5ba8b7db36b28ccb19cb57c8d9
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header definitions and aliases give GICR_ICFGR0 offset 0xc00. Header frame headings
+      and driver base selection agree. Read complete headers and access paths; no contrary offset
+      found. Width/access/reset are deliberately unspecified.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux defines GICR_ICFGR0 at this offset relative to
+        the SGI frame. This is a base offset for an indexed array where applicable; register width,
+        whole-register access and reset are unspecified here. Evidence: include/linux/irqchip/arm-gic-v3.h:238-238;
+        include/linux/irqchip/arm-gic-v3.h:30-30. Contrary search included adjacent branches, security/configuration
+        limitations and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence
+        within that scope. Macro aliases were expanded in the same pinned header; RD-relative versus
+        SGI-relative bases were checked against header comments and gic_data_rdist_sgi_base. Only
+        Linux definitions, not silicon access/reset guarantees, are verified.'
+  frame-selection:
+    basis: eaef7f74c3750bd565ff025240e2ff954f1361b1ea45ee4565286deb6df603f4
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Driver238-240 adds SZ_64K to RD;327-337 selects that SGI base for private interrupts and
+      distributor for shared interrupts. Extended ranges were checked but are outside the ordinary
+      claim. Read adjacent architecture qualifications and full cited source closure for contrary
+      paths; none contradicts the scoped claim.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: For regular INTIDs, Linux selects the current CPU SGI
+        frame for SGIs/PPIs and the distributor for SPIs. Its SGI frame is RD base plus 64 KiB. Do
+        not add an SGI-relative offset directly to RD base. Evidence: drivers/irqchip/irq-gic-v3.c:238-240;
+        drivers/irqchip/irq-gic-v3.c:327-337. Contrary search included adjacent branches, security/configuration
+        limitations and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence
+        within that scope. '
+  interrupt-numbering:
+    basis: e12eec658fadf60dee6ab1bca6d82175651ee8071324e1a8ce7934656cbf5b7f
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: PDF page33 Table2-1 gives SGI0-15,PPI16-31,SPI32-1019 and special1020-1023. The implementation-dependent
+      capacity qualification is explicit. Read adjacent architecture qualifications and full cited
+      source closure for contrary paths; none contradicts the scoped claim.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Architectural regular INTIDs are SGI 0-15, PPI 16-31
+        and SPI 32-1019; 1020-1023 are special identifiers, not ordinary interrupts. The supported
+        SPI count is implementation dependent. Evidence: arm-ihi0069g.pdf PDF p.33 section 2.2; Table
+        2-1. Contrary search included adjacent branches, security/configuration limitations and the
+        declared bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  raw-dt-numbering:
+    basis: eefc5c448edc0709f995c5740dbd4979aa53cdb25b21f4fd9f4da00103542fdc
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Driver1604-1614 adds32 for SPI and16 for PPI;1632 masks third-cell sense flags. Adjacent
+      extended/LPI and firmware-node branches differ; the claim correctly limits itself to DT regular
+      types. Read adjacent architecture qualifications and full cited source closure for contrary
+      paths; none contradicts the scoped claim.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux translates a device-tree interrupt type cell 0
+        (SPI) and number n to hwirq n + 32; type cell 1 (PPI) and n to hwirq n + 16. The third cell
+        supplies the sense flags after masking. Raw cell numbers, architectural INTIDs and OS-assigned
+        IRQ numbers must remain distinct. Evidence: drivers/irqchip/irq-gic-v3.c:1604-1614; drivers/irqchip/irq-gic-v3.c:1632-1632.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  spi-count-decode:
+    basis: dd92249c1fd189f5fe0e546af2438fdd593d07c140d875ba71ad392ff2b8dfa5
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Header89 computes 32*(low5bits+1), driver87 caps total1020 and2009 prints total minus32.
+      Maximum standard SPIs are988; no unadjusted total is mislabeled. Read adjacent architecture
+      qualifications and full cited source closure for contrary paths; none contradicts the scoped
+      claim.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux decodes ((GICD_TYPER & 31) + 1) * 32 and caps
+        the total at 1020. That total includes INTIDs 0-31; its printed regular SPI count subtracts
+        32. Never label the unadjusted total as the number of SPIs. Evidence: include/linux/irqchip/arm-gic-v3.h:89-89;
+        drivers/irqchip/irq-gic-v3.c:87-87; drivers/irqchip/irq-gic-v3.c:2009-2009. Contrary search
+        included adjacent branches, security/configuration limitations and the declared bounded regular
+        SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  bitmap-operation:
+    basis: 83e8c36921653d33165e86f9f06c3dc4656dedbe0f14c8a9c9621d86979de9a6
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Driver407-411 preserves regular INTID;470-492 selects frame, writes one bit with4-byte word
+      index and polls RWP on disable.511-512 enables;530-535 selects distinct pending/active banks.
+      Extended conversion and forwarded mask handling were checked separately. Read adjacent architecture
+      qualifications and full cited source closure for contrary paths; none contradicts the scoped
+      claim.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: For ordinary SGI/PPI/SPI INTIDs, Linux uses the INTID
+        as index, computes mask 1 shifted by (INTID modulo 32), and writes that mask to frame + register-array
+        offset + 4 * floor(INTID/32). Disable selects ICENABLER and then waits for that frame RWP;
+        enable selects ISENABLER. Pending/active set and clear select their separate banks. Evidence:
+        drivers/irqchip/irq-gic-v3.c:407-411; drivers/irqchip/irq-gic-v3.c:470-492; drivers/irqchip/irq-gic-v3.c:511-512;
+        drivers/irqchip/irq-gic-v3.c:530-535. Contrary search included adjacent branches, security/configuration
+        limitations and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence
+        within that scope. '
+  priority-write:
+    basis: e556353c229cbdf01e0c9a74cac69583b69a8dddd7897ef18aff722847dce645
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Driver589-594 uses writeb_relaxed to selected frame+IPRIORITYR+index; regular conversion
+      preserves INTID. Byte access does not imply whole-register width. Read adjacent architecture
+      qualifications and full cited source closure for contrary paths; none contradicts the scoped
+      claim.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux updates a single regular interrupt priority with
+        a byte write at selected frame + IPRIORITYR base + INTID. This is a source access width, not
+        a claim that the whole register is 8 bits. Evidence: drivers/irqchip/irq-gic-v3.c:589-594.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  priority-threshold:
+    basis: 078ac3f95be242c6ac79e2220fee00c17d389f8dc571cf42c78c6c3bc7cea6e4
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: PDF75 section4.8.5 states strict higher-priority signaling, zero masking and no grouping
+      comparison. Page69 section4.8.1 qualifies Non-secure priority visibility; no unconditional equivalence
+      between PMR and distributor bytes is asserted. Read adjacent architecture qualifications and
+      full cited source closure for contrary paths; none contradicts the scoped claim.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: ICC_PMR_EL1 is the CPU priority threshold: only pending
+        interrupts of higher priority are signaled. Zero masks all; priority grouping does not participate
+        in this comparison. Security-state priority views must be checked before comparing distributor
+        bytes with PMR. Evidence: arm-ihi0069g.pdf PDF p.75 section 4.8.5; arm-ihi0069g.pdf PDF p.69
+        section 4.8.1. Contrary search included adjacent branches, security/configuration limitations
+        and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence within that
+        scope. '
+  group-enables:
+    basis: 0e4b85d532d9e99040542ceb7bedb8c7d2a592730da250f7b773c46ac51a25fe
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: PDF66-67 sections4.7-4.7.2 require individual/group enables and CPU signaling. SGI permanent-enable
+      implementation choice and lower-priority blocking qualification were read; they do not defeat
+      this necessary-condition claim. Read adjacent architecture qualifications and full cited source
+      closure for contrary paths; none contradicts the scoped claim.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Individual enable is insufficient: interrupt-group forwarding
+        in the distributor and signaling in the CPU interface must also be enabled. PPIs and SGIs
+        use redistributor enable banks with affinity routing; SPIs use distributor banks. Evidence:
+        arm-ihi0069g.pdf PDF p.66 section 4.7; 4.7.1; arm-ihi0069g.pdf PDF p.67 section 4.7.2. Contrary
+        search included adjacent branches, security/configuration limitations and the declared bounded
+        regular SGI/PPI/SPI scope; no contradictory evidence within that scope. PDF p.66 notes SGI
+        enable programmability is implementation defined; claim is interpreted as the affinity-routed
+        enable-bank model, not a promise of switchable SGIs on every product.'
+  trigger-selection:
+    basis: 2fb8a1783db2b0b4eb03c8cc238ff6176568c1999045069d5e7d1611af2a9e8d
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Driver710-734 rejects invalid SGI/SPI types;common51-66 computes bit1 at4*floor(INTID/16),82-84
+      checks readback. Driver727-732 warns and suppresses PPI error. Early no-change return avoids
+      unnecessary writes. Read adjacent architecture qualifications and full cited source closure
+      for contrary paths; none contradicts the scoped claim.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux rejects non-edge-rising SGI requests and permits
+        regular SPIs only level-high or edge-rising. The common helper RMWs bit 1 in each two-bit
+        configuration field, at configuration base + 4 * floor(INTID/16), clearing for level and setting
+        for edge, and checks readback. A failed PPI configuration is warned and returned as success
+        by this driver. Evidence: drivers/irqchip/irq-gic-v3.c:710-734; drivers/irqchip/irq-gic-common.c:51-66;
+        drivers/irqchip/irq-gic-common.c:82-84; drivers/irqchip/irq-gic-v3.c:727-732. Contrary search
+        included adjacent branches, security/configuration limitations and the declared bounded regular
+        SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  spi-routing:
+    basis: b00f12bcfe88abca9a59dcc5823d4db4f0983349bb09ea3844c55e80e0338d61
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Driver759-762 packs Aff3 at32,Aff2 at16,Aff1 at8,Aff0 at0;1449-1464 disables before writing
+      and restores enable. arch header144 uses writeq_relaxed;IRM remains clear for single PE. Forced/offline
+      selection and private rejection checked. Read adjacent architecture qualifications and full
+      cited source closure for contrary paths; none contradicts the scoped claim.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: For ordinary SPIs Linux writes a 64-bit affinity value
+        at distributor + IROUTER base + 8 * INTID. Aff0/1/2 occupy bits 0-7/8-15/16-23 and Aff3 bits
+        32-39; the ordinary path selects one PE (IRM bit 31 clear). Retargeting disables an enabled
+        interrupt first, writes affinity and restores its previous enable. Evidence: drivers/irqchip/irq-gic-v3.c:759-762;
+        drivers/irqchip/irq-gic-v3.c:1449-1464; arch/arm64/include/asm/arch_gicv3.h:144-144; include/linux/irqchip/arm-gic-v3.h:97-98.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  cpu-register-interface:
+    basis: d8e0b132fd84e0f5cfef03f77669e009db3187e05b96638ab0e598d82ead55f4
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Read all arch accessors29-136, EOI driver670-673 and header549-579. Named operations are
+      system-register accesses, not MMIO catalog rows; field widths/masks match definitions. Actual
+      implemented priority-bit count is separately discovered. Read adjacent architecture qualifications
+      and full cited source closure for contrary paths; none contradicts the scoped claim.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: CPU interface operations use ICC_SRE_EL1, ICC_PMR_EL1,
+        ICC_BPR1_EL1, ICC_CTLR_EL1, ICC_IGRPEN1_EL1, ICC_IAR1_EL1, ICC_EOIR1_EL1 and ICC_DIR_EL1 as
+        system registers. They have no MMIO offsets in this catalog. ICC_SRE_EL1.SRE is bit 0; ICC_CTLR_EL1.EOImode
+        is bit 1; PMR has an 8-bit field, BPR1 three bits, and IGRPEN1 enable bit 0. Evidence: arch/arm64/include/asm/arch_gicv3.h:29-41;
+        arch/arm64/include/asm/arch_gicv3.h:90-136; drivers/irqchip/irq-gic-v3.c:670-673; include/linux/irqchip/arm-gic-v3.h:549-579.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  architecture-ack-eoi:
+    basis: f06ae18eccf2b66a8c54ee237213f252a3637b5194da5a839a3828712b838546
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: PDF49-51 section4.1.1 requires IAR1 acknowledge, entire return-value preservation, same-PE
+      priority drop and reverse order;mode0 combines drop/deactivate,mode1 separates DIR. Special
+      INTIDs are not valid EOI values, and DIR ordering differs from EOI. Read adjacent architecture
+      qualifications and full cited source closure for contrary paths; none contradicts the scoped
+      claim.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: A Group 1 acknowledge reads ICC_IAR1_EL1. Preserve its
+        entire returned value for the corresponding EOIR1 write on the same PE. Priority drops occur
+        in reverse acknowledge order. With EOImode 0, EOIR1 drops priority and deactivates; with EOImode
+        1, EOIR1 drops priority and DIR later deactivates. DIR without the corresponding EOI, or with
+        mode 0, is unpredictable. Evidence: arm-ihi0069g.pdf PDF p.49 section 4.1.1 Activation; arm-ihi0069g.pdf
+        PDF p.50 section 4.1.1 Priority drop; arm-ihi0069g.pdf PDF p.51 section 4.1.1 Deactivation.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  level-source-lifecycle:
+    basis: 5f146167a9cff48b37a86736200182a941448d154f7b53f2eb0c2f142f14e1da
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: PDF49 says an asserted level remains active-and-pending;48 deactivation allows pending delivery
+      again. This controller state change cannot establish peripheral cause removal. Read adjacent
+      architecture qualifications and full cited source closure for contrary paths; none contradicts
+      the scoped claim.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Acknowledging a level interrupt whose level remains
+        asserted leaves it active and pending; deactivation permits delivery again when pending. Controller
+        EOI/deactivate operations do not establish that the originating peripheral condition was cleared.
+        Evidence: arm-ihi0069g.pdf PDF p.49 section 4.1.1 Physical CPU interface; arm-ihi0069g.pdf
+        PDF p.48 section 4.1 Interrupt lifecycle. Contrary search included adjacent branches, security/configuration
+        limitations and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence
+        within that scope. '
+  wake-security-prerequisite:
+    basis: 6de5b1038aad09043276095a920afa8d31ec478eb71aaf023f081455735e8f46
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: PDF711-712 section12.11.40 requires ProcessorSleep clear/ChildrenAsleep clear and prohibits
+      transition unless previously quiescent. Explicit DS0 Secure/Non-secure RAZ/WI rule supports
+      the warning; a zero Non-secure read proves no control. Read adjacent architecture qualifications
+      and full cited source closure for contrary paths; none contradicts the scoped claim.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Architecture power-up requires clearing ProcessorSleep
+        and waiting for ChildrenAsleep clear; a 1-to-0 ProcessorSleep transition while ChildrenAsleep
+        is not 1 is unpredictable. With DS=0, WAKER is Secure and Non-secure accesses are read-as-zero/write-ignored.
+        Verify firmware ownership rather than assuming a successful Non-secure zero read proves wake
+        control. Evidence: arm-ihi0069g.pdf PDF p.711 section 12.11.40; arm-ihi0069g.pdf PDF p.712
+        section 12.11.40. Contrary search included adjacent branches, security/configuration limitations
+        and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence within that
+        scope. '
+  sleep-prerequisite:
+    basis: 263e03679974f919a2dd4db47affc039e6478a9082a8781488329a16eebc3206
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: PDF184 section11.1 and712 section12.11.40 require physical group disables before sleep,quiescent
+      status before powerdown and prohibit register writes while asleep except SRE. No firmware ownership
+      assumption is added. Read adjacent architecture qualifications and full cited source closure
+      for contrary paths; none contradicts the scoped claim.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Before sleeping a PE, CPU physical interrupt-group enables
+        must be zero; set ProcessorSleep and wait for ChildrenAsleep=1 before powerdown. Writes to
+        CPU interface registers other than SRE are unpredictable while ProcessorSleep or ChildrenAsleep
+        is 1. Evidence: arm-ihi0069g.pdf PDF p.184 section 11.1; arm-ihi0069g.pdf PDF p.712 section
+        12.11.40. Contrary search included adjacent branches, security/configuration limitations and
+        the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  identify-and-find-redist:
+    basis: 8729ba700928d22f9bccd9878b1bf6ed3dd932b667dea05fda26d3544f81b264
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[2077,
+      2080]; include/linux/irqchip/arm-gic-v3.h:[100, 102]; drivers/irqchip/irq-gic-v3.c:[994, 1017];
+      drivers/irqchip/irq-gic-v3.c:[1033, 1045]; drivers/irqchip/irq-gic-v3.c:[1062, 1070]. Full caller/helper
+      flow,frame selection,ordering,error and alternate policy branches were read; the stated behavior
+      matches. This is Linux implementation behavior,not unconditional silicon initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux interface validation and redistributor selection.
+        Evidence: drivers/irqchip/irq-gic-v3.c:2077-2080; include/linux/irqchip/arm-gic-v3.h:100-102;
+        drivers/irqchip/irq-gic-v3.c:994-1017; drivers/irqchip/irq-gic-v3.c:1033-1045; drivers/irqchip/irq-gic-v3.c:1062-1070.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  redist-wake:
+    basis: 7eaf2c4192e95d81f9252d0dd60c603dc6ba9a1518eae4043251a9985ea41c39
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[373,
+      385]; drivers/irqchip/irq-gic-v3.c:[392, 397]. Full caller/helper flow,frame selection,ordering,error
+      and alternate policy branches were read; the stated behavior matches. This is Linux implementation
+      behavior,not unconditional silicon initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux redistributor wake and wait; timeout reports an
+        error rather than aborting initialization. Evidence: drivers/irqchip/irq-gic-v3.c:373-385;
+        drivers/irqchip/irq-gic-v3.c:392-397. Contrary search included adjacent branches, security/configuration
+        limitations and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence
+        within that scope. '
+  distributor-init:
+    basis: 0624310b54be63d7d84668da1330983e26bde2e7fcdd2da27eb11cd08aa4eab7
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[931,
+      933]; drivers/irqchip/irq-gic-v3.c:[941, 942]; drivers/irqchip/irq-gic-v3.c:[960, 960]; drivers/irqchip/irq-gic-common.c:[98,
+      100]; include/linux/irqchip/arm-gic.h:[54, 54]; include/linux/irqchip/arm-gic.h:[61, 61]; drivers/irqchip/irq-gic-common.c:[105,
+      107]; drivers/irqchip/irq-gic-v3.c:[225, 227]; drivers/irqchip/irq-gic-common.c:[113, 117];
+      include/linux/irqchip/arm-gic.h:[51, 51]; include/linux/irqchip/arm-gic.h:[47, 47]; include/linux/irqchip/arm-gic.h:[62,
+      62]; drivers/irqchip/irq-gic-v3.c:[962, 970]; drivers/irqchip/irq-gic-v3.c:[976, 978]. Full
+      caller/helper flow,frame selection,ordering,error and alternate policy branches were read; the
+      stated behavior matches. This is Linux implementation behavior,not unconditional silicon initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux ordinary SPI distributor initialization, under
+        the driver Non-secure assumptions. Extended ranges and nASSGI enhancements are outside this
+        recipe. Evidence: drivers/irqchip/irq-gic-v3.c:931-933; drivers/irqchip/irq-gic-v3.c:941-942;
+        drivers/irqchip/irq-gic-v3.c:960-960; drivers/irqchip/irq-gic-common.c:98-100; include/linux/irqchip/arm-gic.h:54-54;
+        include/linux/irqchip/arm-gic.h:61-61; drivers/irqchip/irq-gic-common.c:105-107; drivers/irqchip/irq-gic-v3.c:225-227;
+        drivers/irqchip/irq-gic-common.c:113-117; include/linux/irqchip/arm-gic.h:51-51; include/linux/irqchip/arm-gic.h:47-47;
+        include/linux/irqchip/arm-gic.h:62-62; drivers/irqchip/irq-gic-v3.c:962-970; drivers/irqchip/irq-gic-v3.c:976-978.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. No universal
+        security ownership or hardware-safe cold boot recipe is inferred; source order is confirmed.'
+  private-interrupt-init:
+    basis: ea2b63612a157d7df6bd513524bf000acde17ec7ccc12b99dc2bf342cbc1924a
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[1280,
+      1283]; drivers/irqchip/irq-gic-v3.c:[1293, 1294]; drivers/irqchip/irq-gic-v3.c:[1296, 1296];
+      drivers/irqchip/irq-gic-common.c:[129, 133]; include/linux/irqchip/arm-gic.h:[47, 47]; include/linux/irqchip/arm-gic.h:[51,
+      51]; include/linux/irqchip/arm-gic.h:[62, 62]; drivers/irqchip/irq-gic-common.c:[139, 141];
+      drivers/irqchip/irq-gic-v3.c:[1296, 1300]; include/linux/irqchip/arm-gic.h:[52, 52]. Full caller/helper
+      flow,frame selection,ordering,error and alternate policy branches were read; the stated behavior
+      matches. This is Linux implementation behavior,not unconditional silicon initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux initialization of this CPU ordinary SGIs/PPIs.
+        Evidence: drivers/irqchip/irq-gic-v3.c:1280-1283; drivers/irqchip/irq-gic-v3.c:1293-1294;
+        drivers/irqchip/irq-gic-v3.c:1296-1296; drivers/irqchip/irq-gic-common.c:129-133; include/linux/irqchip/arm-gic.h:47-47;
+        include/linux/irqchip/arm-gic.h:51-51; include/linux/irqchip/arm-gic.h:62-62; drivers/irqchip/irq-gic-common.c:139-141;
+        drivers/irqchip/irq-gic-v3.c:1296-1300; include/linux/irqchip/arm-gic.h:52-52. Contrary search
+        included adjacent branches, security/configuration limitations and the declared bounded regular
+        SGI/PPI/SPI scope; no contradictory evidence within that scope. No universal security ownership
+        or hardware-safe cold boot recipe is inferred; source order is confirmed.'
+  cpu-interface-init:
+    basis: 7cd81f3dca3c3306bbc3940730aa1a841e552aa282647b9bd8ae47bc90b0b3b0
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages include/linux/irqchip/arm-gic-v3.h:[649,
+      657]; arch/arm64/include/asm/arch_gicv3.h:[119, 120]; drivers/irqchip/irq-gic-v3.c:[1148, 1149];
+      drivers/irqchip/irq-gic-v3.c:[243, 243]; drivers/irqchip/irq-gic-v3.c:[1166, 1167]; drivers/irqchip/irq-gic-v3.c:[1186,
+      1186]; drivers/irqchip/irq-gic-v3.c:[1188, 1194]; drivers/irqchip/irq-gic-v3.c:[1987, 1988];
+      include/linux/irqchip/arm-gic-v3.h:[549, 551]; drivers/irqchip/irq-gic-v3.c:[1197, 1212]; drivers/irqchip/irq-gic-v3.c:[1215,
+      1229]; drivers/irqchip/irq-gic-v3.c:[1232, 1232]; arch/arm64/include/asm/arch_gicv3.h:[101,
+      104]. Full caller/helper flow,frame selection,ordering,error and alternate policy branches were
+      read; the stated behavior matches. This is Linux implementation behavior,not unconditional silicon
+      initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux CPU system register setup; policy depends on firmware
+        and build configuration. Evidence: include/linux/irqchip/arm-gic-v3.h:649-657; arch/arm64/include/asm/arch_gicv3.h:119-120;
+        drivers/irqchip/irq-gic-v3.c:1148-1149; drivers/irqchip/irq-gic-v3.c:243-243; drivers/irqchip/irq-gic-v3.c:1166-1167;
+        drivers/irqchip/irq-gic-v3.c:1186-1186; drivers/irqchip/irq-gic-v3.c:1188-1194; drivers/irqchip/irq-gic-v3.c:1987-1988;
+        include/linux/irqchip/arm-gic-v3.h:549-551; drivers/irqchip/irq-gic-v3.c:1197-1212; drivers/irqchip/irq-gic-v3.c:1215-1229;
+        drivers/irqchip/irq-gic-v3.c:1232-1232; arch/arm64/include/asm/arch_gicv3.h:101-104. Contrary
+        search included adjacent branches, security/configuration limitations and the declared bounded
+        regular SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  linux-ack-eoi:
+    basis: ca3e675f3e7f8d37553bcf0da0639c6b6b3c388f0dfcea3ab8e4b69979156bdc
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages arch/arm64/include/asm/arch_gicv3.h:[39,
+      41]; drivers/irqchip/irq-gic-v3.c:[813, 821]; drivers/irqchip/irq-gic-v3.c:[797, 802]; drivers/irqchip/irq-gic-v3.c:[823,
+      823]; drivers/irqchip/irq-gic-v3.c:[670, 673]; drivers/irqchip/irq-gic-v3.c:[691, 696]; arch/arm64/include/asm/arch_gicv3.h:[31,
+      32]; drivers/irqchip/irq-gic-v3.c:[769, 774]; drivers/irqchip/irq-gic-v3.c:[825, 827]. Full
+      caller/helper flow,frame selection,ordering,error and alternate policy branches were read; the
+      stated behavior matches. This is Linux implementation behavior,not unconditional silicon initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux ordinary non-forwarded, non-LPI interrupt lifecycle,
+        excluding CPU-specific errata. Evidence: arch/arm64/include/asm/arch_gicv3.h:39-41; drivers/irqchip/irq-gic-v3.c:813-821;
+        drivers/irqchip/irq-gic-v3.c:797-802; drivers/irqchip/irq-gic-v3.c:823-823; drivers/irqchip/irq-gic-v3.c:670-673;
+        drivers/irqchip/irq-gic-v3.c:691-696; arch/arm64/include/asm/arch_gicv3.h:31-32; drivers/irqchip/irq-gic-v3.c:769-774;
+        drivers/irqchip/irq-gic-v3.c:825-827. Contrary search included adjacent branches, security/configuration
+        limitations and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence
+        within that scope. '
+  sgi-send:
+    basis: 5b748a54a3cb25e98a74b9bc5d192632b17de3deae632df42b5fd0a45c83e9e2
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[1383,
+      1390]; drivers/irqchip/irq-gic-v3.c:[1338, 1341]; drivers/irqchip/irq-gic-v3.c:[1368, 1376];
+      include/linux/irqchip/arm-gic-v3.h:[591, 603]; drivers/irqchip/irq-gic-v3.c:[1392, 1401]. Full
+      caller/helper flow,frame selection,ordering,error and alternate policy branches were read; the
+      stated behavior matches. This is Linux implementation behavior,not unconditional silicon initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux regular Group1 software-generated interrupt send.
+        Evidence: drivers/irqchip/irq-gic-v3.c:1383-1390; drivers/irqchip/irq-gic-v3.c:1338-1341;
+        drivers/irqchip/irq-gic-v3.c:1368-1376; include/linux/irqchip/arm-gic-v3.h:591-603; drivers/irqchip/irq-gic-v3.c:1392-1401.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  sgi-architecture:
+    basis: 1e44897d9d76ec53d44dbe35ac4bffa6107b9942417622440ebf8d8b00c50401
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: PDF58 section4.4 explicitly gives edge-only SGIs,CPU-interface generation,Non-secure Group1
+      SGI1R writes and list/all-other-participating targets. Security permissions for other SGI registers
+      were checked. Read adjacent architecture qualifications and full cited source closure for contrary
+      paths; none contradicts the scoped claim.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: SGIs support edge-triggered behavior and are generated
+        through CPU interface SGI registers. A Non-secure write to ICC_SGI1R_EL1 generates Non-secure
+        Group1 SGIs; targets are the encoded list or all participating PEs other than the sender.
+        Evidence: arm-ihi0069g.pdf PDF p.58 section 4.4. Contrary search included adjacent branches,
+        security/configuration limitations and the declared bounded regular SGI/PPI/SPI scope; no
+        contradictory evidence within that scope. '
+  cpu-sleep-resume:
+    basis: 1f9a4d8002de428ecfc7c6afaf660efa8962bfc7c5885b94bf3987f221ca79e3
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / gic_delta_reader_a
+    note: The notifier condition gates redist calls on both event paths; the two CPU sys-reg helper calls
+      are outside the nested resume condition and execute on both resume events. Evidence establishes calls,
+      not successful register enablement. Read pinned irq-gic-v3.c notifier lines 1481-1495, security helper
+      160-163, redistributor helper 367-399, CPU interface helpers 1139-1235 and quirk registration 1775-1782/1885-1891.
+      CONFIG_CPU_PM bounds this notifier; other configurations do not register it. The MSM8996 helper early
+      return is limited to qcom,msm8996-gic-v3, outside this RK3588 scope; polling is bounded and timeout
+      logs an error, so no successful hardware transition is established. No conflicting RK3588 notifier
+      path was found. No external fact dependencies or TODOs are declared for this delta.
+    contrary_evidence: none-found
+    citation_precision: exact
+    readings:
+    - verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+      verdict: FAIL
+      reasoning: Parent makes notifier behavior conditional on distributor security disabled. Driver1485-1489
+        conditionally wakes the redistributor but always calls gic_cpu_sys_reg_enable and gic_cpu_sys_reg_init
+        on EXIT/ENTER_FAILED. Child resume accurately scopes the wake condition; parent wording contradicts
+        this branch.
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      reasoning: 'Independent comparison supports: Linux CPU power-management notifier behavior, conditional
+        on distributor security being disabled. Evidence: drivers/irqchip/irq-gic-v3.c:1490-1492; drivers/irqchip/irq-gic-v3.c:382-398;
+        drivers/irqchip/irq-gic-v3.c:1485-1489. Contrary search included adjacent branches, security/configuration
+        limitations and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence within
+        that scope. Resume always reinitializes CPU registers; only redistributor wake is DS-conditioned.
+        Sleep uses gic_enable_redist and inherits its MSM8996 skip.'
+    adjudication:
+      decision: Apply the stricter correction and reverify the revised claim. Both fresh readers support
+        the corrected conditional redistributor and unconditional CPU-interface calls.
+      by: user
+      date: '2026-10-11'
+      rule: User selected option 1; prior dissent is retained, and PASS applies only to the freshly read
+        corrected basis.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / gic_delta_reader_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: The pinned notifier at irq-gic-v3.c:1485-1492 tests DS only for redistributor calls. On EXIT
+        or ENTER_FAILED it always calls gic_cpu_sys_reg_enable and gic_cpu_sys_reg_init. The DS helper at
+        160-163 tests GICD_CTLR_DS; this is source behavior, not hardware completion. Adjacent CONFIG_CPU_PM
+        guarding (1481-1508), helper early returns and timeout (367-399), and CPU enable/init (1139-1233)
+        were checked. CONFIG_CPU_PM limits availability; the MSM8996 bypass falls under the spec-wide exclusion
+        of implementation-specific errata. No contradiction to the bounded notifier claim was found.
+  rwp-timeout-policy:
+    basis: bee19013718dc2dc4b5055812c3fadd67825c6d8bd3fd352e571285c82f1d0d8
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: 'Citation delta independently reread: drivers/irqchip/irq-gic-v3.c:[349, 365]; include/linux/irqchip/arm-gic-v3.h:[58,
+      58]; include/linux/irqchip/arm-gic-v3.h:[132, 132]. Added performing-use anchors directly establish
+      the behavioral meaning alongside the mask definitions; architecture page37 section2.3 directly
+      establishes affinity routing and the system-register prerequisite. Original claim and conditions
+      are unchanged. Checked surrounding control flow,security/optional-feature branches and architecture
+      qualifications; no contrary evidence found. Citation now identifies the whole claim precisely.'
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Round2 independent reading: irq-gic-v3.c:349-365 polls selected CTLR bit with interval1
+        and USEC_PER_SEC, logs ETIMEDOUT, returns void. Added arm-gic-v3.h:58,132 defines distributor31
+        and redistributor3 explicitly. Adjacent gic_enable_redist and callers do not convert timeout
+        to failure propagation; no contrary evidence. This verifies Linux policy, not universal hardware
+        RWP coverage.'
+  mapping-error-cleanup:
+    basis: 146e4e1d30ea945ce9749d24d1e2da6c366977f7ede92dd9ae53ff4f15b3ef7e
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: 'Read gic_of_iomap and full gic_of_init: mapping errors return;version rejection precedes
+      allocation;later cleanup unmaps only non-error/non-null regions then frees and unmaps distributor.
+      This is software cleanup, with no controller reset claim. Read adjacent architecture qualifications
+      and full cited source closure for contrary paths; none contradicts the scoped claim.'
+  exact-product-revision:
+    basis: db5f76a05db6e2237df1c9cddbdf73bbbbc0c3987125921c70461e62716fdc8c
+    verdict: GAP
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: not-checked
+    citation_precision: imprecise
+    note: No supported value is asserted or cited. The stated TODO can settle the declared question
+      under its ownership/privilege conditions; no hardware measurement or target selection was performed.
+      Citation precision is imprecise because evidence is absent; contrary evidence for a supported
+      value was not checked. Read GICD_IIDR and PIDR2 and walk each GICR_TYPER using confirmed SoC
+      windows; compare with admissible public product identification evidence.
+  firmware-handoff:
+    basis: 2f09cf409516529bfd14ad059a563656abf4dbac28465cb5b6e3957995474548
+    verdict: GAP
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: not-checked
+    citation_precision: imprecise
+    note: No supported value is asserted or cited. The stated TODO can settle the declared question
+      under its ownership/privilege conditions; no hardware measurement or target selection was performed.
+      Citation precision is imprecise because evidence is absent; contrary evidence for a supported
+      value was not checked. Record handoff EL/security state and permitted CTLR, SRE, WAKER and priority
+      state. Establish firmware responsibilities before initialization.
+  target-os-integration:
+    basis: c0057d94ab4b85a585883f4a8e341e9e937768b48b413f9f96c9a2980463c704
+    verdict: GAP
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: not-checked
+    citation_precision: imprecise
+    note: No supported value is asserted or cited. The stated TODO can settle the declared question
+      under its ownership/privilege conditions; no hardware measurement or target selection was performed.
+      Citation precision is imprecise because evidence is absent; contrary evidence for a supported
+      value was not checked. Select the target OS and pin its source, then document performing integration
+      sites and ownership rules.
+  excluded-capabilities:
+    basis: 2889d556ad39a6d1ae73c6961a9841c1685f988e25145575428db3e855544c6b
+    verdict: GAP
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: not-checked
+    citation_precision: imprecise
+    note: No supported value is asserted or cited. The stated TODO can settle the declared question
+      under its ownership/privilege conditions; no hardware measurement or target selection was performed.
+      Citation precision is imprecise because evidence is absent; contrary evidence for a supported
+      value was not checked. Before enabling an excluded capability, extend evidence and independent
+      register/sequence review for that capability.
+  hardware-validation:
+    basis: 0567f0ed606944e339e1c06dd84afb47b719b752b89de4ced0017247d119ec92
+    verdict: GAP
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: not-checked
+    citation_precision: imprecise
+    note: No supported value is asserted or cited. The stated TODO can settle the declared question
+      under its ownership/privilege conditions; no hardware measurement or target selection was performed.
+      Citation precision is imprecise because evidence is absent; contrary evidence for a supported
+      value was not checked. Validate a controlled regular SPI and per-CPU PPI/SGI lifecycle, enable/disable,
+      routing and EOI modes using recorded firmware state.
+  reg-gicd-ctlr.gicd-ctlr-rwp:
+    basis: b1e09caa7d8ce8d10324288da39797fc5395234e17c4315702894dce611b8784
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: 'Citation delta independently reread: include/linux/irqchip/arm-gic-v3.h:[58, 58]; drivers/irqchip/irq-gic-v3.c:[358,
+      358]. Added performing-use anchors directly establish the behavioral meaning alongside the mask
+      definitions; architecture page37 section2.3 directly establishes affinity routing and the system-register
+      prerequisite. Original claim and conditions are unchanged. Checked surrounding control flow,security/optional-feature
+      branches and architecture qualifications; no contrary evidence found. Citation now identifies
+      the whole claim precisely.'
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Round2 independent reading of citation delta: unchanged claim supported. include/linux/irqchip/arm-gic-v3.h:58-58;
+        drivers/irqchip/irq-gic-v3.c:358-358. Definition and performing-use citations now directly
+        locate the asserted bit value and driver behavior. Adjacent branches checked for contrary
+        evidence, including conditional nASSGI, alternate traversal termination and WAKER workaround/permission
+        limits; none contradicts this bounded source claim.'
+  reg-gicd-ctlr.gicd-ctlr-ds:
+    basis: ecc17c87733ce3ddca8e4e6e5f2aeb833b60d0e991de57094f4bb7dd25cc4220
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: 'Citation delta independently reread: include/linux/irqchip/arm-gic-v3.h:[60, 60]; drivers/irqchip/irq-gic-v3.c:[162,
+      162]. Added performing-use anchors directly establish the behavioral meaning alongside the mask
+      definitions; architecture page37 section2.3 directly establishes affinity routing and the system-register
+      prerequisite. Original claim and conditions are unchanged. Checked surrounding control flow,security/optional-feature
+      branches and architecture qualifications; no contrary evidence found. Citation now identifies
+      the whole claim precisely.'
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Round2 independent reading of citation delta: unchanged claim supported. include/linux/irqchip/arm-gic-v3.h:60-60;
+        drivers/irqchip/irq-gic-v3.c:162-162. Definition and performing-use citations now directly
+        locate the asserted bit value and driver behavior. Adjacent branches checked for contrary
+        evidence, including conditional nASSGI, alternate traversal termination and WAKER workaround/permission
+        limits; none contradicts this bounded source claim.'
+  reg-gicd-ctlr.gicd-ctlr-are-ns:
+    basis: 080ee4e30914a2424cce1fd8388256e10e64958bd7327b7731e96f6e72b953cf
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: 'Citation delta independently reread: include/linux/irqchip/arm-gic-v3.h:[61, 61]; drivers/irqchip/irq-gic-v3.c:[962,
+      969]. Added performing-use anchors directly establish the behavioral meaning alongside the mask
+      definitions; architecture page37 section2.3 directly establishes affinity routing and the system-register
+      prerequisite. Original claim and conditions are unchanged. Checked surrounding control flow,security/optional-feature
+      branches and architecture qualifications; no contrary evidence found. Citation now identifies
+      the whole claim precisely.'
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Round2 independent reading of citation delta: unchanged claim supported. include/linux/irqchip/arm-gic-v3.h:61-61;
+        drivers/irqchip/irq-gic-v3.c:962-969. Definition and performing-use citations now directly
+        locate the asserted bit value and driver behavior. Adjacent branches checked for contrary
+        evidence, including conditional nASSGI, alternate traversal termination and WAKER workaround/permission
+        limits; none contradicts this bounded source claim.'
+  reg-gicd-ctlr.gicd-ctlr-enable-g1a:
+    basis: ded1730d0dc83e864f8775269a80e3eb5847535da9a077ff57cdf09db684043d
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: 'Citation delta independently reread: include/linux/irqchip/arm-gic-v3.h:[62, 62]; drivers/irqchip/irq-gic-v3.c:[962,
+      969]. Added performing-use anchors directly establish the behavioral meaning alongside the mask
+      definitions; architecture page37 section2.3 directly establishes affinity routing and the system-register
+      prerequisite. Original claim and conditions are unchanged. Checked surrounding control flow,security/optional-feature
+      branches and architecture qualifications; no contrary evidence found. Citation now identifies
+      the whole claim precisely.'
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Round2 independent reading of citation delta: unchanged claim supported. include/linux/irqchip/arm-gic-v3.h:62-62;
+        drivers/irqchip/irq-gic-v3.c:962-969. Definition and performing-use citations now directly
+        locate the asserted bit value and driver behavior. Adjacent branches checked for contrary
+        evidence, including conditional nASSGI, alternate traversal termination and WAKER workaround/permission
+        limits; none contradicts this bounded source claim.'
+  reg-gicd-ctlr.gicd-ctlr-enable-g1:
+    basis: ac6cab185b959052490576775f9600ed438ba9ab10066a93c97d98cdf17c4171
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: 'Citation delta independently reread: include/linux/irqchip/arm-gic-v3.h:[63, 63]; drivers/irqchip/irq-gic-v3.c:[962,
+      969]. Added performing-use anchors directly establish the behavioral meaning alongside the mask
+      definitions; architecture page37 section2.3 directly establishes affinity routing and the system-register
+      prerequisite. Original claim and conditions are unchanged. Checked surrounding control flow,security/optional-feature
+      branches and architecture qualifications; no contrary evidence found. Citation now identifies
+      the whole claim precisely.'
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Round2 independent reading of citation delta: unchanged claim supported. include/linux/irqchip/arm-gic-v3.h:63-63;
+        drivers/irqchip/irq-gic-v3.c:962-969. Definition and performing-use citations now directly
+        locate the asserted bit value and driver behavior. Adjacent branches checked for contrary
+        evidence, including conditional nASSGI, alternate traversal termination and WAKER workaround/permission
+        limits; none contradicts this bounded source claim.'
+  reg-gicd-iidr.gicd-iidr-implementer-mask:
+    basis: d71dedf6d46d8e1043e516a8ce8329ccfa9ad0eab7e6bb14a5da7241f7e5db13
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header mask definition matches bits [0, 11] for GICD_IIDR_IMPLEMENTER_MASK. Full
+      driver usage agrees with the stated meaning; adjacent alternative paths/security policy were
+      checked.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux implementer field mask. Bits [0, 11] Evidence:
+        include/linux/irqchip/arm-gic-v3.h:65-66. Contrary search included adjacent branches, security/configuration
+        limitations and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence
+        within that scope. Definition checked in the pinned header and performing uses independently
+        traced in irq-gic-v3.c. No silicon measurement.'
+  reg-gicd-iidr.gicd-iidr-revision-mask:
+    basis: 47c94a883b8907f14f7bd6d851bd05179c1d10a5d0bae191742f22ee608b9bf2
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header mask definition matches bits [12, 15] for GICD_IIDR_REVISION_MASK. Full driver
+      usage agrees with the stated meaning; adjacent alternative paths/security policy were checked.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux revision field mask. Bits [12, 15] Evidence: include/linux/irqchip/arm-gic-v3.h:67-68.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. Definition
+        checked in the pinned header and performing uses independently traced in irq-gic-v3.c. No
+        silicon measurement.'
+  reg-gicd-iidr.gicd-iidr-variant-mask:
+    basis: 95c42f3be45d5d9032009acbc2cef148931227f17769b6030f8eca4cb3b58b95
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header mask definition matches bits [16, 19] for GICD_IIDR_VARIANT_MASK. Full driver
+      usage agrees with the stated meaning; adjacent alternative paths/security policy were checked.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux variant field mask. Bits [16, 19] Evidence: include/linux/irqchip/arm-gic-v3.h:69-70.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. Definition
+        checked in the pinned header and performing uses independently traced in irq-gic-v3.c. No
+        silicon measurement.'
+  reg-gicd-iidr.gicd-iidr-product-id-mask:
+    basis: 6e57c1d5be844b3c4036e77ebc6dcee23c774d7b912fdd83728f4c7a7e70d57c
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned header mask definition matches bits [24, 31] for GICD_IIDR_PRODUCT_ID_MASK. Full
+      driver usage agrees with the stated meaning; adjacent alternative paths/security policy were
+      checked.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Linux product field mask. Bits [24, 31] Evidence: include/linux/irqchip/arm-gic-v3.h:71-72.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. Definition
+        checked in the pinned header and performing uses independently traced in irq-gic-v3.c. No
+        silicon measurement.'
+  reg-gicr-ctlr.gicr-ctlr-rwp:
+    basis: cb47ba6aac5c3853757874e290235a5504170ddb5e9cc8035ab62c97e6fe58b1
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: 'Citation delta independently reread: include/linux/irqchip/arm-gic-v3.h:[132, 132]; drivers/irqchip/irq-gic-v3.c:[364,
+      364]. Added performing-use anchors directly establish the behavioral meaning alongside the mask
+      definitions; architecture page37 section2.3 directly establishes affinity routing and the system-register
+      prerequisite. Original claim and conditions are unchanged. Checked surrounding control flow,security/optional-feature
+      branches and architecture qualifications; no contrary evidence found. Citation now identifies
+      the whole claim precisely.'
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Round2 independent reading of citation delta: unchanged claim supported. include/linux/irqchip/arm-gic-v3.h:132-132;
+        drivers/irqchip/irq-gic-v3.c:364-364. Definition and performing-use citations now directly
+        locate the asserted bit value and driver behavior. Adjacent branches checked for contrary
+        evidence, including conditional nASSGI, alternate traversal termination and WAKER workaround/permission
+        limits; none contradicts this bounded source claim.'
+  reg-gicr-typer.gicr-typer-last:
+    basis: c840bc3fd0b7a80e32fe518e6c437a1331d6cbf34bc263bfeb7f827d169743f9
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: 'Citation delta independently reread: include/linux/irqchip/arm-gic-v3.h:[246, 246]; drivers/irqchip/irq-gic-v3.c:[1017,
+      1017]. Added performing-use anchors directly establish the behavioral meaning alongside the
+      mask definitions; architecture page37 section2.3 directly establishes affinity routing and the
+      system-register prerequisite. Original claim and conditions are unchanged. Checked surrounding
+      control flow,security/optional-feature branches and architecture qualifications; no contrary
+      evidence found. Citation now identifies the whole claim precisely.'
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Round2 independent reading of citation delta: unchanged claim supported. include/linux/irqchip/arm-gic-v3.h:246-246;
+        drivers/irqchip/irq-gic-v3.c:1017-1017. Definition and performing-use citations now directly
+        locate the asserted bit value and driver behavior. Adjacent branches checked for contrary
+        evidence, including conditional nASSGI, alternate traversal termination and WAKER workaround/permission
+        limits; none contradicts this bounded source claim.'
+  reg-gicr-typer.gicr-typer-affinity:
+    basis: f8233c5249864cf6864dc2e3ef96480a8ce813106ecd7b780e43953c7bae5491
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: 'Citation delta independently reread: include/linux/irqchip/arm-gic-v3.h:[249, 249]; drivers/irqchip/irq-gic-v3.c:[1035,
+      1041]. Added performing-use anchors directly establish the behavioral meaning alongside the
+      mask definitions; architecture page37 section2.3 directly establishes affinity routing and the
+      system-register prerequisite. Original claim and conditions are unchanged. Checked surrounding
+      control flow,security/optional-feature branches and architecture qualifications; no contrary
+      evidence found. Citation now identifies the whole claim precisely.'
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Round2 independent reading of citation delta: unchanged claim supported. include/linux/irqchip/arm-gic-v3.h:249-249;
+        drivers/irqchip/irq-gic-v3.c:1035-1041. Definition and performing-use citations now directly
+        locate the asserted bit value and driver behavior. Adjacent branches checked for contrary
+        evidence, including conditional nASSGI, alternate traversal termination and WAKER workaround/permission
+        limits; none contradicts this bounded source claim.'
+  reg-gicr-waker.gicr-waker-processorsleep:
+    basis: 862ed2c97f417609154f638262294ce647db12126fdf0772139915152ddbca2b
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: 'Citation delta independently reread: include/linux/irqchip/arm-gic-v3.h:[148, 148]; drivers/irqchip/irq-gic-v3.c:[378,
+      384]. Added performing-use anchors directly establish the behavioral meaning alongside the mask
+      definitions; architecture page37 section2.3 directly establishes affinity routing and the system-register
+      prerequisite. Original claim and conditions are unchanged. Checked surrounding control flow,security/optional-feature
+      branches and architecture qualifications; no contrary evidence found. Citation now identifies
+      the whole claim precisely.'
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Round2 independent reading of citation delta: unchanged claim supported. include/linux/irqchip/arm-gic-v3.h:148-148;
+        drivers/irqchip/irq-gic-v3.c:378-384. Definition and performing-use citations now directly
+        locate the asserted bit value and driver behavior. Adjacent branches checked for contrary
+        evidence, including conditional nASSGI, alternate traversal termination and WAKER workaround/permission
+        limits; none contradicts this bounded source claim.'
+  reg-gicr-waker.gicr-waker-childrenasleep:
+    basis: 5a00ff6aebd1e6d6b2f0de0c7fb3dfefe105e507e8ce2e565e2e1d0fdd604747
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: 'Citation delta independently reread: include/linux/irqchip/arm-gic-v3.h:[149, 149]; drivers/irqchip/irq-gic-v3.c:[392,
+      394]. Added performing-use anchors directly establish the behavioral meaning alongside the mask
+      definitions; architecture page37 section2.3 directly establishes affinity routing and the system-register
+      prerequisite. Original claim and conditions are unchanged. Checked surrounding control flow,security/optional-feature
+      branches and architecture qualifications; no contrary evidence found. Citation now identifies
+      the whole claim precisely.'
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Round2 independent reading of citation delta: unchanged claim supported. include/linux/irqchip/arm-gic-v3.h:149-149;
+        drivers/irqchip/irq-gic-v3.c:392-394. Definition and performing-use citations now directly
+        locate the asserted bit value and driver behavior. Adjacent branches checked for contrary
+        evidence, including conditional nASSGI, alternate traversal termination and WAKER workaround/permission
+        limits; none contradicts this bounded source claim.'
+  identify-and-find-redist.validate:
+    basis: b76658d8ce265041bcdc62aa755f5d4dcfc3bf117e29824c511f255c49b65dca
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[2077,
+      2080]; include/linux/irqchip/arm-gic-v3.h:[100, 102]. Full caller/helper flow,frame selection,ordering,error
+      and alternate policy branches were read; the stated behavior matches. This is Linux implementation
+      behavior,not unconditional silicon initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Read distributor PIDR2, mask with 0xf0, accept 0x30
+        (v3) or 0x40 (v4), otherwise return ENODEV. Evidence: drivers/irqchip/irq-gic-v3.c:2077-2080;
+        include/linux/irqchip/arm-gic-v3.h:100-102. Contrary search included adjacent branches, security/configuration
+        limitations and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence
+        within that scope. '
+  identify-and-find-redist.walk:
+    basis: 741cd5e6027aefb1031b81ed10de7bacd43c8de7b4a28d864b7020b9dda1e3e4
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[994,
+      1017]. Full caller/helper flow,frame selection,ordering,error and alternate policy branches
+      were read; the stated behavior matches. This is Linux implementation behavior,not unconditional
+      silicon initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Validate each region PIDR2, read TYPER and try the frame.
+        Explicit stride wins; otherwise advance two 64-KiB frames, with two more if VLPIS; stop on
+        LAST or a single-frame region. Evidence: drivers/irqchip/irq-gic-v3.c:994-1017. Contrary search
+        included adjacent branches, security/configuration limitations and the declared bounded regular
+        SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  identify-and-find-redist.match:
+    basis: 2b3121b6ba91ab4bcef856850a20182c66650e7d0db40e5c42b4af3d9203d330
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[1033,
+      1045]; drivers/irqchip/irq-gic-v3.c:[1062, 1070]. Full caller/helper flow,frame selection,ordering,error
+      and alternate policy branches were read; the stated behavior matches. This is Linux implementation
+      behavior,not unconditional silicon initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Pack current CPU affinity as Aff3:Aff2:Aff1:Aff0 in
+        32 bits and compare with TYPER bits 63:32; record matching RD base. Missing match returns
+        ENODEV. Evidence: drivers/irqchip/irq-gic-v3.c:1033-1045; drivers/irqchip/irq-gic-v3.c:1062-1070.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  redist-wake.wake:
+    basis: ff7667233d776ac3f6de6e5b834ea23380b0da23ad0acc0d2587eee66ae40b7f
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[373,
+      385]. Full caller/helper flow,frame selection,ordering,error and alternate policy branches were
+      read; the stated behavior matches. This is Linux implementation behavior,not unconditional silicon
+      initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Unless the named MSM8996 workaround skips it, read WAKER,
+        clear ProcessorSleep, and write back. Evidence: drivers/irqchip/irq-gic-v3.c:373-385. Contrary
+        search included adjacent branches, security/configuration limitations and the declared bounded
+        regular SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  redist-wake.wait:
+    basis: 8a257ee9a7ade16f0b8dd76e06e7f5ec75b26213bdd5dec97b44afd917f13ec1
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[392,
+      397]. Full caller/helper flow,frame selection,ordering,error and alternate policy branches were
+      read; the stated behavior matches. This is Linux implementation behavior,not unconditional silicon
+      initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Poll until ChildrenAsleep is clear with 1-us interval
+        and one-second timeout; on timeout log an error. Evidence: drivers/irqchip/irq-gic-v3.c:392-397.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  distributor-init.disable:
+    basis: e5d003e04726ffdfeffb9cf9e5f0e8663a32ba52bfbcf901fe2b7f85f5076bad
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[931,
+      933]. Full caller/helper flow,frame selection,ordering,error and alternate policy branches were
+      read; the stated behavior matches. This is Linux implementation behavior,not unconditional silicon
+      initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Write zero to CTLR, then poll distributor RWP. Evidence:
+        drivers/irqchip/irq-gic-v3.c:931-933. Contrary search included adjacent branches, security/configuration
+        limitations and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence
+        within that scope. No universal security ownership or hardware-safe cold boot recipe is inferred;
+        source order is confirmed.'
+  distributor-init.group:
+    basis: 1720b68a069cab1275419fe4bb2d25bdb2fb9a31c368852eda194c2480452a47
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[941,
+      942]. Full caller/helper flow,frame selection,ordering,error and alternate policy branches were
+      read; the stated behavior matches. This is Linux implementation behavior,not unconditional silicon
+      initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: For regular SPI blocks starting INTID 32, write all
+        ones to IGROUPR. Evidence: drivers/irqchip/irq-gic-v3.c:941-942. Contrary search included
+        adjacent branches, security/configuration limitations and the declared bounded regular SGI/PPI/SPI
+        scope; no contradictory evidence within that scope. No universal security ownership or hardware-safe
+        cold boot recipe is inferred; source order is confirmed.'
+  distributor-init.trigger:
+    basis: 4b0e8d20ba03202713efe25e6b2922694c4affb67799ca54aaa6eb51eae9ac69
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[960,
+      960]; drivers/irqchip/irq-gic-common.c:[98, 100]; include/linux/irqchip/arm-gic.h:[54, 54];
+      include/linux/irqchip/arm-gic.h:[61, 61]. Full caller/helper flow,frame selection,ordering,error
+      and alternate policy branches were read; the stated behavior matches. This is Linux implementation
+      behavior,not unconditional silicon initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Common setup writes zero to each regular SPI configuration
+        word, giving level configuration; do not carry the common helper comment about active-low
+        polarity into an RK3588 hardware claim. Evidence: drivers/irqchip/irq-gic-v3.c:960-960; drivers/irqchip/irq-gic-common.c:98-100;
+        include/linux/irqchip/arm-gic.h:54-54; include/linux/irqchip/arm-gic.h:61-61. Contrary search
+        included adjacent branches, security/configuration limitations and the declared bounded regular
+        SGI/PPI/SPI scope; no contradictory evidence within that scope. No universal security ownership
+        or hardware-safe cold boot recipe is inferred; source order is confirmed.'
+  distributor-init.priority:
+    basis: e6854aeeb515fb457e5956040134013d0696abf56fae730ad0adf234ca9eb184
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-common.c:[105,
+      107]; drivers/irqchip/irq-gic-v3.c:[225, 227]. Full caller/helper flow,frame selection,ordering,error
+      and alternate policy branches were read; the stated behavior matches. This is Linux implementation
+      behavior,not unconditional silicon initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Write the selected dist_prio_irq replicated across four
+        priority bytes per word. The value can be adjusted by security-state policy; no fixed value
+        is specified here. Evidence: drivers/irqchip/irq-gic-common.c:105-107; drivers/irqchip/irq-gic-v3.c:225-227.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. No universal
+        security ownership or hardware-safe cold boot recipe is inferred; source order is confirmed.'
+  distributor-init.inactive-disabled:
+    basis: 9d7c14de5e1af4e5430ccf8caa97496e38354c537eb6600e7e185286b0e28671
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-common.c:[113,
+      117]; include/linux/irqchip/arm-gic.h:[51, 51]; include/linux/irqchip/arm-gic.h:[47, 47]; include/linux/irqchip/arm-gic.h:[62,
+      62]. Full caller/helper flow,frame selection,ordering,error and alternate policy branches were
+      read; the stated behavior matches. This is Linux implementation behavior,not unconditional silicon
+      initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Write all-ones to SPI active-clear and enable-clear
+        words. Evidence: drivers/irqchip/irq-gic-common.c:113-117; include/linux/irqchip/arm-gic.h:51-51;
+        include/linux/irqchip/arm-gic.h:47-47; include/linux/irqchip/arm-gic.h:62-62. Contrary search
+        included adjacent branches, security/configuration limitations and the declared bounded regular
+        SGI/PPI/SPI scope; no contradictory evidence within that scope. No universal security ownership
+        or hardware-safe cold boot recipe is inferred; source order is confirmed.'
+  distributor-init.enable:
+    basis: 9295a9bd06dcf52e5f2e1984ef39d4c46770ba723e50df8f55ea009cba9689fc
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[962,
+      970]. Full caller/helper flow,frame selection,ordering,error and alternate policy branches were
+      read; the stated behavior matches. This is Linux implementation behavior,not unconditional silicon
+      initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Write ARE_NS | ENABLE_G1A | ENABLE_G1 to CTLR and wait
+        RWP; Linux may additionally enable nASSGI on capable implementations. Evidence: drivers/irqchip/irq-gic-v3.c:962-970.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. No universal
+        security ownership or hardware-safe cold boot recipe is inferred; source order is confirmed.'
+  distributor-init.route:
+    basis: 0c3125a3cbd4f9124a5b0b1f8b03ab139aee0f21b3ad58dd011d6cd24cc0a7e9
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[976,
+      978]. Full caller/helper flow,frame selection,ordering,error and alternate policy branches were
+      read; the stated behavior matches. This is Linux implementation behavior,not unconditional silicon
+      initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Write each regular SPI IROUTER to boot CPU affinity.
+        Evidence: drivers/irqchip/irq-gic-v3.c:976-978. Contrary search included adjacent branches,
+        security/configuration limitations and the declared bounded regular SGI/PPI/SPI scope; no
+        contradictory evidence within that scope. No universal security ownership or hardware-safe
+        cold boot recipe is inferred; source order is confirmed.'
+  private-interrupt-init.locate-wake:
+    basis: faa3a1a0ce90f16c796a469955d777d0c60451df6f8ce97f8094f3c8614871cb
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[1280,
+      1283]. Full caller/helper flow,frame selection,ordering,error and alternate policy branches
+      were read; the stated behavior matches. This is Linux implementation behavior,not unconditional
+      silicon initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Populate this CPU redistributor and wake it; return
+        early if no redistributor match. Evidence: drivers/irqchip/irq-gic-v3.c:1280-1283. Contrary
+        search included adjacent branches, security/configuration limitations and the declared bounded
+        regular SGI/PPI/SPI scope; no contradictory evidence within that scope. No universal security
+        ownership or hardware-safe cold boot recipe is inferred; source order is confirmed.'
+  private-interrupt-init.group:
+    basis: 9d0a9f1038dab1f946bbaac2c7d103e6dcd7cd4db04904f53d42d317f708749f
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[1293,
+      1294]. Full caller/helper flow,frame selection,ordering,error and alternate policy branches
+      were read; the stated behavior matches. This is Linux implementation behavior,not unconditional
+      silicon initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Write all ones to SGI/PPI IGROUPR0 blocks. Evidence:
+        drivers/irqchip/irq-gic-v3.c:1293-1294. Contrary search included adjacent branches, security/configuration
+        limitations and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence
+        within that scope. No universal security ownership or hardware-safe cold boot recipe is inferred;
+        source order is confirmed.'
+  private-interrupt-init.disable-deactivate:
+    basis: f05f0801bb3a4849e292525672c292e426d15549a7012a06e2cd968e0988311c
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[1296,
+      1296]; drivers/irqchip/irq-gic-common.c:[129, 133]; include/linux/irqchip/arm-gic.h:[47, 47];
+      include/linux/irqchip/arm-gic.h:[51, 51]; include/linux/irqchip/arm-gic.h:[62, 62]. Full caller/helper
+      flow,frame selection,ordering,error and alternate policy branches were read; the stated behavior
+      matches. This is Linux implementation behavior,not unconditional silicon initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Common setup writes all-ones to private active-clear
+        and enable-clear. Evidence: drivers/irqchip/irq-gic-v3.c:1296-1296; drivers/irqchip/irq-gic-common.c:129-133;
+        include/linux/irqchip/arm-gic.h:47-47; include/linux/irqchip/arm-gic.h:51-51; include/linux/irqchip/arm-gic.h:62-62.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. No universal
+        security ownership or hardware-safe cold boot recipe is inferred; source order is confirmed.'
+  private-interrupt-init.priorities:
+    basis: e2cafae55e42992e222dfdac99550e4e8f4a68b289d8cf5de761d1960321720d
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-common.c:[139,
+      141]; drivers/irqchip/irq-gic-v3.c:[1296, 1300]; include/linux/irqchip/arm-gic.h:[52, 52]. Full
+      caller/helper flow,frame selection,ordering,error and alternate policy branches were read; the
+      stated behavior matches. This is Linux implementation behavior,not unconditional silicon initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Common setup fills SGI/PPI priorities with selected
+        dist_prio_irq; then wait redistributor RWP and initialize CPU system registers. Evidence:
+        drivers/irqchip/irq-gic-common.c:139-141; drivers/irqchip/irq-gic-v3.c:1296-1300; include/linux/irqchip/arm-gic.h:52-52.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. No universal
+        security ownership or hardware-safe cold boot recipe is inferred; source order is confirmed.'
+  cpu-interface-init.sre:
+    basis: 8786553a3c6459e06e01dfd5ba24d56ee571698e657fec7cbbcf2193b329a416
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages include/linux/irqchip/arm-gic-v3.h:[649,
+      657]; arch/arm64/include/asm/arch_gicv3.h:[119, 120]; drivers/irqchip/irq-gic-v3.c:[1148, 1149].
+      Full caller/helper flow,frame selection,ordering,error and alternate policy branches were read;
+      the stated behavior matches. This is Linux implementation behavior,not unconditional silicon
+      initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Read SRE; if not set, RMW set bit 0, write with ISB
+        and read back. Linux logs failure when it cannot enable SRE. Evidence: include/linux/irqchip/arm-gic-v3.h:649-657;
+        arch/arm64/include/asm/arch_gicv3.h:119-120; drivers/irqchip/irq-gic-v3.c:1148-1149. Contrary
+        search included adjacent branches, security/configuration limitations and the declared bounded
+        regular SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  cpu-interface-init.pmr:
+    basis: 0c35ba7b8816d53634f05d68dae025650dd2e8277bb7b1367fd30b350d4ee658
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[243,
+      243]; drivers/irqchip/irq-gic-v3.c:[1166, 1167]. Full caller/helper flow,frame selection,ordering,error
+      and alternate policy branches were read; the stated behavior matches. This is Linux implementation
+      behavior,not unconditional silicon initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: When priority masking is not enabled, write PMR=0xf0.
+        Otherwise the selected policy handles PMR; do not force this branch universally. Evidence:
+        drivers/irqchip/irq-gic-v3.c:243-243; drivers/irqchip/irq-gic-v3.c:1166-1167. Contrary search
+        included adjacent branches, security/configuration limitations and the declared bounded regular
+        SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  cpu-interface-init.bpr:
+    basis: a061d554f4073d1a9de90e9c98d3d443b92966d68a2e7f7314386d22eb88ea64
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[1186,
+      1186]. Full caller/helper flow,frame selection,ordering,error and alternate policy branches
+      were read; the stated behavior matches. This is Linux implementation behavior,not unconditional
+      silicon initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Write BPR1 zero. Evidence: drivers/irqchip/irq-gic-v3.c:1186-1186.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  cpu-interface-init.eoi-mode:
+    basis: 9028436103681d4c03d4a7a9b18f9752c5078611b879b2d8347684b7a7df4dbd
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[1188,
+      1194]; drivers/irqchip/irq-gic-v3.c:[1987, 1988]; include/linux/irqchip/arm-gic-v3.h:[549, 551].
+      Full caller/helper flow,frame selection,ordering,error and alternate policy branches were read;
+      the stated behavior matches. This is Linux implementation behavior,not unconditional silicon
+      initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Write CTLR EOImode=1 for split deactivate support, else
+        EOImode=0. Linux disables split support when hypervisor mode is unavailable. Evidence: drivers/irqchip/irq-gic-v3.c:1188-1194;
+        drivers/irqchip/irq-gic-v3.c:1987-1988; include/linux/irqchip/arm-gic-v3.h:549-551. Contrary
+        search included adjacent branches, security/configuration limitations and the declared bounded
+        regular SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  cpu-interface-init.active-priorities:
+    basis: e82b18efa5a122a7457bb1db474fd49150ec94f034eab7ac619b0cbe5e520aa0
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[1197,
+      1212]; drivers/irqchip/irq-gic-v3.c:[1215, 1229]. Full caller/helper flow,frame selection,ordering,error
+      and alternate policy branches were read; the stated behavior matches. This is Linux implementation
+      behavior,not unconditional silicon initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Clear implemented AP0R registers when Group0 accessible,
+        then AP1R registers according to priority-bit count, with ISB after each group. Evidence:
+        drivers/irqchip/irq-gic-v3.c:1197-1212; drivers/irqchip/irq-gic-v3.c:1215-1229. Contrary search
+        included adjacent branches, security/configuration limitations and the declared bounded regular
+        SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  cpu-interface-init.group-enable:
+    basis: 893805dba6e8630e9fd68448f7ca896514492bbf9ceab78498a4f95b3a8cc370
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[1232,
+      1232]; arch/arm64/include/asm/arch_gicv3.h:[101, 104]. Full caller/helper flow,frame selection,ordering,error
+      and alternate policy branches were read; the stated behavior matches. This is Linux implementation
+      behavior,not unconditional silicon initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Write IGRPEN1=1 with ISB. Evidence: drivers/irqchip/irq-gic-v3.c:1232-1232;
+        arch/arm64/include/asm/arch_gicv3.h:101-104. Contrary search included adjacent branches, security/configuration
+        limitations and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence
+        within that scope. '
+  linux-ack-eoi.ack:
+    basis: 505e244bd19e9cb47a0d976e591edb5184184997443e8ab7150e7f4c3c9c1889
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages arch/arm64/include/asm/arch_gicv3.h:[39,
+      41]; drivers/irqchip/irq-gic-v3.c:[813, 821]. Full caller/helper flow,frame selection,ordering,error
+      and alternate policy branches were read; the stated behavior matches. This is Linux implementation
+      behavior,not unconditional silicon initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Read IAR1 then DSB SY through the common accessor; special
+        INTIDs 1020-1023 return without normal dispatch. Evidence: arch/arm64/include/asm/arch_gicv3.h:39-41;
+        drivers/irqchip/irq-gic-v3.c:813-821. Contrary search included adjacent branches, security/configuration
+        limitations and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence
+        within that scope. '
+  linux-ack-eoi.split-drop:
+    basis: a15c61feda0ec53ba2a0abecac8b05f40cc6376f4a723473d79a781f537130ab
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[797,
+      802]; drivers/irqchip/irq-gic-v3.c:[823, 823]. Full caller/helper flow,frame selection,ordering,error
+      and alternate policy branches were read; the stated behavior matches. This is Linux implementation
+      behavior,not unconditional silicon initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: When split mode is selected, write EOIR1 before dispatch;
+        perform ISB. Evidence: drivers/irqchip/irq-gic-v3.c:797-802; drivers/irqchip/irq-gic-v3.c:823-823.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  linux-ack-eoi.completion:
+    basis: 634d6747aa13fdac26b45faa6ab6f4a14ed53b691eb686371cd29aebd7f92194
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[670,
+      673]; drivers/irqchip/irq-gic-v3.c:[691, 696]; arch/arm64/include/asm/arch_gicv3.h:[31, 32];
+      drivers/irqchip/irq-gic-v3.c:[769, 774]; drivers/irqchip/irq-gic-v3.c:[825, 827]. Full caller/helper
+      flow,frame selection,ordering,error and alternate policy branches were read; the stated behavior
+      matches. This is Linux implementation behavior,not unconditional silicon initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: At completion, mode0 writes EOIR1 and ISB; mode1 writes
+        DIR and ISB for ordinary non-forwarded INTIDs. Unexpected unhandled ordinary interrupts follow
+        the corresponding deactivate path. Evidence: drivers/irqchip/irq-gic-v3.c:670-673; drivers/irqchip/irq-gic-v3.c:691-696;
+        arch/arm64/include/asm/arch_gicv3.h:31-32; drivers/irqchip/irq-gic-v3.c:769-774; drivers/irqchip/irq-gic-v3.c:825-827.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  sgi-send.memory:
+    basis: 28d329718d7f46eb8cf31827ac0799264c7e0de4dc4411f5bcf6b33f96c5a033
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[1383,
+      1390]. Full caller/helper flow,frame selection,ordering,error and alternate policy branches
+      were read; the stated behavior matches. This is Linux implementation behavior,not unconditional
+      silicon initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Reject SGI IDs outside 0-15; execute DSB ISHST before
+        sending to make prior Normal-memory stores visible. Evidence: drivers/irqchip/irq-gic-v3.c:1383-1390.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  sgi-send.target:
+    basis: 738d69fa70675ee8178b5fc12ef8c204f6e4cd30cfeba2c98c19903956df2a6d
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[1338,
+      1341]; drivers/irqchip/irq-gic-v3.c:[1368, 1376]; include/linux/irqchip/arm-gic-v3.h:[591, 603].
+      Full caller/helper flow,frame selection,ordering,error and alternate policy branches were read;
+      the stated behavior matches. This is Linux implementation behavior,not unconditional silicon
+      initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Build target list from Aff0 low four bits, cluster affinity
+        and optional range-selector bits; encode fields in ICC_SGI1R_EL1 and write it. Evidence: drivers/irqchip/irq-gic-v3.c:1338-1341;
+        drivers/irqchip/irq-gic-v3.c:1368-1376; include/linux/irqchip/arm-gic-v3.h:591-603. Contrary
+        search included adjacent branches, security/configuration limitations and the declared bounded
+        regular SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  sgi-send.sync:
+    basis: f016c2ffa7e93c37b0c2be8c4e78f2c8e245163ddcf8b7475b07a1dc6e4f6cff
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[1392,
+      1401]. Full caller/helper flow,frame selection,ordering,error and alternate policy branches
+      were read; the stated behavior matches. This is Linux implementation behavior,not unconditional
+      silicon initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: Execute ISB after the set of SGI writes. Evidence: drivers/irqchip/irq-gic-v3.c:1392-1401.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. '
+  cpu-sleep-resume.sleep:
+    basis: bb4cdf7ac747e523cd1a1f97d6205e3a857fbe512e74468188c566f0afca3c0d
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol, Codex, independent verifier, session gic_delta_reader_a
+    note: Notifier lines 1490-1492 order group disable before sleep request; helper lines 382-398 set ProcessorSleep,
+      return if it does not retain, then poll ChildrenAsleep set. Arm64 arch_gicv3.h lines 101-105 confirms
+      gic_write_grpen1 writes ICC_IGRPEN1_EL1 and executes ISB. The newly added arm64 helper anchor was
+      reread at the same pin and now explicitly identifies the register write; citation precision is exact.
+      Read pinned irq-gic-v3.c notifier lines 1481-1495, security helper 160-163, redistributor helper 367-399,
+      CPU interface helpers 1139-1235 and quirk registration 1775-1782/1885-1891. CONFIG_CPU_PM bounds this
+      notifier; other configurations do not register it. The MSM8996 helper early return is limited to qcom,msm8996-gic-v3,
+      outside this RK3588 scope; polling is bounded and timeout logs an error, so no successful hardware
+      transition is established. No conflicting RK3588 notifier path was found. No external fact dependencies
+      or TODOs are declared for this delta.
+    contrary_evidence: none-found
+    citation_precision: exact
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / gic_delta_reader_b
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Notifier lines 1490-1492 call gic_write_grpen1(0) before gic_enable_redist(false). The AArch64
+        accessor at arch_gicv3.h:101-104 writes IGRPEN1. Helper lines 382-398 set ProcessorSleep, return
+        if readback does not retain it, and poll ChildrenAsleep set with a bounded timeout. Adjacent helper
+        lines 373-374 bypass all WAKER work for MSM8996; implementation-specific errata are explicitly outside
+        the spec scope. Sleep is requested; completion is not guaranteed. No contrary evidence within that
+        scope. Independently reread newly declared arch_gicv3.h:101-105 support: the accessor writes SYS_ICC_IGRPEN1_EL1
+        with the passed zero and then ISB; the added citation exactly supports the register-write assertion.
+        PASS remains warranted; contrary-evidence scope and its result remain unchanged.'
+  cpu-sleep-resume.resume:
+    basis: 5c1a7239098e97b78c7fcd24ffbab27fbbd9902f8254793847ed0abf37a72dc2
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[1485,
+      1489]. Full caller/helper flow,frame selection,ordering,error and alternate policy branches
+      were read; the stated behavior matches. This is Linux implementation behavior,not unconditional
+      silicon initialization.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Independent comparison supports: On CPU_PM_EXIT or ENTER_FAILED, wake redistributor if
+        security disabled, enable system registers and reinitialize the CPU interface. Evidence: drivers/irqchip/irq-gic-v3.c:1485-1489.
+        Contrary search included adjacent branches, security/configuration limitations and the declared
+        bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. Resume always
+        reinitializes CPU registers; only redistributor wake is DS-conditioned. Sleep uses gic_enable_redist
+        and inherits its MSM8996 skip.'

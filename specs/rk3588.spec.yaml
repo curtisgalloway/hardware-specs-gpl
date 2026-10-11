@@ -120,34 +120,41 @@ facts:
 
   - id: gic-frame-layout
     section: quick-facts
-    title: GIC frame addresses
+    title: Source-declared GIC address windows
     critical: true
-    claim: >-
-      The RK3588's GIC frames: distributor at `0xFE60_0000`, ITS0 at `0xFE64_0000`, ITS1 at
-      `0xFE66_0000`, and eight redistributors from `0xFE68_0000` at a 128 KB stride (an LPI page
-      then an SGI and PPI page each), so redistributor n is at `0xFE68_0000 + n × 0x2_0000` and
-      the last ends at `0xFE77_FFFF`, filling the device tree's 1 MB redistributor region.
+    claim: The pinned RK3588 device tree declares a distributor window at 0xfe600000 of size 0x10000,
+      a redistributor region at 0xfe680000 of size 0x100000, and ITS windows at 0xfe640000 and 0xfe660000,
+      each size 0x20000. These declarations do not establish GIC-600 identity, redistributor count,
+      implemented frame stride or per-core frame addresses.
     support:
-      - class: inference
-        confidence: high
-        premises:
-          - fact: "#dt-gic-node"
-            uses: GICD at 0xfe600000, two ITS at 0xfe640000 and 0xfe660000, redistributors at 0xfe680000 for 1 MB
-          - fact: "#dt-cpus"
-            uses: eight cores, so eight redistributors
-          - fact: "rk3588@hardware-specs-docs#gic600-register-pages"
-            uses: ITS n at pages 4 + 2n, redistributors from page 4 + 2 × ITScount at two pages each
-          - assumption: gic-is-gic600
-        derivation: >-
-          with 2 ITS blocks the GIC-600 layout puts ITS0 at page 4 (0x4_0000), ITS1
-          at page 6 (0x6_0000) and redistributor 0 at page 8 (0x8_0000), which is where the tree
-          puts them; 8 × 128 KB is the tree's 1 MB
+    - class: DT
+      anchors:
+      - repo: linux-dts
+        path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+        lines:
+        - 2589
+        - 2590
+        node: interrupt-controller@fe600000
+      - repo: linux-dts
+        path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+        lines:
+        - 2603
+        - 2604
+        node: msi-controller@fe640000
+      - repo: linux-dts
+        path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+        lines:
+        - 2611
+        - 2612
+        node: msi-controller@fe660000
     todo:
       check: hardware
-      text: >-
-        read GICD_IIDR (product ID) at 0xFE60_0000 to confirm a GIC-600, and GICR_TYPER of each
-        frame (the Last bit set only on the eighth).
-
+      text: With authorized access and an established privilege/security contract, identify the implemented
+        GIC and enumerate redistributors through GICR_TYPER and its Last/affinity fields using the
+        programming spec; do not infer topology from region size.
+    relates:
+    - fact: rk3588-gic#exact-product-revision
+      relation: qualifies
   - id: dt-timer-node
     section: quick-facts
     title: Architected timer node
@@ -573,3 +580,317 @@ facts:
           - {repo: u-boot-gpl2, path: arch/arm/mach-rockchip/rk3588/rk3588.c, lines: [49, 61], symbol: boot_devices}
     scope:
       builds: [U-Boot v2026.10 (mainline)]
+  - id: boot-console-dependency-trace
+    section: quick-facts
+    title: Console instance and prerequisites
+    claim: The V1.2 console header pin 8 (TX, GPIO0 B5) and pin 10 (RX, GPIO0 B6) join UART2 M0, the source-declared UART2 instance
+      at 0xfeb50000, and SCLK_UART2/PCLK_UART2. The UART programming, console mux sequence and clock/reset
+      lifecycle describe the corresponding operations. This trace does not establish firmware state
+      or make the unresolved hardware access/sequence prerequisites safe.
+    critical: true
+    support:
+    - class: inference
+      premises:
+      - fact: rock5t@hardware-specs-docs#debug-console-is-uart2-m0
+      - fact: '#dt-uart2-node'
+      - fact: rk3588-uart#addressing
+      - fact: rk3588-pinctrl#console-mux-sequence
+      - fact: rk3588-clocks#consumer-clock-pairs
+      - fact: rk3588-clocks#uart-clock-reset-lifecycle
+      derivation: Join the board UART2_M0 pin labels to the pinned UART2 node and the programming facts
+        whose operations target that same controller and pins.
+    todo:
+      check: hardware
+      text: Confirm board V1.2 and the loaded firmware route, clock/divisor state and register access
+        permissions before performing the cited operations; retain each peripheral prerequisite gap.
+    relates:
+    - fact: rock5t@hardware-specs-docs#debug-console-is-uart2-m0
+      relation: qualifies
+    - fact: '#dt-uart2-node'
+      relation: qualifies
+    - fact: rk3588-uart#addressing
+      relation: qualifies
+    - fact: rk3588-pinctrl#console-mux-sequence
+      relation: qualifies
+    - fact: rk3588-clocks#consumer-clock-pairs
+      relation: qualifies
+    - fact: rk3588-clocks#uart-clock-reset-lifecycle
+      relation: qualifies
+  - id: boot-interrupt-topology
+    section: quick-facts
+    title: Boot interrupt topology
+    claim: UART2 is source-declared SPI 333; GPIO0–4 are source-declared SPIs 277–281. The architectural
+      timer node declares sec-phys/phys/virt/hyp-phys/hyp-virt PPIs 13/14/11/10/12 and the GIC maintenance
+      interrupt is PPI 9. The architectural numbering convention adds 32 to SPI numbers and 16 to PPI
+      numbers; timer selection and privilege/security state remain prerequisites.
+    critical: true
+    support:
+    - class: inference
+      premises:
+      - fact: '#dt-uart2-node'
+      - fact: '#dt-timer-node'
+      - fact: '#dt-gic-node'
+      - fact: '#dt-intids'
+      - fact: rk3588-gpio#bank-map
+      - fact: arm-architectural-timer#ppi-selection
+      - fact: rk3588-gic#interrupt-numbering
+      derivation: Join the source-declared device interrupt tuples at their common GIC parent; use
+        the existing driver translation fact for architectural numbering, not a raw-cell reinterpretation.
+    todo:
+      check: hardware
+      text: Confirm the loaded device tree and usable timer/interrupt group at the intended exception
+        level; enumerate actual GIC redistributors instead of assuming the region determines topology.
+    relates:
+    - fact: '#dt-uart2-node'
+      relation: qualifies
+    - fact: '#dt-timer-node'
+      relation: qualifies
+    - fact: '#dt-gic-node'
+      relation: qualifies
+    - fact: '#dt-intids'
+      relation: qualifies
+    - fact: rk3588-gpio#bank-map
+      relation: qualifies
+    - fact: arm-architectural-timer#ppi-selection
+      relation: qualifies
+    - fact: rk3588-gic#interrupt-numbering
+      relation: qualifies
+  - id: boot-gpio-ownership
+    section: quick-facts
+    title: GPIO bank and console ownership
+    claim: GPIO0 B5/B6 belong to source-declared GPIO bank 0 but the V1.2 board uses them as the UART2
+      console pins. GPIO use requires choosing GPIO mux ownership and checking the board load and electrical
+      prerequisites. The linked GPIOv2 programming model applies only when the recognized VERSION_ID
+      selects it; bank membership establishes neither the actual register version nor that a header pin is free.
+    critical: true
+    support:
+    - class: inference
+      premises:
+      - fact: rock5t@hardware-specs-docs#debug-console-is-uart2-m0
+      - fact: rk3588-gpio#bank-map
+      - fact: rk3588-gpio#version-selection
+      - fact: rk3588-gpio#actual-version-and-mmio
+      - fact: rk3588-pinctrl#pin-numbering
+      - fact: rk3588-pinctrl#gpio-input-output-sequence
+      - fact: rk3588-pinctrl#board-electrical-and-ownership
+      derivation: The board B5/B6 labels identify bank 0 pins; connect bank numbering to pin-controller
+        ownership prerequisites without selecting an unused header pin.
+    todo:
+      check: hardware
+      text: Check the exact V1.2 schematic net and attached load, current owner and supported electrical
+        settings before selecting GPIO function or driving any pin.
+    relates:
+    - fact: rock5t@hardware-specs-docs#debug-console-is-uart2-m0
+      relation: qualifies
+    - fact: rk3588-gpio#bank-map
+      relation: qualifies
+    - fact: rk3588-gpio#version-selection
+      relation: qualifies
+    - fact: rk3588-gpio#actual-version-and-mmio
+      relation: qualifies
+    - fact: rk3588-pinctrl#pin-numbering
+      relation: qualifies
+    - fact: rk3588-pinctrl#gpio-input-output-sequence
+      relation: qualifies
+    - fact: rk3588-pinctrl#board-electrical-and-ownership
+      relation: qualifies
+  - id: boot-timer-instance-representation
+    section: quick-facts
+    title: Processor timer instance representation
+    claim: The timer identity and interrupt topology are represented by ordinary facts linked below.
+      The format 2 instance row models reg as an MMIO address or unknown null and irq as one tuple or unknown null, so it cannot faithfully
+      describe the processor system-register timer interface and its several timer PPIs. No timer instance
+      row or MMIO address is fabricated; this is a schema representation limit.
+    todo:
+      check: document
+      text: Use the architectural timer programming spec and the SoC timer-node fact; a future schema
+        must explicitly model system-register access and multiple interrupt choices before adding a
+        row.
+    relates:
+    - fact: arm-generic-timer-ip@hardware-specs-docs#architecture-identity
+      relation: qualifies
+    - fact: arm-architectural-timer#processor-timer-scope
+      relation: qualifies
+    - fact: '#dt-timer-node'
+      relation: qualifies
+  - id: boot-cru-instance-representation
+    section: quick-facts
+    title: Clock/reset controller instance representation
+    claim: The source-declared CRU identity and 0xfd7c0000 mapping are recorded by the clock programming
+      fact below. The current instance irq field admits only an IRQ tuple or unknown null, without
+      a distinct no-interrupt state. A CRU row is omitted rather than assigning an invented interrupt
+      or treating this representation limit as unknown controller identity.
+    todo:
+      check: document
+      text: Use the linked CRU mapping and bounded clock/reset programming spec; extend the schema
+        to distinguish an absent interrupt from an unknown interrupt before adding this instance row.
+    relates:
+    - fact: rk3588-clocks#cru-map
+      relation: qualifies
+    - fact: rk3588-clocks#consumer-clock-pairs
+      relation: qualifies
+  - id: boot-pinctrl-instance-representation
+    section: quick-facts
+    title: Pin controller instance representation
+    claim: The source-declared RK3588 pin controller accesses the IOC mapping through rockchip,grf.
+      Its identity and the IOC window are recorded below. The current instance row cannot represent
+      that indirect register resource together with an explicit no-interrupt state. No direct pin-controller
+      MMIO instance or interrupt is fabricated; this is a schema limit.
+    todo:
+      check: document
+      text: Use the linked controller identity and IOC mapping; extend the schema to express an indirect
+        register provider and distinguish absent from unknown interrupts before adding an instance
+        row.
+    relates:
+    - fact: rk3588-pinctrl#controller-identity
+      relation: qualifies
+    - fact: rk3588-pinctrl#ioc-dt-window
+      relation: qualifies
+instances:
+- id: boot-uart2
+  name: UART2 console candidate
+  ip: rk3588-dw-apb-uart-ip
+  reg: '0xfeb50000'
+  irq:
+    kind: SPI
+    number: 333
+    trigger: level-high
+  clocks:
+  - SCLK_UART2 (baudclk)
+  - PCLK_UART2 (apb_pclk)
+  support:
+  - class: DT
+    anchors:
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      lines:
+      - 2811
+      - 2824
+      node: serial@feb50000
+  note: Pinned device-tree declaration only. Additional windows and applicability limits remain in
+    the SoC/programming facts.
+- id: boot-gic
+  name: GICv3 distributor and maintenance interrupt
+  ip: arm-gicv3-ip
+  reg: '0xfe600000'
+  irq:
+    kind: PPI
+    number: 9
+    trigger: level-high
+  clocks: []
+  support:
+  - class: DT
+    anchors:
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      lines:
+      - 2587
+      - 2600
+      node: interrupt-controller@fe600000
+  note: Pinned device-tree declaration only. Additional windows and applicability limits remain in
+    the SoC/programming facts.
+- id: boot-gpio0
+  name: GPIO0
+  ip: rockchip-gpio-bank-ip
+  reg: '0xfd8a0000'
+  irq:
+    kind: SPI
+    number: 277
+    trigger: level-high
+  clocks:
+  - PCLK_GPIO0
+  - DBCLK_GPIO0
+  support:
+  - class: DT
+    anchors:
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      lines:
+      - 3533
+      - 3543
+      node: gpio@fd8a0000
+  note: Pinned device-tree declaration; local pins 0..31 map into the shared pin controller.
+- id: boot-gpio1
+  name: GPIO1
+  ip: rockchip-gpio-bank-ip
+  reg: '0xfec20000'
+  irq:
+    kind: SPI
+    number: 278
+    trigger: level-high
+  clocks:
+  - PCLK_GPIO1
+  - DBCLK_GPIO1
+  support:
+  - class: DT
+    anchors:
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      lines:
+      - 3545
+      - 3555
+      node: gpio@fec20000
+  note: Pinned device-tree declaration; local pins 0..31 map into the shared pin controller.
+- id: boot-gpio2
+  name: GPIO2
+  ip: rockchip-gpio-bank-ip
+  reg: '0xfec30000'
+  irq:
+    kind: SPI
+    number: 279
+    trigger: level-high
+  clocks:
+  - PCLK_GPIO2
+  - DBCLK_GPIO2
+  support:
+  - class: DT
+    anchors:
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      lines:
+      - 3557
+      - 3567
+      node: gpio@fec30000
+  note: Pinned device-tree declaration; local pins 0..31 map into the shared pin controller.
+- id: boot-gpio3
+  name: GPIO3
+  ip: rockchip-gpio-bank-ip
+  reg: '0xfec40000'
+  irq:
+    kind: SPI
+    number: 280
+    trigger: level-high
+  clocks:
+  - PCLK_GPIO3
+  - DBCLK_GPIO3
+  support:
+  - class: DT
+    anchors:
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      lines:
+      - 3569
+      - 3579
+      node: gpio@fec40000
+  note: Pinned device-tree declaration; local pins 0..31 map into the shared pin controller.
+- id: boot-gpio4
+  name: GPIO4
+  ip: rockchip-gpio-bank-ip
+  reg: '0xfec50000'
+  irq:
+    kind: SPI
+    number: 281
+    trigger: level-high
+  clocks:
+  - PCLK_GPIO4
+  - DBCLK_GPIO4
+  support:
+  - class: DT
+    anchors:
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      lines:
+      - 3581
+      - 3591
+      node: gpio@fec50000
+  note: Pinned device-tree declaration; local pins 0..31 map into the shared pin controller.

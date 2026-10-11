@@ -1,0 +1,1051 @@
+# SPDX-FileCopyrightText: 2026 contributors
+# SPDX-License-Identifier: GPL-2.0-only
+format: 2
+kind: peripheral
+id: rk3588-pinctrl
+name: RK3588 pin control programming from Linux
+orientation: Hardware-only ROCK 5T V1.2 campaign. Complete GPIO0–GPIO4 threshold catalogs and source mux
+  branches; typed registers focus on UART2 m0. No driver was rebuilt or run. GPIO data/direction/interrupt
+  controller programming is outside this peripheral. Tables use IOC-relative byte offsets; no electrical
+  setting is recommended without board evidence.
+resources:
+  repos:
+  - name: linux-pinctrl
+    url: https://github.com/torvalds/linux
+    commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+    license: GPL-2.0-only
+    role: source
+    files:
+    - path: drivers/pinctrl/pinctrl-rockchip.c
+      license_from: spdx-line
+    - path: drivers/pinctrl/pinctrl-rockchip.h
+      license_from: spdx-line
+  - name: linux-binding
+    url: https://github.com/torvalds/linux
+    commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+    license: GPL-2.0-or-later
+    role: source
+    files:
+    - path: include/dt-bindings/pinctrl/rockchip.h
+      license_from: spdx-line
+  - name: linux-dts
+    url: https://github.com/torvalds/linux
+    commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+    license: GPL-2.0-or-later OR MIT
+    role: source
+    files:
+    - path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      license_from: spdx-line
+    - path: arch/arm64/boot/dts/rockchip/rk3588-base-pinctrl.dtsi
+      license_from: spdx-line
+    - path: arch/arm64/boot/dts/rockchip/rk3588-rock-5t.dts
+      license_from: spdx-line
+    - path: arch/arm64/boot/dts/rockchip/rk3588-rock-5b-5bp-5t.dtsi
+      license_from: spdx-line
+    - path: arch/arm64/boot/dts/rockchip/rockchip-pinconf.dtsi
+      license_from: spdx-line
+facts:
+- id: controller-identity
+  section: identity
+  title: Pinned RK3588 implementation
+  claim: The Linux match selects RK3588-GPIO with five banks GPIO0–GPIO4, 32 pins each, four-bit mux groups
+    and the source classification PULL_TYPE_IO_1V8_ONLY. That classification is not a measured pad supply
+    voltage.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 5236
+      - 5257
+      symbol: rk3588_pin_ctrl
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 5302
+      - 5303
+      symbol: rockchip_pinctrl_dt_match
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 307
+      - 308
+      symbol: RK3588_PIN_BANK_FLAGS
+- id: pin-numbering
+  section: identity
+  title: Bank and local pin numbering
+  claim: The binding numbers A0–A7 as 0–7, B0–B7 as 8–15, C0–C7 as 16–23 and D0–D7 as 24–31; RK_FUNC_GPIO
+    is 0. Electrical lookup global index is bank*32+local pin; the internal header lists those global
+    GPIO indices.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-binding
+      path: include/dt-bindings/pinctrl/rockchip.h
+      lines:
+      - 12
+      - 45
+      symbol: RK_PA0
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.h
+      lines:
+      - 21
+      - 181
+      symbol: RK_GPIO0_A0
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3127
+      - 3133
+      symbol: rk3588_calc_pull_reg_and_bit
+- id: ioc-dt-window
+  section: identity
+  title: Device-tree IOC window
+  claim: The pinned DT maps IOC at 0xfd5f0000 with size 0x10000 and connects rockchip,rk3588-pinctrl to
+    it through rockchip,grf. These are source mappings, not a measurement of the physical board.
+  requirement: as-implemented
+  support:
+  - class: DT
+    anchors:
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      lines:
+      - 729
+      - 732
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      lines:
+      - 3526
+      - 3529
+  critical: true
+- id: ioc-domain-offsets
+  section: gotchas
+  title: IOC domain byte offsets
+  claim: Relative to the common IOC regmap, source defines PMU1 0x0, PMU2 0x4000, BUS 0x8000, VCCIO1_4
+    0x9000, VCCIO3_5 0xa000, VCCIO2 0xb000, VCCIO6 0xc000 and EMMC 0xd000. Domain names do not establish
+    supply voltages.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3014
+      - 3021
+      symbol: RK3588_PMU1_IOC_REG
+  critical: true
+- id: mux-offset-calculation
+  section: gotchas
+  title: Mux index arithmetic
+  claim: Derived RK3588 raw mux byte offset R=32*bank+8*floor(local/8)+4*(local%8>=4); bit b=4*(local%4),
+    field mask F=15. All source groups select regmap_base. This is the closed-form specialization of the
+    pinned allocation loop and setter, before the RK3588 domain displacement.
+  requirement: as-implemented
+  support:
+  - class: inference
+    confidence: high
+    premises:
+    - fact: '#mux-allocation-observations'
+    - fact: '#pin-numbering'
+    derivation: The source defines five successive 32-pin banks and four groups per bank, each advancing
+      the shared GRF allocation counter by 8 from static initial value0. Four groups consume32 bytes,
+      so bank starts at32*bank; local/8 selects its group and contributes8*floor(local/8). The setter
+      adds4 only for local%8>=4, then uses4*(local%4) as bit and15 as mask. These flags choose regmap_base.
+      Combine these source operations to obtain the formula; this establishes software indexing only.
+  critical: true
+  todo:
+    check: source
+    text: Independently recompute the closed-form index from the pinned allocation loop and four-bit setter.
+    method: Enumerate GPIO0–GPIO4 and local pins0–31, compare loop-assigned group offsets and high-half
+      adjustment with R and b; preserve the separate hardware access-contract gap.
+  relates:
+  - fact: '#mux-allocation-observations'
+    relation: refines
+  - fact: '#pin-numbering'
+    relation: refines
+- id: mux-allocation-observations
+  section: gotchas
+  title: Direct source mux allocation observations
+  claim: RK3588_PIN_BANK_FLAGS repeats the supplied mux flag for four groups; PIN_BANK_IOMUX_FLAGS_PULL_FLAGS
+    gives each group offset -1. RK3588 defines five successive 32-pin banks with IOMUX_WIDTH_4BIT and
+    omits explicit grf_mux_offset, so that static field initializes to zero. The allocation loop starts
+    at grf_mux_offset, assigns group offsets and advances by 8 for four-bit groups. The setter adds 4
+    for local%8>=4, computes bit=(local%4)*4 and mask15, and selects regmap_base for these flags.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 150
+      - 167
+      symbol: PIN_BANK_IOMUX_FLAGS_PULL_FLAGS
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 307
+      - 308
+      symbol: RK3588_PIN_BANK_FLAGS
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 5236
+      - 5257
+      symbol: rk3588_pin_ctrl
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 4295
+      - 4354
+      symbol: rockchip_pinctrl_get_soc_data
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 1313
+      - 1345
+      symbol: rockchip_set_mux
+- id: mux-domain-branches
+  section: gotchas
+  title: RK3588 mux domain branches
+  claim: For GPIO0 local 0–11, writes use R. For GPIO0 local 12–31 and mux<8, writes use R+0x4000-0xc.
+    For those pins with mux>=8, Linux requests selector 8 at R+0x4000-0xc then the requested mux at R+0x8000,
+    OR-combining both return values without aborting between requests. GPIO1–GPIO4 add 0x8000 to R, reject
+    mux>15, then use the generic masked update path. The GPIO0 branches return before that generic range
+    check.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 1356
+      - 1397
+      symbol: rockchip_set_mux
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 1416
+      - 1420
+      symbol: rockchip_set_mux
+    - repo: linux-binding
+      path: include/dt-bindings/pinctrl/rockchip.h
+      lines:
+      - 12
+      - 43
+      symbol: RK_PB4
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 1330
+      - 1337
+      symbol: rockchip_set_mux
+  critical: true
+- id: mux-readback
+  section: gotchas
+  title: Mux readback differs from setter selection
+  claim: For GPIO0 local 12–31, Linux reads R+0x4000-0xc and tests register BIT(8), not the selected pin
+    nibble. If BIT(8) is clear it returns the selected PMU2 nibble; otherwise it reads R+0x8000. GPIO1–GPIO4
+    read R+0x8000. Therefore this getter must not be silently replaced by testing the selected nibble
+    for selector 8.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 1200
+      - 1254
+      symbol: rockchip_get_mux
+  critical: true
+- id: masked-update-intent
+  section: gotchas
+  title: High-half mask update requests
+  claim: For mux fields Linux constructs D=(15<<(b+16))|((mux&15)<<b), M=(15<<(b+16))|(15<<b), then calls
+    regmap_update_bits with M and D; GPIO0 mux>=8 uses 8 and then the unmasked mux operand in its two
+    calls. This describes request arguments, not a claim that the regmap backend emits precisely D as
+    a raw write, nor a silicon read/modify/write safety contract.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 1356
+      - 1389
+      symbol: rockchip_set_mux
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 1416
+      - 1420
+      symbol: rockchip_set_mux
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 1330
+      - 1337
+      symbol: rockchip_set_mux
+  critical: true
+- id: uart2-routes
+  section: identity
+  title: UART2 alternative groups
+  claim: The pinned pinctrl DT declares m0 RX GPIO0 B6 and TX GPIO0 B5, m1 RX GPIO4 D1 and TX GPIO4 D0,
+    m2 RX GPIO3 B2 and TX GPIO3 B1. Each uses mux 10 and references pcfg_pull_up. These alternative groups
+    do not establish which route a booted firmware applied. The referenced pcfg_pull_up configuration
+    declares bias-pull-up.
+  requirement: as-implemented
+  support:
+  - class: DT
+    anchors:
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rk3588-base-pinctrl.dtsi
+      lines:
+      - 3210
+      - 3237
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rockchip-pinconf.dtsi
+      lines:
+      - 7
+      - 10
+  critical: true
+- id: board-selects-m0
+  section: identity
+  title: ROCK 5T tree selects m0
+  claim: The ROCK 5T DT includes the shared board file; that file overrides UART2 pinctrl-0 to uart2m0_xfer
+    and enables UART2. The SoC base UART2 node instead names uart2m1_xfer and is disabled. Board V1.2
+    routing is established separately by the documents-only board fact, not by this tree.
+  requirement: as-implemented
+  relates:
+  - fact: rock5t@hardware-specs-docs#debug-console-is-uart2-m0
+    relation: qualifies
+  support:
+  - class: DT
+    anchors:
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rk3588-rock-5t.dts
+      lines:
+      - 5
+      - 5
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rk3588-rock-5b-5bp-5t.dtsi
+      lines:
+      - 976
+      - 980
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      lines:
+      - 2811
+      - 2823
+  critical: true
+- id: drive-threshold-catalog
+  section: gotchas
+  title: Drive register threshold catalog
+  claim: 'Ascending global-pin thresholds and IOC-relative byte offsets: GPIO0_A0: 0x10; GPIO0_A4: 0x14;
+    GPIO0_B0: 0x18; GPIO0_B4: 0x4014; GPIO0_C0: 0x4018; GPIO0_C4: 0x401c; GPIO0_D0: 0x4020; GPIO0_D4:
+    0x4024; GPIO1_A0: 0x9020; GPIO1_A4: 0x9024; GPIO1_B0: 0x9028; GPIO1_B4: 0x902c; GPIO1_C0: 0x9030;
+    GPIO1_C4: 0x9034; GPIO1_D0: 0x9038; GPIO1_D4: 0x903c; GPIO2_A0: 0xd040; GPIO2_A4: 0xa044; GPIO2_B0:
+    0xa048; GPIO2_B4: 0xa04c; GPIO2_C0: 0xa050; GPIO2_C4: 0xa054; GPIO2_D0: 0xd058; GPIO2_D4: 0xd05c;
+    GPIO3_A0: 0xa060; GPIO3_A4: 0xa064; GPIO3_B0: 0xa068; GPIO3_B4: 0xa06c; GPIO3_C0: 0xa070; GPIO3_C4:
+    0xa074; GPIO3_D0: 0xa078; GPIO3_D4: 0xa07c; GPIO4_A0: 0xc080; GPIO4_A4: 0xc084; GPIO4_B0: 0xc088;
+    GPIO4_B4: 0xc08c; GPIO4_C0: 0xc090; GPIO4_C2: 0xa090; GPIO4_C4: 0xa094; GPIO4_D0: 0xb098; GPIO4_D4:
+    0xb09c. Select the last threshold not greater than bank*32+local; thresholds are not necessarily group
+    boundaries.'
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3014
+      - 3021
+      symbol: RK3588_PMU1_IOC_REG
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3023
+      - 3065
+      symbol: rk3588_ds_regs
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3152
+      - 3164
+      symbol: rk3588_calc_drv_reg_and_bit
+  relates:
+  - fact: '#electrical-index-calculation'
+    relation: refines
+- id: pull-threshold-catalog
+  section: gotchas
+  title: Pull register threshold catalog
+  claim: 'Ascending global-pin thresholds and IOC-relative byte offsets: GPIO0_A0: 0x20; GPIO0_B0: 0x24;
+    GPIO0_B5: 0x4028; GPIO0_C0: 0x402c; GPIO0_D0: 0x4030; GPIO1_A0: 0x9110; GPIO1_B0: 0x9114; GPIO1_C0:
+    0x9118; GPIO1_D0: 0x911c; GPIO2_A0: 0xd120; GPIO2_A6: 0xa120; GPIO2_B0: 0xa124; GPIO2_C0: 0xa128;
+    GPIO2_D0: 0xd12c; GPIO3_A0: 0xa130; GPIO3_B0: 0xa134; GPIO3_C0: 0xa138; GPIO3_D0: 0xa13c; GPIO4_A0:
+    0xc140; GPIO4_B0: 0xc144; GPIO4_C0: 0xc148; GPIO4_C2: 0xa148; GPIO4_D0: 0xb14c. Select the last threshold
+    not greater than bank*32+local; thresholds are not necessarily group boundaries.'
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3014
+      - 3021
+      symbol: RK3588_PMU1_IOC_REG
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3067
+      - 3091
+      symbol: rk3588_p_regs
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3127
+      - 3139
+      symbol: rk3588_calc_pull_reg_and_bit
+  relates:
+  - fact: '#electrical-index-calculation'
+    relation: refines
+- id: schmitt-threshold-catalog
+  section: gotchas
+  title: Schmitt register threshold catalog
+  claim: 'Ascending global-pin thresholds and IOC-relative byte offsets: GPIO0_A0: 0x30; GPIO0_B0: 0x34;
+    GPIO0_B5: 0x4040; GPIO0_C0: 0x4044; GPIO0_D0: 0x4048; GPIO1_A0: 0x9210; GPIO1_B0: 0x9214; GPIO1_C0:
+    0x9218; GPIO1_D0: 0x921c; GPIO2_A0: 0xd220; GPIO2_A6: 0xa220; GPIO2_B0: 0xa224; GPIO2_C0: 0xa228;
+    GPIO2_D0: 0xd22c; GPIO3_A0: 0xa230; GPIO3_B0: 0xa234; GPIO3_C0: 0xa238; GPIO3_D0: 0xa23c; GPIO4_A0:
+    0xc240; GPIO4_B0: 0xc244; GPIO4_C0: 0xc248; GPIO4_C2: 0xa248; GPIO4_D0: 0xb24c. Select the last threshold
+    not greater than bank*32+local; thresholds are not necessarily group boundaries.'
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3014
+      - 3021
+      symbol: RK3588_PMU1_IOC_REG
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3093
+      - 3117
+      symbol: rk3588_smt_regs
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3178
+      - 3190
+      symbol: rk3588_calc_schmitt_reg_and_bit
+  relates:
+  - fact: '#electrical-index-calculation'
+    relation: refines
+- id: electrical-index-calculation
+  section: gotchas
+  title: Electrical register index arithmetic
+  claim: Each RK3588 calculator reverse scans its own threshold catalog using bank*32+local, returns regmap_base
+    and the catalog byte offset, or -EINVAL when no threshold matches. Pull b=2*(local%8), width2; drive
+    b=4*(local%4), width4; Schmitt b=local%8, width1. The original local pin determines the bit even across
+    split thresholds; do not subtract the selected threshold.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3119
+      - 3193
+      symbol: rk3588_calc_pull_reg_and_bit
+  critical: true
+- id: pull-encoding
+  section: gotchas
+  title: Pull codes for RK3588
+  claim: 'All RK3588 banks select the second pull table row: 0 disable, 1 pull-down, 2 disable, 3 pull-up.
+    The setter searches from code0 upward, so disable chooses0. Unsupported settings return -EINVAL. Setter
+    constructs D=(3<<(b+16))|(code<<b), M=(3<<(b+16))|(3<<b) and requests regmap_update_bits; getter masks
+    two bits and maps through the same row. This does not specify resistance.'
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.h
+      lines:
+      - 273
+      - 276
+      symbol: rockchip_pin_pull_type
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 5236
+      - 5247
+      symbol: rk3588_pin_banks
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3440
+      - 3453
+      symbol: rockchip_pull_list
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3496
+      - 3512
+      symbol: rockchip_get_pull
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3563
+      - 3600
+      symbol: rockchip_set_pull
+  critical: true
+- id: drive-encoding
+  section: gotchas
+  title: Drive is raw encoded strength
+  claim: RK3588 directly assigns strength to the four-bit field path, bypassing the generic current lookup.
+    D=(15<<(b+16))|(strength<<b), M=(15<<(b+16))|(15<<b); no masking of strength appears before this request.
+    No mA meaning or safe electrical range is established.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3290
+      - 3312
+      symbol: rockchip_set_drive_perpin
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3417
+      - 3437
+      symbol: rockchip_set_drive_perpin
+  critical: true
+- id: schmitt-encoding
+  section: gotchas
+  title: Schmitt encoded request
+  claim: 'RK3588 uses the default branch: D=(1<<(b+16))|(enable<<b), M=(1<<(b+16))|(1<<b), followed by
+    regmap_update_bits. The argument is shifted directly and is not normalized by that branch. No input
+    threshold or hysteresis voltage is established.'
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3693
+      - 3740
+      symbol: rockchip_set_schmitt
+  critical: true
+- id: console-pmu2-mux
+  section: registers
+  title: Derived UART2_M0_PMU2_SELECTOR
+  claim: Derived Linux IOC-relative mux location and TX/RX field ranges for UART2 m0 GPIO0 B5/B6. The
+    formal inference premises below identify the route, pin numbers and property-specific indexing. Offset
+    and fields describe software indexing; hardware access width, reset and reserved-bit behavior remain
+    unknown.
+  requirement: as-implemented
+  data:
+    register:
+      name: UART2_M0_PMU2_SELECTOR
+      offset: '0x4000'
+    fields:
+    - id: tx-selector
+      name: TX_SELECTOR
+      bits:
+      - 4
+      - 7
+      meaning: GPIO0 B5 TX field
+    - id: rx-selector
+      name: RX_SELECTOR
+      bits:
+      - 8
+      - 11
+      meaning: GPIO0 B6 RX field
+  support:
+  - class: inference
+    confidence: high
+    premises:
+    - fact: '#uart2-routes'
+    - fact: '#pin-numbering'
+    - fact: '#mux-allocation-observations'
+    - fact: '#mux-domain-branches'
+    - fact: '#ioc-domain-offsets'
+    derivation: For bank0 B5/B6, local13/14 lie in group1; the allocation gives group offset8, the high-half
+      selector adds4, yielding raw offset12. bit=4*(13%4)=4 for TX and4*(14%4)=8 for RX; mask15 covers
+      bits4–7 and8–11. For mux10>=8, PMU2 displacement0x4000-0xc gives12+0x4000-12=0x4000. This derives
+      only the specialization of pinned Linux request indexing, not a hardware access contract or applied
+      firmware state.
+  critical: true
+  relates:
+  - fact: '#uart2-routes'
+    relation: refines
+  - fact: '#pin-numbering'
+    relation: refines
+  - fact: '#mux-allocation-observations'
+    relation: refines
+  - fact: '#mux-domain-branches'
+    relation: refines
+  - fact: '#ioc-domain-offsets'
+    relation: refines
+  todo:
+    check: source
+    text: Independently recompute this specialization from all pinned premises and confirm the concrete
+      offsets, fields and route arguments.
+    method: Read the source allocation, threshold calculator and UART2 m0 DT group; substitute bank0 local13/14
+      and mux10, compare the typed payload and sequence request expressions. Hardware applicability remains
+      separately unresolved.
+- id: console-bus-mux
+  section: registers
+  title: Derived UART2_M0_BUS_MUX
+  claim: Derived Linux IOC-relative mux location and TX/RX field ranges for UART2 m0 GPIO0 B5/B6. The
+    formal inference premises below identify the route, pin numbers and property-specific indexing. Offset
+    and fields describe software indexing; hardware access width, reset and reserved-bit behavior remain
+    unknown.
+  requirement: as-implemented
+  data:
+    register:
+      name: UART2_M0_BUS_MUX
+      offset: '0x800c'
+    fields:
+    - id: tx-mux
+      name: TX_MUX
+      bits:
+      - 4
+      - 7
+      meaning: GPIO0 B5 TX field
+    - id: rx-mux
+      name: RX_MUX
+      bits:
+      - 8
+      - 11
+      meaning: GPIO0 B6 RX field
+  support:
+  - class: inference
+    confidence: high
+    premises:
+    - fact: '#uart2-routes'
+    - fact: '#pin-numbering'
+    - fact: '#mux-allocation-observations'
+    - fact: '#mux-domain-branches'
+    - fact: '#ioc-domain-offsets'
+    derivation: For bank0 B5/B6, local13/14 lie in group1; the allocation gives group offset8, the high-half
+      selector adds4, yielding raw offset12. bit=4*(13%4)=4 for TX and4*(14%4)=8 for RX; mask15 covers
+      bits4–7 and8–11. For mux10>=8, BUS displacement0x8000 gives12+0x8000=0x800c. This derives only the
+      specialization of pinned Linux request indexing, not a hardware access contract or applied firmware
+      state.
+  critical: true
+  relates:
+  - fact: '#uart2-routes'
+    relation: refines
+  - fact: '#pin-numbering'
+    relation: refines
+  - fact: '#mux-allocation-observations'
+    relation: refines
+  - fact: '#mux-domain-branches'
+    relation: refines
+  - fact: '#ioc-domain-offsets'
+    relation: refines
+  todo:
+    check: source
+    text: Independently recompute this specialization from all pinned premises and confirm the concrete
+      offsets, fields and route arguments.
+    method: Read the source allocation, threshold calculator and UART2 m0 DT group; substitute bank0 local13/14
+      and mux10, compare the typed payload and sequence request expressions. Hardware applicability remains
+      separately unresolved.
+- id: console-pull
+  section: registers
+  title: Derived UART2_M0_PULL
+  claim: Derived Linux IOC-relative pull location and TX/RX field ranges for UART2 m0 GPIO0 B5/B6. The
+    formal inference premises below identify the route, pin numbers and property-specific indexing. Offset
+    and fields describe software indexing; hardware access width, reset and reserved-bit behavior remain
+    unknown.
+  requirement: as-implemented
+  data:
+    register:
+      name: UART2_M0_PULL
+      offset: '0x4028'
+    fields:
+    - id: tx-pull
+      name: TX_PULL
+      bits:
+      - 10
+      - 11
+      meaning: GPIO0 B5 TX field
+    - id: rx-pull
+      name: RX_PULL
+      bits:
+      - 12
+      - 13
+      meaning: GPIO0 B6 RX field
+  support:
+  - class: inference
+    confidence: high
+    premises:
+    - fact: '#uart2-routes'
+    - fact: '#pin-numbering'
+    - fact: '#ioc-domain-offsets'
+    - fact: '#pull-threshold-catalog'
+    - fact: '#electrical-index-calculation'
+    derivation: For local13/14, reverse lookup picks global threshold GPIO0_B5 and register0x4028. b=2*(13%8)=10
+      and2*(14%8)=12; width2 gives bits10–11 and12–13. This derives only the specialization of pinned
+      Linux request indexing, not a hardware access contract or applied firmware state.
+  critical: true
+  relates:
+  - fact: '#uart2-routes'
+    relation: refines
+  - fact: '#pin-numbering'
+    relation: refines
+  - fact: '#ioc-domain-offsets'
+    relation: refines
+  - fact: '#pull-threshold-catalog'
+    relation: refines
+  - fact: '#electrical-index-calculation'
+    relation: refines
+  todo:
+    check: source
+    text: Independently recompute this specialization from all pinned premises and confirm the concrete
+      offsets, fields and route arguments.
+    method: Read the source allocation, threshold calculator and UART2 m0 DT group; substitute bank0 local13/14
+      and mux10, compare the typed payload and sequence request expressions. Hardware applicability remains
+      separately unresolved.
+- id: console-drive
+  section: registers
+  title: Derived UART2_M0_DRIVE
+  claim: Derived Linux IOC-relative drive location and TX/RX field ranges for UART2 m0 GPIO0 B5/B6. The
+    formal inference premises below identify the route, pin numbers and property-specific indexing. Offset
+    and fields describe software indexing; hardware access width, reset and reserved-bit behavior remain
+    unknown.
+  requirement: as-implemented
+  data:
+    register:
+      name: UART2_M0_DRIVE
+      offset: '0x4014'
+    fields:
+    - id: tx-drive
+      name: TX_DRIVE
+      bits:
+      - 4
+      - 7
+      meaning: GPIO0 B5 TX field
+    - id: rx-drive
+      name: RX_DRIVE
+      bits:
+      - 8
+      - 11
+      meaning: GPIO0 B6 RX field
+  support:
+  - class: inference
+    confidence: high
+    premises:
+    - fact: '#uart2-routes'
+    - fact: '#pin-numbering'
+    - fact: '#ioc-domain-offsets'
+    - fact: '#drive-threshold-catalog'
+    - fact: '#electrical-index-calculation'
+    derivation: For local13/14, reverse lookup picks global threshold GPIO0_B4 and register0x4014. b=4*(13%4)=4
+      and4*(14%4)=8; width4 gives bits4–7 and8–11. This derives only the specialization of pinned Linux
+      request indexing, not a hardware access contract or applied firmware state.
+  critical: true
+  relates:
+  - fact: '#uart2-routes'
+    relation: refines
+  - fact: '#pin-numbering'
+    relation: refines
+  - fact: '#ioc-domain-offsets'
+    relation: refines
+  - fact: '#drive-threshold-catalog'
+    relation: refines
+  - fact: '#electrical-index-calculation'
+    relation: refines
+  todo:
+    check: source
+    text: Independently recompute this specialization from all pinned premises and confirm the concrete
+      offsets, fields and route arguments.
+    method: Read the source allocation, threshold calculator and UART2 m0 DT group; substitute bank0 local13/14
+      and mux10, compare the typed payload and sequence request expressions. Hardware applicability remains
+      separately unresolved.
+- id: console-schmitt
+  section: registers
+  title: Derived UART2_M0_SCHMITT
+  claim: Derived Linux IOC-relative schmitt location and TX/RX field ranges for UART2 m0 GPIO0 B5/B6.
+    The formal inference premises below identify the route, pin numbers and property-specific indexing.
+    Offset and fields describe software indexing; hardware access width, reset and reserved-bit behavior
+    remain unknown.
+  requirement: as-implemented
+  data:
+    register:
+      name: UART2_M0_SCHMITT
+      offset: '0x4040'
+    fields:
+    - id: tx-schmitt
+      name: TX_SCHMITT
+      bits:
+      - 5
+      - 5
+      meaning: GPIO0 B5 TX field
+    - id: rx-schmitt
+      name: RX_SCHMITT
+      bits:
+      - 6
+      - 6
+      meaning: GPIO0 B6 RX field
+  support:
+  - class: inference
+    confidence: high
+    premises:
+    - fact: '#uart2-routes'
+    - fact: '#pin-numbering'
+    - fact: '#ioc-domain-offsets'
+    - fact: '#schmitt-threshold-catalog'
+    - fact: '#electrical-index-calculation'
+    derivation: For local13/14, reverse lookup picks global threshold GPIO0_B5 and register0x4040. b=13%8=5
+      and14%8=6; width1 gives bits5 and6. This derives only the specialization of pinned Linux request
+      indexing, not a hardware access contract or applied firmware state.
+  critical: true
+  relates:
+  - fact: '#uart2-routes'
+    relation: refines
+  - fact: '#pin-numbering'
+    relation: refines
+  - fact: '#ioc-domain-offsets'
+    relation: refines
+  - fact: '#schmitt-threshold-catalog'
+    relation: refines
+  - fact: '#electrical-index-calculation'
+    relation: refines
+  todo:
+    check: source
+    text: Independently recompute this specialization from all pinned premises and confirm the concrete
+      offsets, fields and route arguments.
+    method: Read the source allocation, threshold calculator and UART2 m0 DT group; substitute bank0 local13/14
+      and mux10, compare the typed payload and sequence request expressions. Hardware applicability remains
+      separately unresolved.
+- id: console-mux-sequence
+  section: sequences
+  title: Linux m0 mux request sequence
+  claim: 'Derived UART2 m0 specialization of the Linux mux request sequence: PMU2 selector8 precedes BUS
+    mux10 for TX GPIO0 B5 and RX GPIO0 B6, with the concrete indexed request arguments recorded in the
+    steps. Both requests occur even if the first fails. This is a source-derived specialization, not a
+    hardware-required sequence.'
+  requirement: as-implemented
+  data:
+    sequence:
+      steps:
+      - id: select-pmu2
+        action: 'For GPIO0 B5 b=4 or B6 b=8: at IOC offset0x4000 request M=(15<<(b+16))|(15<<b), D=(15<<(b+16))|(8<<b).'
+      - id: select-bus
+        action: At IOC offset0x800c request the same M and D=(15<<(b+16))|(10<<b); OR the second return
+          value into the first.
+  support:
+  - class: inference
+    confidence: high
+    premises:
+    - fact: '#uart2-routes'
+    - fact: '#pin-numbering'
+    - fact: '#mux-allocation-observations'
+    - fact: '#mux-domain-branches'
+    - fact: '#masked-update-intent'
+    - fact: '#console-pmu2-mux'
+    - fact: '#console-bus-mux'
+    derivation: uart2-routes supplies m0 mux10, TX B5 and RX B6; pin-numbering gives local13/14. The mux
+      allocation and derived register facts give PMU2 offset0x4000 and BUS offset0x800c with b4/8. Since10>=8,
+      mux-domain-branches selects PMU2 selector8 then BUS mux10 without aborting between requests; masked-update-intent
+      gives the request masks and values in the steps. This derives only the specialization of pinned
+      Linux request indexing, not a hardware access contract or applied firmware state.
+  critical: true
+  todo:
+    check: source
+    text: Independently recompute this specialization from all pinned premises and confirm the concrete
+      offsets, fields and route arguments.
+    method: Read the source allocation, threshold calculator and UART2 m0 DT group; substitute bank0 local13/14
+      and mux10, compare the typed payload and sequence request expressions. Hardware applicability remains
+      separately unresolved.
+  relates:
+  - fact: '#uart2-routes'
+    relation: refines
+  - fact: '#pin-numbering'
+    relation: refines
+  - fact: '#mux-allocation-observations'
+    relation: refines
+  - fact: '#mux-domain-branches'
+    relation: refines
+  - fact: '#masked-update-intent'
+    relation: refines
+  - fact: '#console-pmu2-mux'
+    relation: refines
+  - fact: '#console-bus-mux'
+    relation: refines
+- id: electrical-update-sequence
+  section: sequences
+  title: Linux electrical update sequence
+  claim: The helpers first calculate the property register/bit, returning calculation errors, then encode
+    and request its masked update. Select only settings with established board electrical suitability;
+    the source request is not that suitability evidence.
+  requirement: as-implemented
+  data:
+    sequence:
+      steps:
+      - id: calculate
+        action: Use the property-specific threshold catalog and original local pin modulo rule.
+      - id: encode
+        action: Choose the pull table code, raw four-bit drive strength, or Schmitt enable argument according
+          to the corresponding encoding fact.
+      - id: request
+        action: Request regmap_update_bits with the property-specific high-half mask and low-half value;
+          return its result.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3305
+      - 3312
+      symbol: rockchip_set_drive_perpin
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3430
+      - 3437
+      symbol: rockchip_set_drive_perpin
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3538
+      - 3540
+      symbol: rockchip_set_pull
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3563
+      - 3600
+      symbol: rockchip_set_pull
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3707
+      - 3740
+      symbol: rockchip_set_schmitt
+- id: gpio-input-output-sequence
+  section: sequences
+  title: GPIO input and output dispatch
+  claim: Linux pinconf input-enable sets mux RK_FUNC_GPIO then calls the GPIO direction_input callback.
+    Level config sets GPIO mux then calls direction_output with arg. For either config, the performing
+    guard !gpio || !gpio->direction_output defers it under bank->deferred_lock. This does not specify
+    GPIO controller registers.
+  requirement: as-implemented
+  data:
+    sequence:
+      steps:
+      - id: defer-if-needed
+        action: For PIN_CONFIG_LEVEL or PIN_CONFIG_INPUT_ENABLE, under bank->deferred_lock, defer the
+          configuration when !gpio or !gpio->direction_output; this guard checks direction_output even
+          for input-enable.
+      - id: gpio-mux
+        action: Request GPIO function0; the source rejects a nonzero setter result as -EINVAL.
+      - id: direction
+        action: Dispatch input-enable to direction_input; dispatch level to direction_output with arg
+          and propagate callback errors.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3900
+      - 3911
+      symbol: rockchip_pinconf_set
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3936
+      - 3957
+      symbol: rockchip_pinconf_set
+- id: mux-errors-and-recovery
+  section: gotchas
+  title: Group mux failure recovery
+  claim: The setter verifies the group and rejects unrouted pins or a non-GPIO choice on a GPIO-only group.
+    Group set_mux iterates pins; on an error it tries to set previously changed pins to GPIO function0
+    rather than restoring their original functions. This recovery is a source choice, not board-safe rollback.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 1255
+      - 1278
+      symbol: rockchip_verify_mux
+    - repo: linux-pinctrl
+      path: drivers/pinctrl/pinctrl-rockchip.c
+      lines:
+      - 3770
+      - 3808
+      symbol: rockchip_pmx_set
+  critical: true
+- id: hardware-access-contract
+  section: open-questions
+  title: Hardware access contract remains open
+  claim: Public admissible evidence has not established register access widths, read side effects, reset
+    values, reserved-bit behavior, high-half write-mask silicon contract, barriers or hardware-required
+    inter-domain ordering. Linux requests alone cannot make raw writes implementation-ready.
+  todo:
+    check: document
+    text: Public admissible evidence has not established register access widths, read side effects, reset
+      values, reserved-bit behavior, high-half write-mask silicon contract, barriers or hardware-required
+      inter-domain ordering. Linux requests alone cannot make raw writes implementation-ready.
+    method: Obtain admissible public documentation or record a controlled board observation with board
+      revision, firmware identity, conditions and readback.
+- id: board-electrical-and-ownership
+  section: open-questions
+  title: Electrical settings and pin ownership remain open
+  claim: Actual pad voltage and rail configuration, pull resistance, legal drive encodings/current, Schmitt
+    thresholds, register access permissions, firmware ownership and a free GPIO header example remain
+    unestablished. Published board GPIO voltage ratings do not establish these settings or ownership;
+    do not infer actual voltage from a Linux enum name or assume a header pin is unused.
+  todo:
+    check: hardware
+    text: Establish actual pad voltage and rail configuration, pull resistance, legal drive encodings/current,
+      Schmitt thresholds, register access permissions and pin ownership before selecting electrical settings
+      or a free GPIO example; published board voltage ratings alone do not establish them.
+    method: Obtain admissible public documentation or record a controlled board observation with board
+      revision, firmware identity, conditions and readback.
+- id: firmware-state
+  section: open-questions
+  title: Actual firmware mux state remains open
+  claim: The selected board DT and alternative mux groups do not prove actual loaded firmware, board revision,
+    console mux or electrical state at entry. Verify before preserving or changing firmware pin configuration.
+  todo:
+    check: hardware
+    text: The selected board DT and alternative mux groups do not prove actual loaded firmware, board
+      revision, console mux or electrical state at entry. Verify before preserving or changing firmware
+      pin configuration.
+    method: Obtain admissible public documentation or record a controlled board observation with board
+      revision, firmware identity, conditions and readback.
+- id: target-integration
+  section: target
+  title: Target OS integration is intentionally unresolved
+  claim: Hardware-only scope selects no target OS. Binding, ownership, serialization, error propagation,
+    pin state lifecycle and power-management integration must be specified after the OS is chosen.
+  todo:
+    check: source
+    text: Hardware-only scope selects no target OS. Binding, ownership, serialization, error propagation,
+      pin state lifecycle and power-management integration must be specified after the OS is chosen.
+    method: Select target OS, pin its source, identify its pin-control and GPIO interfaces, and independently
+      verify integration and handoff behavior.

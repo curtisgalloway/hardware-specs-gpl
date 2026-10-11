@@ -1,0 +1,1316 @@
+# SPDX-FileCopyrightText: 2026 contributors
+# SPDX-License-Identifier: GPL-2.0-only
+format: 2
+kind: peripheral
+id: rk3588-gpio
+name: 'RK3588 GPIO: conditional Linux GPIOv2 programming model'
+orientation: Hardware-only scope for standard Radxa ROCK 5T V1.2. This source description is conditional
+  on runtime version detection; it does not establish actual silicon applicability or provide an implementation-ready
+  board recipe. Industrial revisions and other boards are outside scope. No board pin is assumed available.
+  The v1 branch is bounded context; all typed registers describe v2 definitions.
+resources:
+  repos:
+  - name: linux-gpio
+    url: https://github.com/torvalds/linux
+    commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+    license: GPL-2.0-only
+    role: source
+    status: merged
+    files:
+    - path: drivers/gpio/gpio-rockchip.c
+      license_from: spdx-line
+    - path: drivers/pinctrl/pinctrl-rockchip.h
+      license_from: spdx-line
+    - path: Documentation/devicetree/bindings/gpio/rockchip,gpio-bank.yaml
+      license_from: spdx-line
+    - path: kernel/irq/generic-chip.c
+      license_from: spdx-line
+    - path: include/linux/irq.h
+      license_from: spdx-line
+  - name: linux-dts
+    url: https://github.com/torvalds/linux
+    commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+    license: GPL-2.0-or-later OR MIT
+    role: source
+    status: merged
+    files:
+    - path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      license_from: spdx-line
+facts:
+- id: version-selection
+  section: identity
+  claim: Linux reads VERSION_ID at offset 0x78 after obtaining an enabled first clock. Exactly 0x01000c2b,
+    0x0101157c and 0x010219c8 select gpio_regs_v2 and normalize gpio_type to GPIO_TYPE_V2. ID zero selects
+    gpio_regs_v1; every other ID returns -ENODEV. The v2 map and split helpers below apply only to the
+    three recognized nonzero IDs, not merely to the compatible string.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 34
+      - 37
+      symbol: GPIO_TYPE_V1
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 53
+      - 69
+      symbol: gpio_regs_v2
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 666
+      - 695
+      symbol: rockchip_get_bank_data
+  critical: true
+- id: bank-map
+  section: identity
+  claim: The pinned RK3588 device tree declares GPIO0 at 0xfd8a0000, GPIO1 at 0xfec20000, GPIO2 at 0xfec30000,
+    GPIO3 at 0xfec40000 and GPIO4 at 0xfec50000; each window is 0x100 bytes. The respective interrupt
+    tuples are GIC_SPI 277, 278, 279, 280 and 281, IRQ_TYPE_LEVEL_HIGH, trailing cell zero. These are
+    source declarations, not measured placement or architectural INTIDs. Each bank maps local pins 0..31
+    into pinctrl ranges starting 0, 32, 64, 96 and 128; clocks are first PCLK_GPIO0..4 and second DBCLK_GPIO0..4.
+  requirement: as-implemented
+  support:
+  - class: DT
+    anchors:
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      lines:
+      - 3533
+      - 3591
+      symbol: gpio0
+  critical: true
+- id: binding-clock-order
+  section: identity
+  claim: The Linux GPIO-bank binding permits rockchip,gpio-bank and rockchip,rk3188-gpio-bank0. It describes
+    clocks in order as APB interface and optional GPIO debounce reference clock, one register resource
+    and one interrupt. GPIO and interrupt cell counts are both two. This binding does not identify an
+    actual silicon register revision.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: Documentation/devicetree/bindings/gpio/rockchip,gpio-bank.yaml
+      lines:
+      - 12
+      - 47
+      symbol: properties
+- id: v2-port-dr
+  section: registers
+  claim: Linux gpio_regs_v2 defines port_dr at this offset, conditional on version-selection. Width, access
+    side effects and reset defaults are not established by the definition.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 54
+      - 54
+      symbol: gpio_regs_v2
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 71
+      - 137
+      symbol: gpio_writel_v2
+  critical: true
+  data:
+    register:
+      name: port_dr
+      offset: '0x0'
+    fields:
+    - id: half-data
+      name: half_data
+      bits:
+      - 0
+      - 15
+      meaning: In a v2 write word, these are value bits for pins 0..15 at the logical offset or 16..31
+        at offset+4. Linux whole-register writes supply all 16; single-pin writes set only the selected
+        bit when value is nonzero.
+    - id: half-mask
+      name: half_write_mask
+      bits:
+      - 16
+      - 31
+      meaning: Linux v2 writes set a mask bit here to select the corresponding lower-half bit for update;
+        single-pin clear writes only that mask bit, whereas set writes mask and data. The upper half is
+        not a second group of pin values in this write word.
+  relates:
+  - fact: '#version-selection'
+    relation: qualifies
+- id: v2-port-ddr
+  section: registers
+  claim: Linux gpio_regs_v2 defines port_ddr at this offset, conditional on version-selection. Width,
+    access side effects and reset defaults are not established by the definition.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 55
+      - 55
+      symbol: gpio_regs_v2
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 71
+      - 137
+      symbol: gpio_writel_v2
+  critical: true
+  data:
+    register:
+      name: port_ddr
+      offset: '0x8'
+    fields:
+    - id: half-data
+      name: half_data
+      bits:
+      - 0
+      - 15
+      meaning: In a v2 write word, these are value bits for pins 0..15 at the logical offset or 16..31
+        at offset+4. Linux whole-register writes supply all 16; single-pin writes set only the selected
+        bit when value is nonzero.
+    - id: half-mask
+      name: half_write_mask
+      bits:
+      - 16
+      - 31
+      meaning: Linux v2 writes set a mask bit here to select the corresponding lower-half bit for update;
+        single-pin clear writes only that mask bit, whereas set writes mask and data. The upper half is
+        not a second group of pin values in this write word.
+  relates:
+  - fact: '#version-selection'
+    relation: qualifies
+- id: v2-int-en
+  section: registers
+  claim: Linux gpio_regs_v2 defines int_en at this offset, conditional on version-selection. Width, access
+    side effects and reset defaults are not established by the definition.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 56
+      - 56
+      symbol: gpio_regs_v2
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 71
+      - 137
+      symbol: gpio_writel_v2
+  critical: true
+  data:
+    register:
+      name: int_en
+      offset: '0x10'
+    fields:
+    - id: half-data
+      name: half_data
+      bits:
+      - 0
+      - 15
+      meaning: In a v2 write word, these are value bits for pins 0..15 at the logical offset or 16..31
+        at offset+4. Linux whole-register writes supply all 16; single-pin writes set only the selected
+        bit when value is nonzero.
+    - id: half-mask
+      name: half_write_mask
+      bits:
+      - 16
+      - 31
+      meaning: Linux v2 writes set a mask bit here to select the corresponding lower-half bit for update;
+        single-pin clear writes only that mask bit, whereas set writes mask and data. The upper half is
+        not a second group of pin values in this write word.
+  relates:
+  - fact: '#version-selection'
+    relation: qualifies
+- id: v2-int-mask
+  section: registers
+  claim: Linux gpio_regs_v2 defines int_mask at this offset, conditional on version-selection. Width,
+    access side effects and reset defaults are not established by the definition.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 57
+      - 57
+      symbol: gpio_regs_v2
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 71
+      - 137
+      symbol: gpio_writel_v2
+  critical: true
+  data:
+    register:
+      name: int_mask
+      offset: '0x18'
+    fields:
+    - id: half-data
+      name: half_data
+      bits:
+      - 0
+      - 15
+      meaning: In a v2 write word, these are value bits for pins 0..15 at the logical offset or 16..31
+        at offset+4. Linux whole-register writes supply all 16; single-pin writes set only the selected
+        bit when value is nonzero.
+    - id: half-mask
+      name: half_write_mask
+      bits:
+      - 16
+      - 31
+      meaning: Linux v2 writes set a mask bit here to select the corresponding lower-half bit for update;
+        single-pin clear writes only that mask bit, whereas set writes mask and data. The upper half is
+        not a second group of pin values in this write word.
+  relates:
+  - fact: '#version-selection'
+    relation: qualifies
+- id: v2-int-type
+  section: registers
+  claim: Linux gpio_regs_v2 defines int_type at this offset, conditional on version-selection. Width,
+    access side effects and reset defaults are not established by the definition.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 58
+      - 58
+      symbol: gpio_regs_v2
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 71
+      - 137
+      symbol: gpio_writel_v2
+  critical: true
+  data:
+    register:
+      name: int_type
+      offset: '0x20'
+    fields:
+    - id: half-data
+      name: half_data
+      bits:
+      - 0
+      - 15
+      meaning: In a v2 write word, these are value bits for pins 0..15 at the logical offset or 16..31
+        at offset+4. Linux whole-register writes supply all 16; single-pin writes set only the selected
+        bit when value is nonzero.
+    - id: half-mask
+      name: half_write_mask
+      bits:
+      - 16
+      - 31
+      meaning: Linux v2 writes set a mask bit here to select the corresponding lower-half bit for update;
+        single-pin clear writes only that mask bit, whereas set writes mask and data. The upper half is
+        not a second group of pin values in this write word.
+  relates:
+  - fact: '#version-selection'
+    relation: qualifies
+- id: v2-int-polarity
+  section: registers
+  claim: Linux gpio_regs_v2 defines int_polarity at this offset, conditional on version-selection. Width,
+    access side effects and reset defaults are not established by the definition.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 59
+      - 59
+      symbol: gpio_regs_v2
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 71
+      - 137
+      symbol: gpio_writel_v2
+  critical: true
+  data:
+    register:
+      name: int_polarity
+      offset: '0x28'
+    fields:
+    - id: half-data
+      name: half_data
+      bits:
+      - 0
+      - 15
+      meaning: In a v2 write word, these are value bits for pins 0..15 at the logical offset or 16..31
+        at offset+4. Linux whole-register writes supply all 16; single-pin writes set only the selected
+        bit when value is nonzero.
+    - id: half-mask
+      name: half_write_mask
+      bits:
+      - 16
+      - 31
+      meaning: Linux v2 writes set a mask bit here to select the corresponding lower-half bit for update;
+        single-pin clear writes only that mask bit, whereas set writes mask and data. The upper half is
+        not a second group of pin values in this write word.
+  relates:
+  - fact: '#version-selection'
+    relation: qualifies
+- id: v2-int-bothedge
+  section: registers
+  claim: Linux gpio_regs_v2 defines int_bothedge at this offset, conditional on version-selection. Width,
+    access side effects and reset defaults are not established by the definition.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 60
+      - 60
+      symbol: gpio_regs_v2
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 71
+      - 137
+      symbol: gpio_writel_v2
+  critical: true
+  data:
+    register:
+      name: int_bothedge
+      offset: '0x30'
+    fields:
+    - id: half-data
+      name: half_data
+      bits:
+      - 0
+      - 15
+      meaning: In a v2 write word, these are value bits for pins 0..15 at the logical offset or 16..31
+        at offset+4. Linux whole-register writes supply all 16; single-pin writes set only the selected
+        bit when value is nonzero.
+    - id: half-mask
+      name: half_write_mask
+      bits:
+      - 16
+      - 31
+      meaning: Linux v2 writes set a mask bit here to select the corresponding lower-half bit for update;
+        single-pin clear writes only that mask bit, whereas set writes mask and data. The upper half is
+        not a second group of pin values in this write word.
+  relates:
+  - fact: '#version-selection'
+    relation: qualifies
+- id: v2-debounce
+  section: registers
+  claim: Linux gpio_regs_v2 defines debounce at this offset, conditional on version-selection. Width,
+    access side effects and reset defaults are not established by the definition.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 63
+      - 63
+      symbol: gpio_regs_v2
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 71
+      - 137
+      symbol: gpio_writel_v2
+  critical: true
+  data:
+    register:
+      name: debounce
+      offset: '0x38'
+    fields:
+    - id: half-data
+      name: half_data
+      bits:
+      - 0
+      - 15
+      meaning: In a v2 write word, these are value bits for pins 0..15 at the logical offset or 16..31
+        at offset+4. Linux whole-register writes supply all 16; single-pin writes set only the selected
+        bit when value is nonzero.
+    - id: half-mask
+      name: half_write_mask
+      bits:
+      - 16
+      - 31
+      meaning: Linux v2 writes set a mask bit here to select the corresponding lower-half bit for update;
+        single-pin clear writes only that mask bit, whereas set writes mask and data. The upper half is
+        not a second group of pin values in this write word.
+  relates:
+  - fact: '#version-selection'
+    relation: qualifies
+- id: v2-dbclk-div-en
+  section: registers
+  claim: Linux gpio_regs_v2 defines dbclk_div_en at this offset, conditional on version-selection. Width,
+    access side effects and reset defaults are not established by the definition.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 64
+      - 64
+      symbol: gpio_regs_v2
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 71
+      - 137
+      symbol: gpio_writel_v2
+  critical: true
+  data:
+    register:
+      name: dbclk_div_en
+      offset: '0x40'
+    fields:
+    - id: half-data
+      name: half_data
+      bits:
+      - 0
+      - 15
+      meaning: In a v2 write word, these are value bits for pins 0..15 at the logical offset or 16..31
+        at offset+4. Linux whole-register writes supply all 16; single-pin writes set only the selected
+        bit when value is nonzero.
+    - id: half-mask
+      name: half_write_mask
+      bits:
+      - 16
+      - 31
+      meaning: Linux v2 writes set a mask bit here to select the corresponding lower-half bit for update;
+        single-pin clear writes only that mask bit, whereas set writes mask and data. The upper half is
+        not a second group of pin values in this write word.
+  relates:
+  - fact: '#version-selection'
+    relation: qualifies
+- id: v2-dbclk-div-con
+  section: registers
+  claim: Linux gpio_regs_v2 defines dbclk_div_con at this offset, conditional on version-selection. Width,
+    access side effects and reset defaults are not established by the definition.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 65
+      - 65
+      symbol: gpio_regs_v2
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 209
+      - 234
+      symbol: rockchip_gpio_set_debounce
+  critical: true
+  data:
+    register:
+      name: dbclk_div_con
+      offset: '0x48'
+    fields:
+    - id: divider-limit
+      name: divider_limit
+      bits:
+      - 0
+      - 23
+      meaning: Linux uses GENMASK(23,0) in its maximum supported debounce calculation; it directly reads/writes
+        dbclk_div_con rather than applying the v2 split helper. This does not establish hardware width
+        or reserved-bit behavior.
+  relates:
+  - fact: '#version-selection'
+    relation: qualifies
+- id: v2-int-status
+  section: registers
+  claim: Linux gpio_regs_v2 defines int_status at this offset, conditional on version-selection. Width,
+    access side effects and reset defaults are not established by the definition.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 61
+      - 61
+      symbol: gpio_regs_v2
+  critical: true
+  data:
+    register:
+      name: int_status
+      offset: '0x50'
+  relates:
+  - fact: '#version-selection'
+    relation: qualifies
+- id: v2-int-rawstatus
+  section: registers
+  claim: Linux gpio_regs_v2 defines int_rawstatus at this offset, conditional on version-selection. Width,
+    access side effects and reset defaults are not established by the definition.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 62
+      - 62
+      symbol: gpio_regs_v2
+  critical: true
+  data:
+    register:
+      name: int_rawstatus
+      offset: '0x58'
+  relates:
+  - fact: '#version-selection'
+    relation: qualifies
+- id: v2-port-eoi
+  section: registers
+  claim: Linux gpio_regs_v2 defines port_eoi at this offset, conditional on version-selection. Width,
+    access side effects and reset defaults are not established by the definition.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 66
+      - 66
+      symbol: gpio_regs_v2
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 71
+      - 137
+      symbol: gpio_writel_v2
+  critical: true
+  data:
+    register:
+      name: port_eoi
+      offset: '0x60'
+    fields:
+    - id: half-data
+      name: half_data
+      bits:
+      - 0
+      - 15
+      meaning: In a v2 write word, these are value bits for pins 0..15 at the logical offset or 16..31
+        at offset+4. Linux whole-register writes supply all 16; single-pin writes set only the selected
+        bit when value is nonzero.
+    - id: half-mask
+      name: half_write_mask
+      bits:
+      - 16
+      - 31
+      meaning: Linux v2 writes set a mask bit here to select the corresponding lower-half bit for update;
+        single-pin clear writes only that mask bit, whereas set writes mask and data. The upper half is
+        not a second group of pin values in this write word.
+  relates:
+  - fact: '#version-selection'
+    relation: qualifies
+- id: v2-ext-port
+  section: registers
+  claim: Linux gpio_regs_v2 defines ext_port at this offset, conditional on version-selection. Width,
+    access side effects and reset defaults are not established by the definition.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 67
+      - 67
+      symbol: gpio_regs_v2
+  critical: true
+  data:
+    register:
+      name: ext_port
+      offset: '0x70'
+  relates:
+  - fact: '#version-selection'
+    relation: qualifies
+- id: v2-version-id
+  section: registers
+  claim: Linux gpio_regs_v2 defines version_id at this offset, conditional on version-selection. Width,
+    access side effects and reset defaults are not established by the definition.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 68
+      - 68
+      symbol: gpio_regs_v2
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 670
+      - 695
+      symbol: rockchip_get_bank_data
+  critical: true
+  data:
+    register:
+      name: version_id
+      offset: '0x78'
+  relates:
+  - fact: '#version-selection'
+    relation: qualifies
+- id: split-access
+  section: gotchas
+  claim: For GPIO_TYPE_V2 the whole logical write emits (value & 0xffff) | 0xffff0000 at r, then (value
+    >> 16) | 0xffff0000 at r+4. For pin p, the bit helper uses r+4 only when p>=16; mask is BIT(p%16+16),
+    with BIT(p%16) included only for a nonzero value. A clear therefore emits a mask-only word, not zero.
+    The logical read computes (readl(r+4)<<16) | readl(r); the implementation does not mask either read
+    to 16 bits. Its use treats lower halves as the two pin groups, but upper-half read behavior remains
+    a hardware gap. Other gpio_type values use single-word reads/writes and read-modify-write for a bit.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 71
+      - 137
+      symbol: gpio_writel_v2
+  critical: true
+- id: v1-boundary
+  section: gotchas
+  claim: 'ID zero uses the separate v1 table: port_dr 0x0, port_ddr 0x4, int_en 0x30, int_mask 0x34, int_type
+    0x38, int_polarity 0x3c, int_status 0x40, int_rawstatus 0x44, debounce 0x48, port_eoi 0x4c and ext_port
+    0x50. V1 has no v2 both-edge/divider/version entries in that table. This spec does not provide a typed
+    v1 map or claim v1 applies to RK3588; zero detection is only the Linux branch boundary.'
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 34
+      - 34
+      symbol: GPIO_TYPE_V1
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 39
+      - 51
+      symbol: gpio_regs_v1
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 689
+      - 695
+      symbol: rockchip_get_bank_data
+  critical: true
+- id: direction-and-data
+  section: sequences
+  claim: Linux sets output data before selecting output direction. Its direction bit value is zero for
+    input and one for output. Input sampling reads ext_port directly as one 32-bit word, shifts by pin
+    offset and masks bit zero; it does not use the split read helper.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 139
+      - 196
+      symbol: rockchip_gpio_get_direction
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 259
+      - 271
+      symbol: rockchip_gpio_direction_output
+  critical: true
+  data:
+    sequence:
+      steps:
+      - id: output-value
+        action: Call the port_dr bit setter for the requested output value under the bank spinlock.
+      - id: output-direction
+        action: Then call the port_ddr bit setter with one, under the bank spinlock.
+      - id: input-alternative
+        action: For input instead, write zero to the port_ddr bit; get_direction reports zero as input
+          and nonzero as output.
+      - id: input-sample
+        action: Read ext_port directly, shift by the requested pin offset and return bit zero.
+      order:
+      - before: output-value
+        after: output-direction
+        requirement: as-implemented
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gpio
+            path: drivers/gpio/gpio-rockchip.c
+            lines:
+            - 139
+            - 196
+            symbol: rockchip_gpio_get_direction
+          - repo: linux-gpio
+            path: drivers/gpio/gpio-rockchip.c
+            lines:
+            - 259
+            - 271
+            symbol: rockchip_gpio_direction_output
+- id: bank-setup
+  section: sequences
+  claim: Linux probe waits for its parent pinctrl device, finds the bank by GPIO alias (or fallback enumeration),
+    maps the bank resource and IRQ, obtains its enabled first clock, then identifies register revision.
+    V2 also acquires the second clock and installs a managed clk_put action; this acquisition alone does
+    not enable debounce.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 648
+      - 698
+      symbol: rockchip_get_bank_data
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 720
+      - 797
+      symbol: rockchip_gpio_probe
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 519
+      - 574
+      symbol: rockchip_interrupts_register
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 577
+      - 638
+      symbol: rockchip_gpiolib_register
+  critical: true
+  data:
+    sequence:
+      steps:
+      - id: parent
+        action: Require a parent node and available pinctrl device; absence of the latter returns -EPROBE_DEFER.
+      - id: bank
+        action: Resolve GPIO alias or fallback bank ID and initialize its spinlock.
+      - id: resources
+        action: Translate and map resource zero, map interrupt zero, and obtain the enabled first clock;
+          failures return before the VERSION read.
+      - id: revision
+        action: Read offset 0x78 and select the supported revision branch; v2 acquires clock index one
+          and registers a managed release action.
+      - id: register
+        action: Under deferred_lock register the GPIO chip and IRQ domain, then apply deferred output/input
+          settings and free their entries.
+      order:
+      - before: parent
+        after: bank
+        requirement: as-implemented
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gpio
+            path: drivers/gpio/gpio-rockchip.c
+            lines:
+            - 648
+            - 698
+            symbol: rockchip_get_bank_data
+          - repo: linux-gpio
+            path: drivers/gpio/gpio-rockchip.c
+            lines:
+            - 720
+            - 797
+            symbol: rockchip_gpio_probe
+      - before: bank
+        after: resources
+        requirement: as-implemented
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gpio
+            path: drivers/gpio/gpio-rockchip.c
+            lines:
+            - 648
+            - 698
+            symbol: rockchip_get_bank_data
+          - repo: linux-gpio
+            path: drivers/gpio/gpio-rockchip.c
+            lines:
+            - 720
+            - 797
+            symbol: rockchip_gpio_probe
+      - before: resources
+        after: revision
+        requirement: as-implemented
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gpio
+            path: drivers/gpio/gpio-rockchip.c
+            lines:
+            - 648
+            - 698
+            symbol: rockchip_get_bank_data
+          - repo: linux-gpio
+            path: drivers/gpio/gpio-rockchip.c
+            lines:
+            - 720
+            - 797
+            symbol: rockchip_gpio_probe
+      - before: revision
+        after: register
+        requirement: as-implemented
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gpio
+            path: drivers/gpio/gpio-rockchip.c
+            lines:
+            - 648
+            - 698
+            symbol: rockchip_get_bank_data
+          - repo: linux-gpio
+            path: drivers/gpio/gpio-rockchip.c
+            lines:
+            - 720
+            - 797
+            symbol: rockchip_gpio_probe
+- id: interrupt-initialization
+  section: sequences
+  claim: Linux IRQ registration chooses v2 split register callbacks only for GPIO_TYPE_V2, uses int_mask
+    for masking and port_eoi for acknowledgement, then writes all mask bits, all EOI bits and all enable
+    bits in that order. This is driver policy, not a hardware reset state or a proven mandatory hardware
+    order.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 519
+      - 572
+      symbol: rockchip_interrupts_register
+  critical: true
+  data:
+    sequence:
+      steps:
+      - id: callbacks
+        action: Create a 32-line domain and generic chip, then assign register dispatch, mask/ack offsets
+          and callbacks.
+      - id: mask-all
+        action: Write 0xffffffff to int_mask using the revision-dependent helper.
+      - id: ack-all
+        action: Write 0xffffffff to port_eoi using that helper; this is an acknowledgement operation intended
+          to discard pending events.
+      - id: enable-all
+        action: Write 0xffffffff to int_en, set the mask cache to all ones and attach the chained bank
+          handler.
+      order:
+      - before: callbacks
+        after: mask-all
+        requirement: as-implemented
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gpio
+            path: drivers/gpio/gpio-rockchip.c
+            lines:
+            - 519
+            - 572
+            symbol: rockchip_interrupts_register
+      - before: mask-all
+        after: ack-all
+        requirement: as-implemented
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gpio
+            path: drivers/gpio/gpio-rockchip.c
+            lines:
+            - 519
+            - 572
+            symbol: rockchip_interrupts_register
+      - before: ack-all
+        after: enable-all
+        requirement: as-implemented
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gpio
+            path: drivers/gpio/gpio-rockchip.c
+            lines:
+            - 519
+            - 572
+            symbol: rockchip_interrupts_register
+- id: interrupt-mask-ack
+  section: interrupts
+  claim: 'The assigned generic mask callback ORs the requested mask into the cache and writes the full
+    cache; unmask clears those bits and writes the full cache. The assigned acknowledgement callback writes
+    d->mask to port_eoi without reading EOI first. irq_reg_writel dispatches through gc->reg_writel when
+    set; Linux selects gpio_writel_v2 for v2, so acknowledgement emits both physical halves with all update
+    masks, setting data only for requested pending bits. Do not interpret write-mask clearing as interrupt
+    acknowledgement: acknowledgement data contains ones. These are the driver operations; hardware W1C
+    side effects and race behavior require validation.'
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 539
+      - 550
+      symbol: rockchip_interrupts_register
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 71
+      - 75
+      symbol: gpio_writel_v2
+    - repo: linux-gpio
+      path: kernel/irq/generic-chip.c
+      lines:
+      - 56
+      - 118
+      symbol: irq_gc_mask_set_bit
+    - repo: linux-gpio
+      path: include/linux/irq.h
+      lines:
+      - 1229
+      - 1236
+      symbol: irq_reg_writel
+  critical: true
+- id: interrupt-type
+  section: sequences
+  claim: Linux first forces the selected GPIO direction to input. V2 both-edge sets the int_bothedge bit
+    and jumps past int_type/int_polarity writes. For other types v2 first clears int_bothedge. Rising
+    sets type/polarity 1/1, falling 1/0, high level 0/1, low level 0/0. Invalid types return -EINVAL after
+    the preceding input-direction and both-edge changes; the callback is not transactional.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 385
+      - 467
+      symbol: rockchip_irq_set_type
+  critical: true
+  data:
+    sequence:
+      steps:
+      - id: input
+        action: Write zero to the selected port_ddr bit.
+      - id: read-config
+        action: Read logical int_type and int_polarity under lock.
+      - id: both-edge
+        action: For v2 both-edge set int_bothedge and return via out; otherwise clear it before selecting
+          single-edge/level configuration.
+      - id: single-type
+        action: For a supported single type update the bit pair, write int_type then int_polarity; on
+          an unsupported type exit with -EINVAL without these two writes.
+      order:
+      - before: input
+        after: read-config
+        requirement: as-implemented
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gpio
+            path: drivers/gpio/gpio-rockchip.c
+            lines:
+            - 385
+            - 467
+            symbol: rockchip_irq_set_type
+      - before: read-config
+        after: both-edge
+        requirement: as-implemented
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gpio
+            path: drivers/gpio/gpio-rockchip.c
+            lines:
+            - 385
+            - 467
+            symbol: rockchip_irq_set_type
+- id: interrupt-status-demux
+  section: interrupts
+  claim: The bank handler reads int_status directly with readl_relaxed, scans up to 32 pending bits and
+    calls generic_handle_domain_irq for each before chained_irq_exit. It does not use the split helper
+    for status or read int_rawstatus here. V1 both-edge instead sets toggle_edge_mode, reads external
+    level and adjusts polarity; the demux repeats that adjustment until the observed input bit is stable.
+    This software toggling branch is distinct from v2 int_bothedge.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 333
+      - 382
+      symbol: rockchip_irq_demux
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 413
+      - 438
+      symbol: rockchip_irq_set_type
+  critical: true
+- id: debounce-programming
+  section: sequences
+  claim: When v2 has a usable second clock, Linux computes maximum debounce as (GENMASK(23,0)+1)*2*1000000/freq,
+    rejects larger requests, and computes divider as round-closest(debounce*freq/(2*USEC_PER_SEC))-1.
+    For nonzero debounce it only raises the existing divider to the consumer maximum, enables the pin
+    divider bit and debounce bit, then calls clk_prepare_enable for the second clock without checking
+    its return value. Zero clears divider/debounce bits then calls clk_disable_unprepare for that clock.
+    Without divider support it only toggles the debounce bit. No exact physical pulse filter guarantee
+    follows.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 198
+      - 256
+      symbol: rockchip_gpio_set_debounce
+  critical: true
+  data:
+    sequence:
+      steps:
+      - id: calculate
+        action: Compute the frequency-based supported limit and divider before acquiring the bank lock.
+      - id: configure
+        action: For nonzero delay, directly read dbclk_div_con and write the requested divider only if
+          larger, then set dbclk_div_en when supported and debounce; zero clears the corresponding bits.
+      - id: clock-last
+        action: After unlocking, call clk_prepare_enable or clk_disable_unprepare for db_clk last when
+          divider support exists; the enable return value is ignored.
+      order:
+      - before: calculate
+        after: configure
+        requirement: as-implemented
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gpio
+            path: drivers/gpio/gpio-rockchip.c
+            lines:
+            - 198
+            - 256
+            symbol: rockchip_gpio_set_debounce
+      - before: configure
+        after: clock-last
+        requirement: as-implemented
+        support:
+        - class: src
+          anchors:
+          - repo: linux-gpio
+            path: drivers/gpio/gpio-rockchip.c
+            lines:
+            - 198
+            - 256
+            symbol: rockchip_gpio_set_debounce
+- id: debounce-callback-limit
+  section: gotchas
+  claim: The Linux set_config INPUT_DEBOUNCE case calls rockchip_gpio_set_debounce with true (one), ignores
+    its return and returns -ENOTSUPP. It does not pass the requested argument as a microsecond delay.
+    The nearby comment explains the retained unsupported response in terms of limited clock-period filtering;
+    that comment is not proof of RK3588 electrical behavior.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 278
+      - 285
+      symbol: rockchip_gpio_set_config
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 297
+      - 300
+      symbol: rockchip_gpio_set_config
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 286
+      - 296
+      symbol: rockchip_gpio_set_config
+      comment: true
+- id: unwind-remove-boundary
+  section: gotchas
+  claim: On generic IRQ-chip allocation failure Linux removes the new domain. GPIO registration error
+    paths reaching fail remove the GPIO chip, but missing legacy parent/pinctrl paths return directly
+    after gpiochip_add_data. Bank remove detaches the chained handler, removes generic chips/domain when
+    present and removes the GPIO chip. The remove body issues no explicit MMIO writes; downstream cleanup
+    side effects and hardware quiescence are not established here. Clock cleanup includes the registered
+    clk_put action for the acquired debounce handle; safe firmware handoff/shutdown remains unresolved.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 527
+      - 535
+      symbol: rockchip_interrupts_register
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 590
+      - 638
+      symbol: rockchip_gpiolib_register
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 641
+      - 646
+      symbol: rockchip_clk_put
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 684
+      - 687
+      symbol: rockchip_get_bank_data
+    - repo: linux-gpio
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 800
+      - 825
+      symbol: rockchip_gpio_remove
+- id: actual-version-and-mmio
+  section: open-questions
+  claim: Actual GPIO VERSION IDs, mapped accessibility and matching programming semantics on standard
+    ROCK 5T V1.2 remain unmeasured. The conditional Linux v2 model is not confirmation of installed silicon
+    revision.
+  todo:
+    check: hardware
+    text: Actual GPIO VERSION IDs, mapped accessibility and matching programming semantics on standard
+      ROCK 5T V1.2 remain unmeasured. The conditional Linux v2 model is not confirmation of installed
+      silicon revision.
+    method: With authorized firmware and known clock/power ownership, read VERSION at each declared bank
+      and retain board revision, execution level, firmware and exact values; compare against the three
+      supported IDs. This establishes only the discriminator and access at that location. Establish matching
+      programming semantics separately through the public-document investigation and scoped, safe, explicitly
+      owned-line tests described by register-hardware-semantics and pin-ownership-electrical.
+  critical: true
+- id: register-hardware-semantics
+  section: open-questions
+  claim: No admissible public document here establishes reset values, physical register widths, upper-half
+    read behavior, reserved-bit effects, EOI write-one-clear behavior or IRQ loss/race ordering. int_rawstatus
+    is only an offset definition; no raw/status mask formula is adopted from the header comment.
+  todo:
+    check: document
+    text: No admissible public document here establishes reset values, physical register widths, upper-half
+      read behavior, reserved-bit effects, EOI write-one-clear behavior or IRQ loss/race ordering. int_rawstatus
+      is only an offset definition; no raw/status mask formula is adopted from the header comment.
+    method: Find a nonconfidential applicable public GPIOv2 manual; independently test selected owned
+      lines for masked events, EOI behavior and split read/write semantics without relying on source comments.
+  critical: true
+- id: clock-reset-power-handoff
+  section: open-questions
+  claim: Actual clock rates, power domain readiness, reset controls and firmware ownership are unresolved.
+    The GPIO DT nodes have no reset properties and bank setup acquires no reset handle; those absences
+    do not prove no reset exists.
+  todo:
+    check: hardware
+    text: Actual clock rates, power domain readiness, reset controls and firmware ownership are unresolved.
+      The GPIO DT nodes have no reset properties and bank setup acquires no reset handle; those absences
+      do not prove no reset exists.
+    method: Inspect approved public clock/reset evidence and active firmware state before accessing a
+      bank; establish rate, gate, reset and power prerequisites for the chosen bank.
+  critical: true
+- id: pin-ownership-electrical
+  section: open-questions
+  claim: No header pin is selected or presumed free. V1.2 routing, mux selection, competing consumers,
+    rail voltage, pull/drive/input electrical settings and safe external load/current remain unresolved
+    prerequisites for driving a pin.
+  todo:
+    check: hardware
+    text: No header pin is selected or presumed free. V1.2 routing, mux selection, competing consumers,
+      rail voltage, pull/drive/input electrical settings and safe external load/current remain unresolved
+      prerequisites for driving a pin.
+    method: Identify one explicit board net and owner from the V1.2 schematic and active firmware configuration,
+      check public pad electrical limits, then test input before authorized output with a bounded load.
+  critical: true
+- id: shutdown-and-irq-lifecycle
+  section: open-questions
+  claim: Safe hardware shutdown, pin state on ownership transfer, and complete edge/level acknowledgement
+    lifecycle are unresolved. Described remove callbacks and EOI writes do not establish a mandatory hardware
+    quiescence or controller end-of-interrupt sequence.
+  todo:
+    check: source
+    text: Safe hardware shutdown, pin state on ownership transfer, and complete edge/level acknowledgement
+      lifecycle are unresolved. Described remove callbacks and EOI writes do not establish a mandatory
+      hardware quiescence or controller end-of-interrupt sequence.
+    method: Trace framework cleanup and edge/level flow handlers at the pinned source, then validate masking,
+      pending-event acknowledgement and pin state on an explicitly owned line against applicable public
+      hardware evidence.
+  critical: true
+- id: target-os-integration
+  section: target
+  claim: 'Target operating system integration is intentionally unspecified for this hardware-only campaign:
+    no binding, framework, packaging or driver implementation is delivered.'
+  todo:
+    check: source
+    text: 'Target operating system integration is intentionally unspecified for this hardware-only campaign:
+      no binding, framework, packaging or driver implementation is delivered.'
+    method: After an OS is selected, inspect its source at an immutable pin and specify resource mapping,
+      clock/reset ownership, GPIO/IRQ registration and teardown contracts.
+notices:
+- repo: linux-gpio
+  path: drivers/gpio/gpio-rockchip.c
+  text: 'Copyright (c) 2013 MundoReader S.L. Author: Heiko Stuebner. Copyright (c) 2021 Rockchip Electronics
+    Co. Ltd.'
+- repo: linux-gpio
+  path: drivers/pinctrl/pinctrl-rockchip.h
+  text: 'Copyright (c) 2020-2024 Rockchip Electronics Co., Ltd. Copyright (c) 2013 MundoReader S.L. Author:
+    Heiko Stuebner. With some ideas taken from pinctrl-samsung: Copyright (c) 2012 Samsung Electronics
+    Co., Ltd. Copyright (c) 2012 Linaro Ltd; and pinctrl-at91: Copyright (C) 2011-2012 Jean-Christophe
+    PLAGNIOL-VILLARD.'
+- repo: linux-gpio
+  path: kernel/irq/generic-chip.c
+  text: Copyright (C) 2011, Thomas Gleixner
+- repo: linux-dts
+  path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+  text: Copyright (c) 2021 Rockchip Electronics Co., Ltd.

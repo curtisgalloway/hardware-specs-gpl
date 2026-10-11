@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2026 contributors
+# SPDX-License-Identifier: GPL-2.0-only
+
+format: 2
+spec: rk3588-dw-apb-uart-ip
+spec_file: rk3588-dw-apb-uart-ip.spec.yaml
+canonical: fact-v1
+sources:
+- name: linux-dts
+  commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+  fetch: ok
+verdicts:
+  compatible-identity:
+    basis: 99336adb1420a03f5b1a9440785bc636f1b4279f8023ad6af746d55226442a67
+    verdict: PASS
+    date: '2026-10-11'
+    verifier: GPT-6.1 Sol / Codex / verify_m7_primary_clean
+    contrary_evidence: none-found
+    citation_precision: exact
+    note: Pinned Linux rk3588-base.dtsi compatible lines agree exactly. UART compatible names do not establish
+      synthesis/FIFO revision; all five GPIO compatible lines agree and gpio-rockchip.c VERSION_ID switch
+      independently confirms the linked conditional map. Read adjacent node bodies and the version switch
+      for alternatives; no contrary identity found.
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / verify_m7_second_clean
+      verdict: PASS
+      date: '2026-10-11'
+      note: 'Pinned compatible strings match the claimed interface family. Read adjacent nodes and driver
+        revision selection: compatible identity alone selects neither synthesis/product revision nor GPIO
+        register revision. GPIO VERSION_ID at offset0x78 selects only recognized V2/V2.1/V2.2 or V1 values;
+        unknown IDs return ENODEV.'
+spec_sha256: 005aa4d3339dbb28617fa6eafa8cf1ba00e390634073edfabb447f40c93ba18c
+summary:
+  pass: 1
+  fail: 0
+  unverifiable: 0
+  gap: 0
+  adjudicate: 0
