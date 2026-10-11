@@ -3,7 +3,7 @@
 format: 2
 spec: rk3588-gic
 spec_file: rk3588-gic.spec.yaml
-spec_sha256: b9190dc075f419780bc5f8dc842b1fae454a7d7c14fa661684c7f009621f7187
+spec_sha256: e06428d7a5004aebe80be9a7e8e43db979eead6ea44cdc888f955da34cd7cd7a
 canonical: fact-v1
 sources:
 - name: linux-gic
@@ -19,11 +19,11 @@ sources:
   note: SHA-256 and930 PDF pages verified; cited sections and neighboring qualifications read. Non-confidential
     architecture; no implementation identity established.
 summary:
-  pass: 100
+  pass: 101
   fail: 0
   unverifiable: 0
   gap: 5
-  adjudicate: 1
+  adjudicate: 0
 verdicts:
   architecture-interface:
     basis: 87fdef4b4132e0d3c336fa2a1daedee1481dd61677a1dafd7583045a630b66c6
@@ -1207,16 +1207,20 @@ verdicts:
         security/configuration limitations and the declared bounded regular SGI/PPI/SPI scope; no
         contradictory evidence within that scope. '
   cpu-sleep-resume:
-    basis: 84e4f2a8bdaf54d4106b7965accd4bdac8686c7cf271e30512ac5d294c7502fa
-    verdict: ADJUDICATE
+    basis: 1f9a4d8002de428ecfc7c6afaf660efa8962bfc7c5885b94bf3987f221ca79e3
+    verdict: PASS
     date: '2026-10-11'
-    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
-    contrary_evidence: found
+    verifier: GPT-6.1 Sol / Codex / gic_delta_reader_a
+    note: The notifier condition gates redist calls on both event paths; the two CPU sys-reg helper calls
+      are outside the nested resume condition and execute on both resume events. Evidence establishes calls,
+      not successful register enablement. Read pinned irq-gic-v3.c notifier lines 1481-1495, security helper
+      160-163, redistributor helper 367-399, CPU interface helpers 1139-1235 and quirk registration 1775-1782/1885-1891.
+      CONFIG_CPU_PM bounds this notifier; other configurations do not register it. The MSM8996 helper early
+      return is limited to qcom,msm8996-gic-v3, outside this RK3588 scope; polling is bounded and timeout
+      logs an error, so no successful hardware transition is established. No conflicting RK3588 notifier
+      path was found. No external fact dependencies or TODOs are declared for this delta.
+    contrary_evidence: none-found
     citation_precision: exact
-    note: 'Primary FAIL and independent second PASS differ on whether the parent summary overgeneralizes
-      the security condition. Both actual readings are retained; user decision is pending. Primary
-      correction proposal: qualify only redistributor sleep/wake while retaining unconditional EXIT/ENTER_FAILED
-      CPU register restoration.'
     readings:
     - verifier: GPT-6.1 Sol / Codex / verify_m2_gic
       verdict: FAIL
@@ -1227,23 +1231,28 @@ verdicts:
     - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
       verdict: PASS
       reasoning: 'Independent comparison supports: Linux CPU power-management notifier behavior, conditional
-        on distributor security being disabled. Evidence: drivers/irqchip/irq-gic-v3.c:1490-1492;
-        drivers/irqchip/irq-gic-v3.c:382-398; drivers/irqchip/irq-gic-v3.c:1485-1489. Contrary search
-        included adjacent branches, security/configuration limitations and the declared bounded regular
-        SGI/PPI/SPI scope; no contradictory evidence within that scope. Resume always reinitializes
-        CPU registers; only redistributor wake is DS-conditioned. Sleep uses gic_enable_redist and
-        inherits its MSM8996 skip.'
+        on distributor security being disabled. Evidence: drivers/irqchip/irq-gic-v3.c:1490-1492; drivers/irqchip/irq-gic-v3.c:382-398;
+        drivers/irqchip/irq-gic-v3.c:1485-1489. Contrary search included adjacent branches, security/configuration
+        limitations and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence within
+        that scope. Resume always reinitializes CPU registers; only redistributor wake is DS-conditioned.
+        Sleep uses gic_enable_redist and inherits its MSM8996 skip.'
+    adjudication:
+      decision: Apply the stricter correction and reverify the revised claim. Both fresh readers support
+        the corrected conditional redistributor and unconditional CPU-interface calls.
+      by: user
+      date: '2026-10-11'
+      rule: User selected option 1; prior dissent is retained, and PASS applies only to the freshly read
+        corrected basis.
     readers:
-    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+    - verifier: GPT-6.1 Sol / Codex / gic_delta_reader_b
       verdict: PASS
       date: '2026-10-11'
-      note: 'Independent comparison supports: Linux CPU power-management notifier behavior, conditional
-        on distributor security being disabled. Evidence: drivers/irqchip/irq-gic-v3.c:1490-1492;
-        drivers/irqchip/irq-gic-v3.c:382-398; drivers/irqchip/irq-gic-v3.c:1485-1489. Contrary search
-        included adjacent branches, security/configuration limitations and the declared bounded regular
-        SGI/PPI/SPI scope; no contradictory evidence within that scope. Resume always reinitializes
-        CPU registers; only redistributor wake is DS-conditioned. Sleep uses gic_enable_redist and
-        inherits its MSM8996 skip.'
+      note: The pinned notifier at irq-gic-v3.c:1485-1492 tests DS only for redistributor calls. On EXIT
+        or ENTER_FAILED it always calls gic_cpu_sys_reg_enable and gic_cpu_sys_reg_init. The DS helper at
+        160-163 tests GICD_CTLR_DS; this is source behavior, not hardware completion. Adjacent CONFIG_CPU_PM
+        guarding (1481-1508), helper early returns and timeout (367-399), and CPU enable/init (1139-1233)
+        were checked. CONFIG_CPU_PM limits availability; the MSM8996 bypass falls under the spec-wide exclusion
+        of implementation-specific errata. No contradiction to the bounded notifier claim was found.
   rwp-timeout-policy:
     basis: bee19013718dc2dc4b5055812c3fadd67825c6d8bd3fd352e571285c82f1d0d8
     verdict: PASS
@@ -2197,27 +2206,34 @@ verdicts:
         Contrary search included adjacent branches, security/configuration limitations and the declared
         bounded regular SGI/PPI/SPI scope; no contradictory evidence within that scope. '
   cpu-sleep-resume.sleep:
-    basis: 1939f2b47390479a3ec3bb80b60d5345ce2fd6e0f6d8d8c121564310a05f26d0
+    basis: bb4cdf7ac747e523cd1a1f97d6205e3a857fbe512e74468188c566f0afca3c0d
     verdict: PASS
     date: '2026-10-11'
-    verifier: GPT-6.1 Sol / Codex / verify_m2_gic
+    verifier: GPT-6.1 Sol, Codex, independent verifier, session gic_delta_reader_a
+    note: Notifier lines 1490-1492 order group disable before sleep request; helper lines 382-398 set ProcessorSleep,
+      return if it does not retain, then poll ChildrenAsleep set. Arm64 arch_gicv3.h lines 101-105 confirms
+      gic_write_grpen1 writes ICC_IGRPEN1_EL1 and executes ISB. The newly added arm64 helper anchor was
+      reread at the same pin and now explicitly identifies the register write; citation precision is exact.
+      Read pinned irq-gic-v3.c notifier lines 1481-1495, security helper 160-163, redistributor helper 367-399,
+      CPU interface helpers 1139-1235 and quirk registration 1775-1782/1885-1891. CONFIG_CPU_PM bounds this
+      notifier; other configurations do not register it. The MSM8996 helper early return is limited to qcom,msm8996-gic-v3,
+      outside this RK3588 scope; polling is bounded and timeout logs an error, so no successful hardware
+      transition is established. No conflicting RK3588 notifier path was found. No external fact dependencies
+      or TODOs are declared for this delta.
     contrary_evidence: none-found
     citation_precision: exact
-    note: Compared the entire scoped sequence/action with pinned passages drivers/irqchip/irq-gic-v3.c:[1490,
-      1492]; drivers/irqchip/irq-gic-v3.c:[382, 398]. Full caller/helper flow,frame selection,ordering,error
-      and alternate policy branches were read; the stated behavior matches. This is Linux implementation
-      behavior,not unconditional silicon initialization.
     readers:
-    - verifier: GPT-6.1 Sol / Codex / critical_m2_gic
+    - verifier: GPT-6.1 Sol / Codex / gic_delta_reader_b
       verdict: PASS
       date: '2026-10-11'
-      note: 'Independent comparison supports: On CPU_PM_ENTER with security disabled, write IGRPEN1=0,
-        then request redistributor sleep. Set ProcessorSleep and poll ChildrenAsleep set; if the bit
-        will not retain, return without further wait. Evidence: drivers/irqchip/irq-gic-v3.c:1490-1492;
-        drivers/irqchip/irq-gic-v3.c:382-398. Contrary search included adjacent branches, security/configuration
-        limitations and the declared bounded regular SGI/PPI/SPI scope; no contradictory evidence
-        within that scope. Resume always reinitializes CPU registers; only redistributor wake is DS-conditioned.
-        Sleep uses gic_enable_redist and inherits its MSM8996 skip.'
+      note: 'Notifier lines 1490-1492 call gic_write_grpen1(0) before gic_enable_redist(false). The AArch64
+        accessor at arch_gicv3.h:101-104 writes IGRPEN1. Helper lines 382-398 set ProcessorSleep, return
+        if readback does not retain it, and poll ChildrenAsleep set with a bounded timeout. Adjacent helper
+        lines 373-374 bypass all WAKER work for MSM8996; implementation-specific errata are explicitly outside
+        the spec scope. Sleep is requested; completion is not guaranteed. No contrary evidence within that
+        scope. Independently reread newly declared arch_gicv3.h:101-105 support: the accessor writes SYS_ICC_IGRPEN1_EL1
+        with the passed zero and then ISB; the added citation exactly supports the register-write assertion.
+        PASS remains warranted; contrary-evidence scope and its result remain unchanged.'
   cpu-sleep-resume.resume:
     basis: 5c1a7239098e97b78c7fcd24ffbab27fbbd9902f8254793847ed0abf37a72dc2
     verdict: PASS

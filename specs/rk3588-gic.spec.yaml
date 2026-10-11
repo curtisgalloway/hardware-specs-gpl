@@ -2557,7 +2557,10 @@ facts:
   requirement: hw-required
 - id: cpu-sleep-resume
   section: sequences
-  claim: Linux CPU power-management notifier behavior, conditional on distributor security being disabled.
+  claim: Linux CPU power-management notifier behavior. Distributor security being disabled
+    gates redistributor sleep on CPU_PM_ENTER and redistributor wake on CPU_PM_EXIT or
+    CPU_PM_ENTER_FAILED. On either resume event, CPU system-register enable and initialization
+    execute regardless of that condition.
   support:
   - class: src
     anchors:
@@ -2609,6 +2612,14 @@ facts:
             - 382
             - 398
             symbol: gic_enable_redist
+        - class: src
+          anchors:
+          - repo: linux-gic
+            path: arch/arm64/include/asm/arch_gicv3.h
+            lines:
+            - 101
+            - 105
+            symbol: gic_write_grpen1
       - id: resume
         action: On CPU_PM_EXIT or ENTER_FAILED, wake redistributor if security disabled, enable system
           registers and reinitialize the CPU interface.
