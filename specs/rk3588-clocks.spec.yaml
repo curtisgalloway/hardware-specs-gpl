@@ -1,0 +1,2679 @@
+# SPDX-FileCopyrightText: 2026 contributors
+# SPDX-License-Identifier: GPL-2.0-only
+format: 2
+kind: peripheral
+id: rk3588-clocks
+name: RK3588 UART2 and GPIO0–4 boot clock/reset subset
+orientation: Hardware programming scope for standard ROCK 5T V1.2. Records state what pinned Linux defines
+  and performs; public silicon programming authority and firmware state remain blocking gaps. Only immediate
+  bounded source ancestry is included, without PLL programming or a full SoC clock tree. Other peripheral
+  family references are deferred to integration.
+resources:
+  repos:
+  - name: linux
+    url: https://github.com/torvalds/linux
+    commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+    license: GPL-2.0-only
+    role: source
+    files:
+    - path: drivers/clk/rockchip/clk-rk3588.c
+      license_from: spdx-line
+    - path: drivers/clk/clk-mux.c
+      license_from: spdx-line
+    - path: drivers/clk/clk-gate.c
+      license_from: spdx-line
+    - path: drivers/clk/clk-fractional-divider.c
+      license_from: spdx-line
+    - path: drivers/clk/clk-divider.c
+      license_from: spdx-line
+    - path: drivers/gpio/gpio-rockchip.c
+      license_from: spdx-line
+  - name: linux-later
+    url: https://github.com/torvalds/linux
+    commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+    license: GPL-2.0-or-later
+    role: source
+    files:
+    - path: drivers/clk/rockchip/clk.h
+      license_from: spdx-line
+    - path: drivers/clk/rockchip/clk.c
+      license_from: spdx-line
+    - path: drivers/clk/rockchip/rst-rk3588.c
+      license_from: spdx-line
+    - path: drivers/clk/rockchip/softrst.c
+      license_from: spdx-line
+    - path: drivers/tty/serial/8250/8250_dw.c
+      license_from: spdx-line
+  - name: linux-dts
+    url: https://github.com/torvalds/linux
+    commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+    license: GPL-2.0-or-later OR MIT
+    role: source
+    files:
+    - path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      license_from: spdx-line
+facts:
+- id: cru-map
+  section: identity
+  claim: The pinned Linux device tree describes rockchip,rk3588-cru at address 0xfd7c0000 with a 0x5c000-byte
+    region. All typed offsets below are relative to that mapping, including the PMU subdomain; this is
+    device-tree evidence, not a measured board address.
+  requirement: as-implemented
+  critical: true
+  support:
+  - class: DT
+    anchors:
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      lines:
+      - 742
+      - 744
+      symbol: cru
+- id: input-rate-descriptions
+  section: identity
+  claim: The pinned Linux device tree describes fixed clocks xin24m at 24000000 Hz and xin32k at 32768
+    Hz. These declarations do not measure oscillator accuracy, verify source stability, or establish the
+    clocks selected by loaded firmware.
+  requirement: as-implemented
+  support:
+  - class: DT
+    anchors:
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      lines:
+      - 423
+      - 435
+      symbol: xin24m
+- id: consumer-clock-pairs
+  section: identity
+  claim: The pinned Linux UART2 node names SCLK_UART2 as baudclk and PCLK_UART2 as apb_pclk. Its GPIO0–4
+    nodes list PCLK_GPIOx first and DBCLK_GPIOx second. None of these node bodies contains a resets property;
+    reset lookup entries below do not establish that these consumers request reset operations.
+  requirement: as-implemented
+  critical: true
+  support:
+  - class: DT
+    anchors:
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      lines:
+      - 2811
+      - 2824
+      symbol: uart2
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      lines:
+      - 3533
+      - 3591
+      symbol: gpio0
+- id: top-source-selector
+  section: registers
+  claim: The pinned Linux clock declarations and registration construct this relative register offset
+    and the listed fields, using 32-bit register I/O. Fields are limited to this boot subset; no hardware
+    reset value or access guarantee is asserted.
+  requirement: as-implemented
+  critical: true
+  data:
+    register:
+      name: RK3588_CLKSEL_CON0
+      offset: '0x300'
+      width: 32
+    fields:
+    - id: clk-50m-div
+      name: CLK_50M_DIV
+      bits:
+      - 0
+      - 4
+      meaning: clk_50m_src encoded divisor; ordinary value+1 encoding.
+    - id: clk-50m-mux
+      name: CLK_50M_MUX
+      bits:
+      - 5
+      - 5
+      meaning: 'clk_50m_src parent index: 0 gpll, 1 cpll.'
+    - id: clk-100m-div
+      name: CLK_100M_DIV
+      bits:
+      - 6
+      - 10
+      meaning: clk_100m_src encoded divisor; ordinary value+1 encoding.
+    - id: clk-100m-mux
+      name: CLK_100M_MUX
+      bits:
+      - 11
+      - 11
+      meaning: 'clk_100m_src parent index: 0 gpll, 1 cpll.'
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 688
+      - 693
+      symbol: CLK_50M_SRC
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 435
+      - 435
+      symbol: gpll_cpll_p
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 492
+      - 494
+      symbol: RK3588_CLKSEL_CON
+    - repo: linux
+      path: drivers/clk/clk-mux.c
+      lines:
+      - 27
+      - 42
+      symbol: clk_mux_readl
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 523
+      - 523
+      symbol: DFLAGS
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 845
+      - 864
+      symbol: COMPOSITE
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.c
+      lines:
+      - 86
+      - 105
+      symbol: rockchip_clk_register_branch
+    - repo: linux
+      path: drivers/clk/clk-divider.c
+      lines:
+      - 93
+      - 109
+      symbol: _get_div
+- id: top-source-gates
+  section: registers
+  claim: The pinned Linux clock declarations and registration construct this relative register offset
+    and the listed fields, using 32-bit register I/O. Fields are limited to this boot subset; no hardware
+    reset value or access guarantee is asserted.
+  requirement: as-implemented
+  critical: true
+  data:
+    register:
+      name: RK3588_CLKGATE_CON0
+      offset: '0x800'
+      width: 32
+    fields:
+    - id: clk-50m-gate
+      name: CLK_50M_GATE
+      bits:
+      - 0
+      - 0
+      meaning: clk_50m_src gate.
+    - id: clk-100m-gate
+      name: CLK_100M_GATE
+      bits:
+      - 1
+      - 1
+      meaning: clk_100m_src gate.
+    - id: clk-400m-gate
+      name: CLK_400M_GATE
+      bits:
+      - 7
+      - 7
+      meaning: clk_400m_src gate; needed by PMU source ancestry.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 688
+      - 693
+      symbol: CLK_50M_SRC
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 709
+      - 711
+      symbol: CLK_400M_SRC
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 492
+      - 494
+      symbol: RK3588_CLKSEL_CON
+    - repo: linux
+      path: drivers/clk/clk-gate.c
+      lines:
+      - 27
+      - 42
+      symbol: clk_gate_readl
+- id: top-400m-selector
+  section: registers
+  claim: The pinned Linux clock declarations and registration construct this relative register offset
+    and the listed fields, using 32-bit register I/O. Fields are limited to this boot subset; no hardware
+    reset value or access guarantee is asserted.
+  requirement: as-implemented
+  critical: true
+  data:
+    register:
+      name: RK3588_CLKSEL_CON3
+      offset: '0x30c'
+      width: 32
+    fields:
+    - id: clk-400m-div
+      name: CLK_400M_DIV
+      bits:
+      - 6
+      - 10
+      meaning: clk_400m_src encoded divisor.
+    - id: clk-400m-mux
+      name: CLK_400M_MUX
+      bits:
+      - 11
+      - 11
+      meaning: clk_400m_src parent indices 0 gpll,1 cpll.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 709
+      - 711
+      symbol: CLK_400M_SRC
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 435
+      - 435
+      symbol: gpll_cpll_p
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 492
+      - 494
+      symbol: RK3588_CLKSEL_CON
+    - repo: linux
+      path: drivers/clk/clk-mux.c
+      lines:
+      - 27
+      - 42
+      symbol: clk_mux_readl
+- id: top-root-selector
+  section: registers
+  claim: The pinned Linux clock declarations and registration construct this relative register offset
+    and the listed fields, using 32-bit register I/O. Fields are limited to this boot subset; no hardware
+    reset value or access guarantee is asserted.
+  requirement: as-implemented
+  critical: true
+  data:
+    register:
+      name: RK3588_CLKSEL_CON8
+      offset: '0x320'
+      width: 32
+    fields:
+    - id: pclk-top-mux
+      name: PCLK_TOP_MUX
+      bits:
+      - 7
+      - 8
+      meaning: pclk_top_root indices 0 clk_100m_src,1 clk_50m_src,2 xin24m; encoding 3 has no parent.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 754
+      - 756
+      symbol: PCLK_TOP_ROOT
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 454
+      - 454
+      symbol: mux_100m_50m_24m_p
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 492
+      - 494
+      symbol: RK3588_CLKSEL_CON
+    - repo: linux
+      path: drivers/clk/clk-mux.c
+      lines:
+      - 27
+      - 42
+      symbol: clk_mux_readl
+- id: top-root-gate
+  section: registers
+  claim: The pinned Linux clock declarations and registration construct this relative register offset
+    and the listed fields, using 32-bit register I/O. Fields are limited to this boot subset; no hardware
+    reset value or access guarantee is asserted.
+  requirement: as-implemented
+  critical: true
+  data:
+    register:
+      name: RK3588_CLKGATE_CON1
+      offset: '0x804'
+      width: 32
+    fields:
+    - id: pclk-top-gate
+      name: PCLK_TOP_GATE
+      bits:
+      - 1
+      - 1
+      meaning: pclk_top_root gate; Linux marks this shared root CLK_IS_CRITICAL.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 754
+      - 756
+      symbol: PCLK_TOP_ROOT
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 492
+      - 494
+      symbol: RK3588_CLKSEL_CON
+    - repo: linux
+      path: drivers/clk/clk-gate.c
+      lines:
+      - 27
+      - 42
+      symbol: clk_gate_readl
+- id: uart2-source-selector
+  section: registers
+  claim: The pinned Linux clock declarations and registration construct this relative register offset
+    and the listed fields, using 32-bit register I/O. Fields are limited to this boot subset; no hardware
+    reset value or access guarantee is asserted.
+  requirement: as-implemented
+  critical: true
+  data:
+    register:
+      name: RK3588_CLKSEL_CON43
+      offset: '0x3ac'
+      width: 32
+    fields:
+    - id: uart2-div
+      name: UART2_DIV
+      bits:
+      - 2
+      - 6
+      meaning: clk_uart2_src encoded divisor.
+    - id: uart2-src-mux
+      name: UART2_SRC_MUX
+      bits:
+      - 7
+      - 7
+      meaning: clk_uart2_src indices 0 gpll,1 cpll.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 1236
+      - 1238
+      symbol: CLK_UART2_SRC
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 435
+      - 435
+      symbol: gpll_cpll_p
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 492
+      - 494
+      symbol: RK3588_CLKSEL_CON
+    - repo: linux
+      path: drivers/clk/clk-mux.c
+      lines:
+      - 27
+      - 42
+      symbol: clk_mux_readl
+- id: uart2-fraction
+  section: registers
+  claim: The pinned Linux clock declarations and registration construct this relative register offset
+    and the listed fields, using 32-bit register I/O. Fields are limited to this boot subset; no hardware
+    reset value or access guarantee is asserted.
+  requirement: as-implemented
+  critical: true
+  data:
+    register:
+      name: RK3588_CLKSEL_CON44
+      offset: '0x3b0'
+      width: 32
+    fields:
+    - id: uart2-n
+      name: UART2_N
+      bits:
+      - 0
+      - 15
+      meaning: clk_uart2_frac denominator, not an upper-half write mask.
+    - id: uart2-m
+      name: UART2_M
+      bits:
+      - 16
+      - 31
+      meaning: clk_uart2_frac numerator; this full-word fractional register is not a highword-masked selector.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 1239
+      - 1242
+      symbol: CLK_UART2_FRAC
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 492
+      - 494
+      symbol: RK3588_CLKSEL_CON
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.c
+      lines:
+      - 237
+      - 246
+      symbol: rockchip_clk_register_frac_branch
+    - repo: linux
+      path: drivers/clk/clk-fractional-divider.c
+      lines:
+      - 213
+      - 216
+      symbol: clk_fd_set_rate
+    - repo: linux
+      path: drivers/clk/clk-fractional-divider.c
+      lines:
+      - 53
+      - 67
+      symbol: clk_fd_readl
+- id: uart2-output-selector
+  section: registers
+  claim: The pinned Linux clock declarations and registration construct this relative register offset
+    and the listed fields, using 32-bit register I/O. Fields are limited to this boot subset; no hardware
+    reset value or access guarantee is asserted.
+  requirement: as-implemented
+  critical: true
+  data:
+    register:
+      name: RK3588_CLKSEL_CON45
+      offset: '0x3b4'
+      width: 32
+    fields:
+    - id: uart2-output-mux
+      name: UART2_OUTPUT_MUX
+      bits:
+      - 0
+      - 1
+      meaning: clk_uart2 indices 0 clk_uart2_src,1 clk_uart2_frac,2 xin24m; encoding 3 has no parent.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 614
+      - 616
+      symbol: rk3588_uart2_fracmux
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 492
+      - 492
+      symbol: clk_uart2_p
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 492
+      - 494
+      symbol: RK3588_CLKSEL_CON
+    - repo: linux
+      path: drivers/clk/clk-mux.c
+      lines:
+      - 27
+      - 42
+      symbol: clk_mux_readl
+- id: uart2-input-gates
+  section: registers
+  claim: The pinned Linux clock declarations and registration construct this relative register offset
+    and the listed fields, using 32-bit register I/O. Fields are limited to this boot subset; no hardware
+    reset value or access guarantee is asserted.
+  requirement: as-implemented
+  critical: true
+  data:
+    register:
+      name: RK3588_CLKGATE_CON12
+      offset: '0x830'
+      width: 32
+    fields:
+    - id: uart2-pclk-gate
+      name: UART2_PCLK_GATE
+      bits:
+      - 3
+      - 3
+      meaning: pclk_uart2 parent pclk_top_root.
+    - id: uart2-src-gate
+      name: UART2_SRC_GATE
+      bits:
+      - 14
+      - 14
+      meaning: clk_uart2_src gate.
+    - id: uart2-frac-gate
+      name: UART2_FRAC_GATE
+      bits:
+      - 15
+      - 15
+      meaning: clk_uart2_frac gate.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 1210
+      - 1211
+      symbol: PCLK_UART2
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 1236
+      - 1242
+      symbol: CLK_UART2_SRC
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 492
+      - 494
+      symbol: RK3588_CLKSEL_CON
+    - repo: linux
+      path: drivers/clk/clk-gate.c
+      lines:
+      - 27
+      - 42
+      symbol: clk_gate_readl
+- id: uart2-output-gate
+  section: registers
+  claim: The pinned Linux clock declarations and registration construct this relative register offset
+    and the listed fields, using 32-bit register I/O. Fields are limited to this boot subset; no hardware
+    reset value or access guarantee is asserted.
+  requirement: as-implemented
+  critical: true
+  data:
+    register:
+      name: RK3588_CLKGATE_CON13
+      offset: '0x834'
+      width: 32
+    fields:
+    - id: uart2-sclk-gate
+      name: UART2_SCLK_GATE
+      bits:
+      - 0
+      - 0
+      meaning: sclk_uart2 parent clk_uart2.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 1243
+      - 1244
+      symbol: SCLK_UART2
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 492
+      - 494
+      symbol: RK3588_CLKSEL_CON
+    - repo: linux
+      path: drivers/clk/clk-gate.c
+      lines:
+      - 27
+      - 42
+      symbol: clk_gate_readl
+- id: gpio12-debounce-selector
+  section: registers
+  claim: The pinned Linux clock declarations and registration construct this relative register offset
+    and the listed fields, using 32-bit register I/O. Fields are limited to this boot subset; no hardware
+    reset value or access guarantee is asserted.
+  requirement: as-implemented
+  critical: true
+  data:
+    register:
+      name: RK3588_CLKSEL_CON60
+      offset: '0x3f0'
+      width: 32
+    fields:
+    - id: gpio1-db-div
+      name: GPIO1_DB_DIV
+      bits:
+      - 3
+      - 7
+      meaning: dbclk_gpio1 encoded divisor.
+    - id: gpio1-db-mux
+      name: GPIO1_DB_MUX
+      bits:
+      - 8
+      - 8
+      meaning: dbclk_gpio1 indices 0 xin24m,1 xin32k.
+    - id: gpio2-db-div
+      name: GPIO2_DB_DIV
+      bits:
+      - 9
+      - 13
+      meaning: dbclk_gpio2 encoded divisor.
+    - id: gpio2-db-mux
+      name: GPIO2_DB_MUX
+      bits:
+      - 14
+      - 14
+      meaning: dbclk_gpio2 indices 0 xin24m,1 xin32k.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 1097
+      - 1104
+      symbol: DBCLK_GPIO1
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 451
+      - 451
+      symbol: mux_24m_32k_p
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 492
+      - 494
+      symbol: RK3588_CLKSEL_CON
+    - repo: linux
+      path: drivers/clk/clk-mux.c
+      lines:
+      - 27
+      - 42
+      symbol: clk_mux_readl
+- id: gpio34-debounce-selector
+  section: registers
+  claim: The pinned Linux clock declarations and registration construct this relative register offset
+    and the listed fields, using 32-bit register I/O. Fields are limited to this boot subset; no hardware
+    reset value or access guarantee is asserted.
+  requirement: as-implemented
+  critical: true
+  data:
+    register:
+      name: RK3588_CLKSEL_CON61
+      offset: '0x3f4'
+      width: 32
+    fields:
+    - id: gpio3-db-div
+      name: GPIO3_DB_DIV
+      bits:
+      - 0
+      - 4
+      meaning: dbclk_gpio3 encoded divisor.
+    - id: gpio3-db-mux
+      name: GPIO3_DB_MUX
+      bits:
+      - 5
+      - 5
+      meaning: dbclk_gpio3 indices 0 xin24m,1 xin32k.
+    - id: gpio4-db-div
+      name: GPIO4_DB_DIV
+      bits:
+      - 6
+      - 10
+      meaning: dbclk_gpio4 encoded divisor.
+    - id: gpio4-db-mux
+      name: GPIO4_DB_MUX
+      bits:
+      - 11
+      - 11
+      meaning: dbclk_gpio4 indices 0 xin24m,1 xin32k.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 1107
+      - 1114
+      symbol: DBCLK_GPIO3
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 451
+      - 451
+      symbol: mux_24m_32k_p
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 492
+      - 494
+      symbol: RK3588_CLKSEL_CON
+    - repo: linux
+      path: drivers/clk/clk-mux.c
+      lines:
+      - 27
+      - 42
+      symbol: clk_mux_readl
+- id: gpio1-gates
+  section: registers
+  claim: The pinned Linux clock declarations and registration construct this relative register offset
+    and the listed fields, using 32-bit register I/O. Fields are limited to this boot subset; no hardware
+    reset value or access guarantee is asserted.
+  requirement: as-implemented
+  critical: true
+  data:
+    register:
+      name: RK3588_CLKGATE_CON16
+      offset: '0x840'
+      width: 32
+    fields:
+    - id: gpio1-pclk-gate
+      name: GPIO1_PCLK_GATE
+      bits:
+      - 14
+      - 14
+      meaning: pclk_gpio1 parent pclk_top_root.
+    - id: gpio1-db-gate
+      name: GPIO1_DB_GATE
+      bits:
+      - 15
+      - 15
+      meaning: dbclk_gpio1 gate.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 1095
+      - 1099
+      symbol: PCLK_GPIO1
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 492
+      - 494
+      symbol: RK3588_CLKSEL_CON
+    - repo: linux
+      path: drivers/clk/clk-gate.c
+      lines:
+      - 27
+      - 42
+      symbol: clk_gate_readl
+- id: gpio234-gates
+  section: registers
+  claim: The pinned Linux clock declarations and registration construct this relative register offset
+    and the listed fields, using 32-bit register I/O. Fields are limited to this boot subset; no hardware
+    reset value or access guarantee is asserted.
+  requirement: as-implemented
+  critical: true
+  data:
+    register:
+      name: RK3588_CLKGATE_CON17
+      offset: '0x844'
+      width: 32
+    fields:
+    - id: gpio2-pclk-gate
+      name: GPIO2_PCLK_GATE
+      bits:
+      - 0
+      - 0
+      meaning: pclk_gpio2 gate; parent pclk_top_root.
+    - id: gpio2-db-gate
+      name: GPIO2_DB_GATE
+      bits:
+      - 1
+      - 1
+      meaning: dbclk_gpio2 gate.
+    - id: gpio3-pclk-gate
+      name: GPIO3_PCLK_GATE
+      bits:
+      - 2
+      - 2
+      meaning: pclk_gpio3 gate; parent pclk_top_root.
+    - id: gpio3-db-gate
+      name: GPIO3_DB_GATE
+      bits:
+      - 3
+      - 3
+      meaning: dbclk_gpio3 gate.
+    - id: gpio4-pclk-gate
+      name: GPIO4_PCLK_GATE
+      bits:
+      - 4
+      - 4
+      meaning: pclk_gpio4 gate; parent pclk_top_root.
+    - id: gpio4-db-gate
+      name: GPIO4_DB_GATE
+      bits:
+      - 5
+      - 5
+      meaning: dbclk_gpio4 gate.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 1100
+      - 1114
+      symbol: PCLK_GPIO2
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 492
+      - 494
+      symbol: RK3588_CLKSEL_CON
+    - repo: linux
+      path: drivers/clk/clk-gate.c
+      lines:
+      - 27
+      - 42
+      symbol: clk_gate_readl
+- id: pmu-source-dividers
+  section: registers
+  claim: The pinned Linux clock declarations and registration construct this relative register offset
+    and the listed fields, using 32-bit register I/O. Fields are limited to this boot subset; no hardware
+    reset value or access guarantee is asserted.
+  requirement: as-implemented
+  critical: true
+  data:
+    register:
+      name: RK3588_PMU_CLKSEL_CON0
+      offset: '0x30300'
+      width: 32
+    fields:
+    - id: pmu-50m-div
+      name: PMU_50M_DIV
+      bits:
+      - 0
+      - 3
+      meaning: clk_pmu1_50m_src encoded divisor; parent clk_pmu1_400m_src.
+    - id: pmu-100m-div
+      name: PMU_100M_DIV
+      bits:
+      - 4
+      - 6
+      meaning: clk_pmu1_100m_src encoded divisor; parent clk_pmu1_400m_src.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 2171
+      - 2176
+      symbol: CLK_PMU1_50M_SRC
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 482
+      - 482
+      symbol: RK3588_PMU_CRU_BASE
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 509
+      - 511
+      symbol: RK3588_PMU_CLKSEL_CON
+    - repo: linux
+      path: drivers/clk/clk-mux.c
+      lines:
+      - 27
+      - 42
+      symbol: clk_mux_readl
+- id: pmu-source-root-selector
+  section: registers
+  claim: The pinned Linux clock declarations and registration construct this relative register offset
+    and the listed fields, using 32-bit register I/O. Fields are limited to this boot subset; no hardware
+    reset value or access guarantee is asserted.
+  requirement: as-implemented
+  critical: true
+  data:
+    register:
+      name: RK3588_PMU_CLKSEL_CON1
+      offset: '0x30304'
+      width: 32
+    fields:
+    - id: pmu-400m-div
+      name: PMU_400M_DIV
+      bits:
+      - 0
+      - 4
+      meaning: clk_pmu1_400m_src encoded divisor.
+    - id: pmu-400m-mux
+      name: PMU_400M_MUX
+      bits:
+      - 5
+      - 5
+      meaning: clk_pmu1_400m_src indices 0 clk_400m_src,1 xin24m.
+    - id: pmu-pclk-root-mux
+      name: PMU_PCLK_ROOT_MUX
+      bits:
+      - 8
+      - 9
+      meaning: pclk_pmu1_root indices 0 clk_pmu1_100m_src,1 clk_pmu1_50m_src,2 xin24m; encoding3 has no
+        parent.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 2168
+      - 2170
+      symbol: CLK_PMU1_400M_SRC
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 2183
+      - 2185
+      symbol: PCLK_PMU1_ROOT
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 510
+      - 511
+      symbol: pmu_400m_24m_p
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 482
+      - 482
+      symbol: RK3588_PMU_CRU_BASE
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 509
+      - 511
+      symbol: RK3588_PMU_CLKSEL_CON
+    - repo: linux
+      path: drivers/clk/clk-mux.c
+      lines:
+      - 27
+      - 42
+      symbol: clk_mux_readl
+- id: pmu-source-root-gates
+  section: registers
+  claim: The pinned Linux clock declarations and registration construct this relative register offset
+    and the listed fields, using 32-bit register I/O. Fields are limited to this boot subset; no hardware
+    reset value or access guarantee is asserted.
+  requirement: as-implemented
+  critical: true
+  data:
+    register:
+      name: RK3588_PMU_CLKGATE_CON0
+      offset: '0x30800'
+      width: 32
+    fields:
+    - id: pmu-50m-gate
+      name: PMU_50M_GATE
+      bits:
+      - 0
+      - 0
+      meaning: clk_pmu1_50m_src gate.
+    - id: pmu-100m-gate
+      name: PMU_100M_GATE
+      bits:
+      - 1
+      - 1
+      meaning: clk_pmu1_100m_src gate.
+    - id: pmu-400m-gate
+      name: PMU_400M_GATE
+      bits:
+      - 4
+      - 4
+      meaning: clk_pmu1_400m_src gate.
+    - id: pmu-pclk-root-gate
+      name: PMU_PCLK_ROOT_GATE
+      bits:
+      - 7
+      - 7
+      meaning: pclk_pmu1_root gate; Linux marks shared root CLK_IS_CRITICAL.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 2168
+      - 2176
+      symbol: CLK_PMU1_400M_SRC
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 2183
+      - 2185
+      symbol: PCLK_PMU1_ROOT
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 482
+      - 482
+      symbol: RK3588_PMU_CRU_BASE
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 509
+      - 511
+      symbol: RK3588_PMU_CLKSEL_CON
+    - repo: linux
+      path: drivers/clk/clk-gate.c
+      lines:
+      - 27
+      - 42
+      symbol: clk_gate_readl
+- id: gpio0-root-gates
+  section: registers
+  claim: The pinned Linux clock declarations and registration construct this relative register offset
+    and the listed fields, using 32-bit register I/O. Fields are limited to this boot subset; no hardware
+    reset value or access guarantee is asserted.
+  requirement: as-implemented
+  critical: true
+  data:
+    register:
+      name: RK3588_PMU_CLKGATE_CON5
+      offset: '0x30814'
+      width: 32
+    fields:
+    - id: pmu0-root-gate
+      name: PMU0_ROOT_GATE
+      bits:
+      - 0
+      - 0
+      meaning: pclk_pmu0_root parent pclk_pmu1_root; Linux marks shared root CLK_IS_CRITICAL.
+    - id: gpio0-pclk-gate
+      name: GPIO0_PCLK_GATE
+      bits:
+      - 5
+      - 5
+      meaning: pclk_gpio0 parent pclk_pmu0_root.
+    - id: gpio0-db-gate
+      name: GPIO0_DB_GATE
+      bits:
+      - 6
+      - 6
+      meaning: dbclk_gpio0 gate.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 2186
+      - 2187
+      symbol: PCLK_PMU0_ROOT
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 2197
+      - 2201
+      symbol: PCLK_GPIO0
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 482
+      - 482
+      symbol: RK3588_PMU_CRU_BASE
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 509
+      - 511
+      symbol: RK3588_PMU_CLKSEL_CON
+    - repo: linux
+      path: drivers/clk/clk-gate.c
+      lines:
+      - 27
+      - 42
+      symbol: clk_gate_readl
+- id: gpio0-debounce-selector
+  section: registers
+  claim: The pinned Linux clock declarations and registration construct this relative register offset
+    and the listed fields, using 32-bit register I/O. Fields are limited to this boot subset; no hardware
+    reset value or access guarantee is asserted.
+  requirement: as-implemented
+  critical: true
+  data:
+    register:
+      name: RK3588_PMU_CLKSEL_CON17
+      offset: '0x30344'
+      width: 32
+    fields:
+    - id: gpio0-db-mux
+      name: GPIO0_DB_MUX
+      bits:
+      - 0
+      - 0
+      meaning: dbclk_gpio0 indices 0 xin24m,1 xin32k; this branch has no divider.
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 2199
+      - 2201
+      symbol: DBCLK_GPIO0
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 451
+      - 451
+      symbol: mux_24m_32k_p
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 482
+      - 482
+      symbol: RK3588_PMU_CRU_BASE
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 509
+      - 511
+      symbol: RK3588_PMU_CLKSEL_CON
+    - repo: linux
+      path: drivers/clk/clk-mux.c
+      lines:
+      - 27
+      - 42
+      symbol: clk_mux_readl
+- id: uart2-pclk-reset
+  section: registers
+  claim: The pinned Linux reset lookup and performing reset operations construct this relative register
+    offset and the listed fields, using 32-bit register I/O. Fields are limited to this boot subset; no
+    hardware reset value or access guarantee is asserted.
+  requirement: as-implemented
+  critical: true
+  data:
+    register:
+      name: RK3588_SOFTRST_CON12
+      offset: '0xa30'
+      width: 32
+    fields:
+    - id: srst-p-uart2
+      name: SRST_P_UART2
+      bits:
+      - 3
+      - 3
+      meaning: UART2 APB reset lookup entry.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-later
+      path: drivers/clk/rockchip/rst-rk3588.c
+      lines:
+      - 139
+      - 139
+      symbol: RK3588_CRU_RESET_OFFSET
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 492
+      - 494
+      symbol: RK3588_CLKSEL_CON
+    - repo: linux-later
+      path: drivers/clk/rockchip/rst-rk3588.c
+      lines:
+      - 13
+      - 23
+      symbol: RK3588_CRU_RESET_OFFSET
+    - repo: linux-later
+      path: drivers/clk/rockchip/rst-rk3588.c
+      lines:
+      - 851
+      - 858
+      symbol: rk3588_rst_init
+    - repo: linux-later
+      path: drivers/clk/rockchip/softrst.c
+      lines:
+      - 32
+      - 39
+      symbol: rockchip_softrst_assert
+    - repo: linux-later
+      path: drivers/clk/rockchip/softrst.c
+      lines:
+      - 109
+      - 110
+      symbol: rockchip_register_softrst_lut
+    - repo: linux-later
+      path: drivers/clk/rockchip/softrst.c
+      lines:
+      - 38
+      - 40
+      symbol: rockchip_softrst_assert
+- id: uart2-sclk-reset
+  section: registers
+  claim: The pinned Linux reset lookup and performing reset operations construct this relative register
+    offset and the listed fields, using 32-bit register I/O. Fields are limited to this boot subset; no
+    hardware reset value or access guarantee is asserted.
+  requirement: as-implemented
+  critical: true
+  data:
+    register:
+      name: RK3588_SOFTRST_CON13
+      offset: '0xa34'
+      width: 32
+    fields:
+    - id: srst-s-uart2
+      name: SRST_S_UART2
+      bits:
+      - 0
+      - 0
+      meaning: UART2 serial reset lookup entry.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-later
+      path: drivers/clk/rockchip/rst-rk3588.c
+      lines:
+      - 150
+      - 150
+      symbol: RK3588_CRU_RESET_OFFSET
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 492
+      - 494
+      symbol: RK3588_CLKSEL_CON
+    - repo: linux-later
+      path: drivers/clk/rockchip/rst-rk3588.c
+      lines:
+      - 13
+      - 23
+      symbol: RK3588_CRU_RESET_OFFSET
+    - repo: linux-later
+      path: drivers/clk/rockchip/rst-rk3588.c
+      lines:
+      - 851
+      - 858
+      symbol: rk3588_rst_init
+    - repo: linux-later
+      path: drivers/clk/rockchip/softrst.c
+      lines:
+      - 32
+      - 39
+      symbol: rockchip_softrst_assert
+    - repo: linux-later
+      path: drivers/clk/rockchip/softrst.c
+      lines:
+      - 109
+      - 110
+      symbol: rockchip_register_softrst_lut
+    - repo: linux-later
+      path: drivers/clk/rockchip/softrst.c
+      lines:
+      - 38
+      - 40
+      symbol: rockchip_softrst_assert
+- id: gpio1-resets
+  section: registers
+  claim: The pinned Linux reset lookup and performing reset operations construct this relative register
+    offset and the listed fields, using 32-bit register I/O. Fields are limited to this boot subset; no
+    hardware reset value or access guarantee is asserted.
+  requirement: as-implemented
+  critical: true
+  data:
+    register:
+      name: RK3588_SOFTRST_CON16
+      offset: '0xa40'
+      width: 32
+    fields:
+    - id: srst-p-gpio1
+      name: SRST_P_GPIO1
+      bits:
+      - 14
+      - 14
+      meaning: GPIO1 APB reset lookup entry.
+    - id: srst-gpio1
+      name: SRST_GPIO1
+      bits:
+      - 15
+      - 15
+      meaning: GPIO1 reset lookup entry.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-later
+      path: drivers/clk/rockchip/rst-rk3588.c
+      lines:
+      - 200
+      - 201
+      symbol: RK3588_CRU_RESET_OFFSET
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 492
+      - 494
+      symbol: RK3588_CLKSEL_CON
+    - repo: linux-later
+      path: drivers/clk/rockchip/rst-rk3588.c
+      lines:
+      - 13
+      - 23
+      symbol: RK3588_CRU_RESET_OFFSET
+    - repo: linux-later
+      path: drivers/clk/rockchip/rst-rk3588.c
+      lines:
+      - 851
+      - 858
+      symbol: rk3588_rst_init
+    - repo: linux-later
+      path: drivers/clk/rockchip/softrst.c
+      lines:
+      - 32
+      - 39
+      symbol: rockchip_softrst_assert
+    - repo: linux-later
+      path: drivers/clk/rockchip/softrst.c
+      lines:
+      - 109
+      - 110
+      symbol: rockchip_register_softrst_lut
+    - repo: linux-later
+      path: drivers/clk/rockchip/softrst.c
+      lines:
+      - 38
+      - 40
+      symbol: rockchip_softrst_assert
+- id: gpio234-resets
+  section: registers
+  claim: The pinned Linux reset lookup and performing reset operations construct this relative register
+    offset and the listed fields, using 32-bit register I/O. Fields are limited to this boot subset; no
+    hardware reset value or access guarantee is asserted.
+  requirement: as-implemented
+  critical: true
+  data:
+    register:
+      name: RK3588_SOFTRST_CON17
+      offset: '0xa44'
+      width: 32
+    fields:
+    - id: srst-p-gpio2
+      name: SRST_P_GPIO2
+      bits:
+      - 0
+      - 0
+      meaning: GPIO2 reset lookup entry.
+    - id: srst-gpio2
+      name: SRST_GPIO2
+      bits:
+      - 1
+      - 1
+      meaning: GPIO2 reset lookup entry.
+    - id: srst-p-gpio3
+      name: SRST_P_GPIO3
+      bits:
+      - 2
+      - 2
+      meaning: GPIO3 reset lookup entry.
+    - id: srst-gpio3
+      name: SRST_GPIO3
+      bits:
+      - 3
+      - 3
+      meaning: GPIO3 reset lookup entry.
+    - id: srst-p-gpio4
+      name: SRST_P_GPIO4
+      bits:
+      - 4
+      - 4
+      meaning: GPIO4 reset lookup entry.
+    - id: srst-gpio4
+      name: SRST_GPIO4
+      bits:
+      - 5
+      - 5
+      meaning: GPIO4 reset lookup entry.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-later
+      path: drivers/clk/rockchip/rst-rk3588.c
+      lines:
+      - 204
+      - 209
+      symbol: RK3588_CRU_RESET_OFFSET
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 492
+      - 494
+      symbol: RK3588_CLKSEL_CON
+    - repo: linux-later
+      path: drivers/clk/rockchip/rst-rk3588.c
+      lines:
+      - 13
+      - 23
+      symbol: RK3588_CRU_RESET_OFFSET
+    - repo: linux-later
+      path: drivers/clk/rockchip/rst-rk3588.c
+      lines:
+      - 851
+      - 858
+      symbol: rk3588_rst_init
+    - repo: linux-later
+      path: drivers/clk/rockchip/softrst.c
+      lines:
+      - 32
+      - 39
+      symbol: rockchip_softrst_assert
+    - repo: linux-later
+      path: drivers/clk/rockchip/softrst.c
+      lines:
+      - 109
+      - 110
+      symbol: rockchip_register_softrst_lut
+    - repo: linux-later
+      path: drivers/clk/rockchip/softrst.c
+      lines:
+      - 38
+      - 40
+      symbol: rockchip_softrst_assert
+- id: gpio0-resets
+  section: registers
+  claim: The pinned Linux reset lookup and performing reset operations construct this relative register
+    offset and the listed fields, using 32-bit register I/O. Fields are limited to this boot subset; no
+    hardware reset value or access guarantee is asserted.
+  requirement: as-implemented
+  critical: true
+  data:
+    register:
+      name: RK3588_PMU_SOFTRST_CON5
+      offset: '0x30a14'
+      width: 32
+    fields:
+    - id: srst-p-gpio0
+      name: SRST_P_GPIO0
+      bits:
+      - 5
+      - 5
+      meaning: GPIO0 APB reset lookup entry.
+    - id: srst-gpio0
+      name: SRST_GPIO0
+      bits:
+      - 6
+      - 6
+      meaning: GPIO0 reset lookup entry.
+  support:
+  - class: src
+    anchors:
+    - repo: linux-later
+      path: drivers/clk/rockchip/rst-rk3588.c
+      lines:
+      - 808
+      - 809
+      symbol: RK3588_PMU1CRU_RESET_OFFSET
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 482
+      - 482
+      symbol: RK3588_PMU_CRU_BASE
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 509
+      - 511
+      symbol: RK3588_PMU_CLKSEL_CON
+    - repo: linux-later
+      path: drivers/clk/rockchip/rst-rk3588.c
+      lines:
+      - 13
+      - 23
+      symbol: RK3588_CRU_RESET_OFFSET
+    - repo: linux-later
+      path: drivers/clk/rockchip/rst-rk3588.c
+      lines:
+      - 851
+      - 858
+      symbol: rk3588_rst_init
+    - repo: linux-later
+      path: drivers/clk/rockchip/softrst.c
+      lines:
+      - 32
+      - 39
+      symbol: rockchip_softrst_assert
+    - repo: linux-later
+      path: drivers/clk/rockchip/softrst.c
+      lines:
+      - 109
+      - 110
+      symbol: rockchip_register_softrst_lut
+    - repo: linux-later
+      path: drivers/clk/rockchip/softrst.c
+      lines:
+      - 38
+      - 40
+      symbol: rockchip_softrst_assert
+- id: clock-operation-binding
+  section: gotchas
+  claim: The pinned Rockchip registration constructs base-plus-offset mux/divider/gate objects with their
+    declared shifts, masks, flags and shared lock, and attaches generic mux, divider and gate operations.
+    MFLAGS and DFLAGS select highword-mask updates; GFLAGS additionally sets inversion, so a set gate
+    bit disables. The fractional branch sets M shift/width 16/16 and N shift/width 0/16 with flags zero
+    for UART2, attaches generic fractional operations and the Rockchip approximation callback. Register
+    labels containing 50m/100m/400m are source names, not established live frequencies.
+  requirement: as-implemented
+  critical: true
+  support:
+  - class: src
+    anchors:
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.c
+      lines:
+      - 58
+      - 112
+      symbol: rockchip_clk_register_branch
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.c
+      lines:
+      - 229
+      - 251
+      symbol: rockchip_clk_register_frac_branch
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 522
+      - 524
+      symbol: MFLAGS
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 1239
+      - 1242
+      symbol: CLK_UART2_FRAC
+    - repo: linux
+      path: drivers/clk/clk-gate.c
+      lines:
+      - 56
+      - 124
+      symbol: clk_gate_endisable
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.c
+      lines:
+      - 617
+      - 627
+      symbol: rockchip_clk_register_branch
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.c
+      lines:
+      - 583
+      - 590
+      symbol: rockchip_clk_register_frac_branch
+- id: gate-update
+  section: sequences
+  claim: Pinned generic gate operations implement enabling, disabling and reading inverted highword-masked
+    gates; the lock is taken only when supplied. These are independent operations, not a hardware-required
+    boot order.
+  requirement: as-implemented
+  critical: true
+  data:
+    sequence:
+      steps:
+      - id: enable-disable
+        action: For requested enable=1 or disable=0, compute set as SET_TO_DISABLE XOR enable; conditionally
+          lock. With HIWORD_MASK write BIT(bit+16), adding BIT(bit) only when set is true. Unlock conditionally;
+          gate enable returns zero.
+        support:
+        - class: src
+          anchors:
+          - repo: linux
+            path: drivers/clk/clk-gate.c
+            lines:
+            - 56
+            - 100
+            symbol: clk_gate_endisable
+      - id: enabled-read
+        action: Read the register; when SET_TO_DISABLE is set, invert the selected bit before masking
+          and returning whether it is nonzero.
+        support:
+        - class: src
+          anchors:
+          - repo: linux
+            path: drivers/clk/clk-gate.c
+            lines:
+            - 108
+            - 124
+            symbol: clk_gate_is_enabled
+      - id: access
+        action: Use ioread32be/iowrite32be only when BIG_ENDIAN is set; otherwise readl/writel. These
+          bounded GFLAGS do not set BIG_ENDIAN.
+        support:
+        - class: src
+          anchors:
+          - repo: linux
+            path: drivers/clk/clk-gate.c
+            lines:
+            - 27
+            - 42
+            symbol: clk_gate_readl
+          - repo: linux
+            path: drivers/clk/rockchip/clk-rk3588.c
+            lines:
+            - 524
+            - 524
+            symbol: GFLAGS
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clk/clk-gate.c
+      lines:
+      - 56
+      - 100
+      symbol: clk_gate_endisable
+    - repo: linux
+      path: drivers/clk/clk-gate.c
+      lines:
+      - 108
+      - 124
+      symbol: clk_gate_is_enabled
+    - repo: linux
+      path: drivers/clk/clk-gate.c
+      lines:
+      - 27
+      - 42
+      symbol: clk_gate_readl
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 524
+      - 524
+      symbol: GFLAGS
+- id: mux-update
+  section: sequences
+  claim: Pinned generic mux operations read the current parent and write parent selection with a highword
+    mask; only listed indices identify parents. These steps describe available operations, not an imposed
+    hardware order.
+  requirement: as-implemented
+  critical: true
+  data:
+    sequence:
+      steps:
+      - id: read-parent
+        action: Read, shift and mask the field, then map value to parent index; with no table/index flags
+          the value is the index and a value >= parent count produces -EINVAL.
+        support:
+        - class: src
+          anchors:
+          - repo: linux
+            path: drivers/clk/clk-mux.c
+            lines:
+            - 44
+            - 65
+            symbol: clk_mux_val_to_index
+          - repo: linux
+            path: drivers/clk/clk-mux.c
+            lines:
+            - 87
+            - 96
+            symbol: clk_mux_get_parent
+      - id: write-parent
+        action: Map valid index to value; conditionally lock. For HIWORD_MASK compose mask<<(shift+16)
+          OR value<<shift, write and unlock conditionally; return zero. No read-modify-write in this branch.
+        support:
+        - class: src
+          anchors:
+          - repo: linux
+            path: drivers/clk/clk-mux.c
+            lines:
+            - 69
+            - 85
+            symbol: clk_mux_index_to_val
+          - repo: linux
+            path: drivers/clk/clk-mux.c
+            lines:
+            - 99
+            - 126
+            symbol: clk_mux_set_parent
+      - id: access
+        action: BIG_ENDIAN selects ioread32be/iowrite32be; otherwise readl/writel. MFLAGS in this subset
+          contain only HIWORD_MASK.
+        support:
+        - class: src
+          anchors:
+          - repo: linux
+            path: drivers/clk/clk-mux.c
+            lines:
+            - 27
+            - 42
+            symbol: clk_mux_readl
+          - repo: linux
+            path: drivers/clk/rockchip/clk-rk3588.c
+            lines:
+            - 522
+            - 522
+            symbol: MFLAGS
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clk/clk-mux.c
+      lines:
+      - 44
+      - 65
+      symbol: clk_mux_val_to_index
+    - repo: linux
+      path: drivers/clk/clk-mux.c
+      lines:
+      - 87
+      - 96
+      symbol: clk_mux_get_parent
+    - repo: linux
+      path: drivers/clk/clk-mux.c
+      lines:
+      - 69
+      - 85
+      symbol: clk_mux_index_to_val
+    - repo: linux
+      path: drivers/clk/clk-mux.c
+      lines:
+      - 99
+      - 126
+      symbol: clk_mux_set_parent
+    - repo: linux
+      path: drivers/clk/clk-mux.c
+      lines:
+      - 27
+      - 42
+      symbol: clk_mux_readl
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 522
+      - 522
+      symbol: MFLAGS
+- id: integer-divider-update
+  section: sequences
+  claim: Pinned generic ordinary-divider operations implement the rate formulas and masked update for
+    the bounded composite fields. A nonzero requested rate and known parent rate are arithmetic inputs;
+    a programmed rate is not measured hardware behavior.
+  requirement: as-implemented
+  critical: true
+  data:
+    sequence:
+      steps:
+      - id: recalculate
+        action: Read,shift,mask divider value. With these flags and no table, divisor=value+1; report
+          ceil(parent_rate/divisor). The generic zero-divisor branch warns unless ALLOW_ZERO and returns
+          parent_rate, but ordinary value+1 cannot produce zero.
+        support:
+        - class: src
+          anchors:
+          - repo: linux
+            path: drivers/clk/clk-divider.c
+            lines:
+            - 93
+            - 109
+            symbol: _get_div
+          - repo: linux
+            path: drivers/clk/clk-divider.c
+            lines:
+            - 136
+            - 165
+            symbol: divider_recalc_rate
+          - repo: linux
+            path: drivers/clk/rockchip/clk-rk3588.c
+            lines:
+            - 523
+            - 523
+            symbol: DFLAGS
+          - repo: linux-later
+            path: drivers/clk/rockchip/clk.h
+            lines:
+            - 845
+            - 864
+            symbol: COMPOSITE
+          - repo: linux-later
+            path: drivers/clk/rockchip/clk.c
+            lines:
+            - 86
+            - 105
+            symbol: rockchip_clk_register_branch
+          - repo: linux-later
+            path: drivers/clk/rockchip/clk.h
+            lines:
+            - 888
+            - 904
+            symbol: COMPOSITE_NOMUX
+          - repo: linux
+            path: drivers/clk/rockchip/clk-rk3588.c
+            lines:
+            - 688
+            - 693
+            symbol: CLK_50M_SRC
+          - repo: linux
+            path: drivers/clk/rockchip/clk-rk3588.c
+            lines:
+            - 709
+            - 711
+            symbol: CLK_400M_SRC
+          - repo: linux
+            path: drivers/clk/rockchip/clk-rk3588.c
+            lines:
+            - 1236
+            - 1238
+            symbol: CLK_UART2_SRC
+          - repo: linux
+            path: drivers/clk/rockchip/clk-rk3588.c
+            lines:
+            - 1097
+            - 1114
+            symbol: DBCLK_GPIO1
+          - repo: linux
+            path: drivers/clk/rockchip/clk-rk3588.c
+            lines:
+            - 2168
+            - 2176
+            symbol: CLK_PMU1_400M_SRC
+      - id: encode
+        action: For nonzero rate compute ceil(parent_rate/rate); invalid divisors return -EINVAL. Ordinary
+          encoding is divisor-1, capped at the field mask. Propagate any negative divider_get_val result
+          before writing.
+        support:
+        - class: src
+          anchors:
+          - repo: linux
+            path: drivers/clk/clk-divider.c
+            lines:
+            - 120
+            - 134
+            symbol: _get_val
+          - repo: linux
+            path: drivers/clk/clk-divider.c
+            lines:
+            - 409
+            - 440
+            symbol: divider_get_val
+          - repo: linux
+            path: drivers/clk/rockchip/clk-rk3588.c
+            lines:
+            - 523
+            - 523
+            symbol: DFLAGS
+          - repo: linux-later
+            path: drivers/clk/rockchip/clk.h
+            lines:
+            - 845
+            - 864
+            symbol: COMPOSITE
+          - repo: linux-later
+            path: drivers/clk/rockchip/clk.c
+            lines:
+            - 86
+            - 105
+            symbol: rockchip_clk_register_branch
+          - repo: linux
+            path: drivers/clk/clk-divider.c
+            lines:
+            - 93
+            - 109
+            symbol: _get_div
+          - repo: linux-later
+            path: drivers/clk/rockchip/clk.h
+            lines:
+            - 888
+            - 904
+            symbol: COMPOSITE_NOMUX
+          - repo: linux
+            path: drivers/clk/rockchip/clk-rk3588.c
+            lines:
+            - 688
+            - 693
+            symbol: CLK_50M_SRC
+          - repo: linux
+            path: drivers/clk/rockchip/clk-rk3588.c
+            lines:
+            - 709
+            - 711
+            symbol: CLK_400M_SRC
+          - repo: linux
+            path: drivers/clk/rockchip/clk-rk3588.c
+            lines:
+            - 1236
+            - 1238
+            symbol: CLK_UART2_SRC
+          - repo: linux
+            path: drivers/clk/rockchip/clk-rk3588.c
+            lines:
+            - 1097
+            - 1114
+            symbol: DBCLK_GPIO1
+          - repo: linux
+            path: drivers/clk/rockchip/clk-rk3588.c
+            lines:
+            - 2168
+            - 2176
+            symbol: CLK_PMU1_400M_SRC
+      - id: write
+        action: Conditionally lock. HIWORD_MASK writes width-mask<<(shift+16) OR encoded-value<<shift,
+          then conditionally unlock. BIG_ENDIAN selects big-endian I/O; otherwise readl/writel; DFLAGS
+          does not select BIG_ENDIAN.
+        support:
+        - class: src
+          anchors:
+          - repo: linux
+            path: drivers/clk/clk-divider.c
+            lines:
+            - 29
+            - 43
+            symbol: clk_div_readl
+          - repo: linux
+            path: drivers/clk/clk-divider.c
+            lines:
+            - 441
+            - 460
+            symbol: clk_divider_set_rate
+          - repo: linux
+            path: drivers/clk/rockchip/clk-rk3588.c
+            lines:
+            - 523
+            - 523
+            symbol: DFLAGS
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clk/clk-divider.c
+      lines:
+      - 93
+      - 109
+      symbol: _get_div
+    - repo: linux
+      path: drivers/clk/clk-divider.c
+      lines:
+      - 136
+      - 165
+      symbol: divider_recalc_rate
+    - repo: linux
+      path: drivers/clk/clk-divider.c
+      lines:
+      - 120
+      - 134
+      symbol: _get_val
+    - repo: linux
+      path: drivers/clk/clk-divider.c
+      lines:
+      - 409
+      - 440
+      symbol: divider_get_val
+    - repo: linux
+      path: drivers/clk/clk-divider.c
+      lines:
+      - 29
+      - 43
+      symbol: clk_div_readl
+    - repo: linux
+      path: drivers/clk/clk-divider.c
+      lines:
+      - 441
+      - 460
+      symbol: clk_divider_set_rate
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 523
+      - 523
+      symbol: DFLAGS
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 845
+      - 864
+      symbol: COMPOSITE
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.c
+      lines:
+      - 86
+      - 105
+      symbol: rockchip_clk_register_branch
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.h
+      lines:
+      - 888
+      - 904
+      symbol: COMPOSITE_NOMUX
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 688
+      - 693
+      symbol: CLK_50M_SRC
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 709
+      - 711
+      symbol: CLK_400M_SRC
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 1236
+      - 1238
+      symbol: CLK_UART2_SRC
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 1097
+      - 1114
+      symbol: DBCLK_GPIO1
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 2168
+      - 2176
+      symbol: CLK_PMU1_400M_SRC
+- id: fractional-divider-update
+  section: sequences
+  claim: Pinned generic fractional operations use raw 16-bit M/N for UART2 and full-word read-modify-write,
+    preserving conditional locking and byte-order behavior. They are not highword-masked updates.
+  requirement: as-implemented
+  critical: true
+  data:
+    sequence:
+      steps:
+      - id: recalculate
+        action: Read under conditional lock, extract M/N masks/shifts. ZERO_BASED would increment both
+          but is absent here. Return parent_rate when either is zero; otherwise floor(parent_rate*M/N).
+        support:
+        - class: src
+          anchors:
+          - repo: linux
+            path: drivers/clk/clk-fractional-divider.c
+            lines:
+            - 69
+            - 119
+            symbol: clk_fd_get_div
+          - repo: linux-later
+            path: drivers/clk/rockchip/clk.c
+            lines:
+            - 237
+            - 246
+            symbol: rockchip_clk_register_frac_branch
+          - repo: linux
+            path: drivers/clk/rockchip/clk-rk3588.c
+            lines:
+            - 1239
+            - 1242
+            symbol: CLK_UART2_FRAC
+      - id: choose-write
+        action: The generic setter uses rational_best_approximation(rate,parent_rate,max_M,max_N), both
+          maxima 65535 for non-zero-based width16; ZERO_BASED decrements would apply only if flagged.
+          Under conditional lock, read full register, clear both masks, OR M/N at shifts, write full word,
+          unlock; return zero.
+        support:
+        - class: src
+          anchors:
+          - repo: linux
+            path: drivers/clk/clk-fractional-divider.c
+            lines:
+            - 182
+            - 225
+            symbol: clk_fd_set_rate
+          - repo: linux-later
+            path: drivers/clk/rockchip/clk.c
+            lines:
+            - 237
+            - 246
+            symbol: rockchip_clk_register_frac_branch
+          - repo: linux
+            path: drivers/clk/rockchip/clk-rk3588.c
+            lines:
+            - 1239
+            - 1242
+            symbol: CLK_UART2_FRAC
+      - id: access
+        action: BIG_ENDIAN would select big-endian I/O; zero UART2 divider flags select readl/writel instead.
+        support:
+        - class: src
+          anchors:
+          - repo: linux
+            path: drivers/clk/clk-fractional-divider.c
+            lines:
+            - 53
+            - 67
+            symbol: clk_fd_readl
+          - repo: linux
+            path: drivers/clk/rockchip/clk-rk3588.c
+            lines:
+            - 1239
+            - 1242
+            symbol: CLK_UART2_FRAC
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/clk/clk-fractional-divider.c
+      lines:
+      - 69
+      - 119
+      symbol: clk_fd_get_div
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.c
+      lines:
+      - 237
+      - 246
+      symbol: rockchip_clk_register_frac_branch
+    - repo: linux
+      path: drivers/clk/rockchip/clk-rk3588.c
+      lines:
+      - 1239
+      - 1242
+      symbol: CLK_UART2_FRAC
+    - repo: linux
+      path: drivers/clk/clk-fractional-divider.c
+      lines:
+      - 182
+      - 225
+      symbol: clk_fd_set_rate
+    - repo: linux
+      path: drivers/clk/clk-fractional-divider.c
+      lines:
+      - 53
+      - 67
+      symbol: clk_fd_readl
+- id: fractional-rate-policy
+  section: sequences
+  claim: Pinned Rockchip fractional rate notification and approximation are driver policies, including
+    a conditional temporary remux. This source sequence is not a silicon-required safe retuning procedure.
+  requirement: as-implemented
+  critical: true
+  data:
+    sequence:
+      steps:
+      - id: pre-change
+        action: On PRE_RATE_CHANGE save current output parent. If it differs from the fractional-parent
+          index, select fractional parent and mark rate_change_remuxed.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-later
+            path: drivers/clk/rockchip/clk.c
+            lines:
+            - 152
+            - 159
+            symbol: rockchip_clk_frac_notifier_cb
+      - id: post-change
+        action: On POST_RATE_CHANGE, only when rate_change_remuxed is set, restore saved parent and clear
+          that flag. Other events do not enter either branch; the callback returns notifier_from_errno(ret),
+          with ret initialized zero.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-later
+            path: drivers/clk/rockchip/clk.c
+            lines:
+            - 148
+            - 174
+            symbol: rockchip_clk_frac_notifier_cb
+      - id: approximate
+        action: Rockchip approximation reads immediate parent rate; only if rate*20>p_rate AND p_rate%rate!=0
+          does it replace parent_rate with grandparent rate. Set POWER_OF_TWO_PS and call general approximation.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-later
+            path: drivers/clk/rockchip/clk.c
+            lines:
+            - 185
+            - 198
+            symbol: rockchip_fractional_approximation
+      - id: general
+        action: General approximation with POWER_OF_TWO_PS computes scale=fls_long(parent_rate/rate-1)
+          and left-shifts rate by scale-nwidth only when scale>nwidth; set numerator/denominator maxima
+          by ZERO_BASED flag and rationally approximate. The determine-rate path returns parent for zero
+          rate or, without parent propagation, rate>=parent; otherwise invokes approximation and reports
+          floor(parent*M/N).
+        support:
+        - class: src
+          anchors:
+          - repo: linux
+            path: drivers/clk/clk-fractional-divider.c
+            lines:
+            - 121
+            - 178
+            symbol: clk_fractional_divider_general_approximation
+  support:
+  - class: src
+    anchors:
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.c
+      lines:
+      - 152
+      - 159
+      symbol: rockchip_clk_frac_notifier_cb
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.c
+      lines:
+      - 148
+      - 174
+      symbol: rockchip_clk_frac_notifier_cb
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.c
+      lines:
+      - 185
+      - 198
+      symbol: rockchip_fractional_approximation
+    - repo: linux
+      path: drivers/clk/clk-fractional-divider.c
+      lines:
+      - 121
+      - 178
+      symbol: clk_fractional_divider_general_approximation
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.c
+      lines:
+      - 264
+      - 267
+      symbol: rockchip_clk_register_frac_branch
+    - repo: linux-later
+      path: drivers/clk/rockchip/clk.c
+      lines:
+      - 292
+      - 302
+      symbol: rockchip_clk_register_frac_branch
+- id: reset-update
+  section: sequences
+  claim: Pinned RK3588 reset initialization passes the lookup table, reset-base offset and HIWORD flag.
+    The performing operations first translate reset API index through the table, then derive register
+    and bit; they do not divide the API index directly.
+  requirement: as-implemented
+  critical: true
+  data:
+    sequence:
+      steps:
+      - id: translate
+        action: Init passes reg_base+RK3588_SOFTRST_CON(0), table size and HIWORD_MASK. Set num_per_reg=16
+          for this flag. Assert/deassert translate id=lut[id], then bank=id/16 and bit=id%16; actual address
+          is reset_base+4*bank. The PMU table adds 0x30000*4 in bit-index units.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-later
+            path: drivers/clk/rockchip/rst-rk3588.c
+            lines:
+            - 13
+            - 23
+            symbol: RK3588_CRU_RESET_OFFSET
+          - repo: linux-later
+            path: drivers/clk/rockchip/rst-rk3588.c
+            lines:
+            - 851
+            - 858
+            symbol: rk3588_rst_init
+          - repo: linux-later
+            path: drivers/clk/rockchip/softrst.c
+            lines:
+            - 32
+            - 36
+            symbol: rockchip_softrst_assert
+          - repo: linux-later
+            path: drivers/clk/rockchip/softrst.c
+            lines:
+            - 63
+            - 67
+            symbol: rockchip_softrst_deassert
+          - repo: linux-later
+            path: drivers/clk/rockchip/softrst.c
+            lines:
+            - 109
+            - 110
+            symbol: rockchip_register_softrst_lut
+          - repo: linux-later
+            path: drivers/clk/rockchip/softrst.c
+            lines:
+            - 38
+            - 39
+            symbol: rockchip_softrst_assert
+      - id: assert
+        action: With HIWORD_MASK, writel(BIT(bit)|BIT(bit)<<16) to derived address and return zero; the
+          alternative non-HIWORD path locks and read-modify-writes.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-later
+            path: drivers/clk/rockchip/softrst.c
+            lines:
+            - 38
+            - 54
+            symbol: rockchip_softrst_assert
+      - id: deassert
+        action: With HIWORD_MASK, writel(BIT(bit)<<16) to derived address and return zero; the alternative
+          non-HIWORD path locks and read-modify-writes. These callbacks do not perform a reset-status
+          poll or insert a reset pulse wait.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-later
+            path: drivers/clk/rockchip/softrst.c
+            lines:
+            - 63
+            - 84
+            symbol: rockchip_softrst_deassert
+  support:
+  - class: src
+    anchors:
+    - repo: linux-later
+      path: drivers/clk/rockchip/rst-rk3588.c
+      lines:
+      - 13
+      - 23
+      symbol: RK3588_CRU_RESET_OFFSET
+    - repo: linux-later
+      path: drivers/clk/rockchip/rst-rk3588.c
+      lines:
+      - 851
+      - 858
+      symbol: rk3588_rst_init
+    - repo: linux-later
+      path: drivers/clk/rockchip/softrst.c
+      lines:
+      - 32
+      - 36
+      symbol: rockchip_softrst_assert
+    - repo: linux-later
+      path: drivers/clk/rockchip/softrst.c
+      lines:
+      - 63
+      - 67
+      symbol: rockchip_softrst_deassert
+    - repo: linux-later
+      path: drivers/clk/rockchip/softrst.c
+      lines:
+      - 109
+      - 110
+      symbol: rockchip_register_softrst_lut
+    - repo: linux-later
+      path: drivers/clk/rockchip/softrst.c
+      lines:
+      - 38
+      - 54
+      symbol: rockchip_softrst_assert
+    - repo: linux-later
+      path: drivers/clk/rockchip/softrst.c
+      lines:
+      - 63
+      - 84
+      symbol: rockchip_softrst_deassert
+- id: uart-clock-reset-lifecycle
+  section: sequences
+  claim: Pinned DesignWare UART code supplies probe and runtime clock/reset prerequisites and rollback.
+    Optional reset handling does not prove a reset operation on the RK3588 UART2 device-tree node, which
+    declares no resets.
+  requirement: as-implemented
+  critical: true
+  data:
+    sequence:
+      steps:
+      - id: probe-clock
+        action: Acquire optional enabled baudclk; only on NULL retry unnamed clock. Return probe error
+          on IS_ERR. If present read rate into uartclk; reject zero uartclk with -EINVAL. Acquire optional
+          enabled apb_pclk and return its error.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-later
+            path: drivers/tty/serial/8250/8250_dw.c
+            lines:
+            - 709
+            - 725
+            symbol: dw8250_probe
+      - id: probe-reset
+        action: Acquire optional exclusive reset array and propagate errors; deassert and propagate failure.
+          Add managed cleanup action that asserts reset, propagating registration error.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-later
+            path: drivers/tty/serial/8250/8250_dw.c
+            lines:
+            - 727
+            - 737
+            symbol: dw8250_probe
+          - repo: linux-later
+            path: drivers/tty/serial/8250/8250_dw.c
+            lines:
+            - 611
+            - 614
+            symbol: dw8250_reset_control_assert
+      - id: runtime-suspend
+        action: Disable/unprepare baudclk, then apb_pclk; return zero.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-later
+            path: drivers/tty/serial/8250/8250_dw.c
+            lines:
+            - 811
+            - 820
+            symbol: dw8250_runtime_suspend
+      - id: runtime-resume
+        action: Prepare/enable apb_pclk first; return its error. Prepare/enable baudclk next; on failure
+          disable/unprepare apb_pclk and return error. Otherwise return zero.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-later
+            path: drivers/tty/serial/8250/8250_dw.c
+            lines:
+            - 827
+            - 838
+            symbol: dw8250_runtime_resume
+  support:
+  - class: src
+    anchors:
+    - repo: linux-later
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 709
+      - 725
+      symbol: dw8250_probe
+    - repo: linux-later
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 727
+      - 737
+      symbol: dw8250_probe
+    - repo: linux-later
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 611
+      - 614
+      symbol: dw8250_reset_control_assert
+    - repo: linux-later
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 811
+      - 820
+      symbol: dw8250_runtime_suspend
+    - repo: linux-later
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 827
+      - 838
+      symbol: dw8250_runtime_resume
+  - class: DT
+    anchors:
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      lines:
+      - 2811
+      - 2824
+      symbol: uart2
+- id: gpio-clock-lifecycle
+  section: sequences
+  claim: Pinned GPIO driver enables the first clock before identifying the register version, acquires
+    debounce clock only on recognized V2 IDs, and changes its enable state only under the debounce-support
+    guard. This is code observation, not proof of the installed GPIO version.
+  requirement: as-implemented
+  critical: true
+  data:
+    sequence:
+      steps:
+      - id: first-clock
+        action: Acquire enabled unnamed first clock; return pointer error on failure, then read version
+          register.
+        support:
+        - class: src
+          anchors:
+          - repo: linux
+            path: drivers/gpio/gpio-rockchip.c
+            lines:
+            - 666
+            - 670
+            symbol: rockchip_get_bank_data
+      - id: debounce-clock
+        action: For GPIO_TYPE_V2/V2_1/V2_2 select V2 model and get clock index1. On error return -EINVAL.
+          Register managed clk_put and propagate its error. V1 selects V1 without this acquisition; unsupported
+          version returns -ENODEV.
+        support:
+        - class: src
+          anchors:
+          - repo: linux
+            path: drivers/gpio/gpio-rockchip.c
+            lines:
+            - 672
+            - 696
+            symbol: rockchip_get_bank_data
+          - repo: linux
+            path: drivers/gpio/gpio-rockchip.c
+            lines:
+            - 641
+            - 646
+            symbol: rockchip_clk_put
+      - id: debounce-gating
+        action: 'After programming debounce state and unlocking, only if div_debounce_support is true:
+          enable/prepare db_clk for nonzero debounce, otherwise disable/unprepare it. This call does not
+          check the enable return; do not turn it into a success guarantee.'
+        support:
+        - class: src
+          anchors:
+          - repo: linux
+            path: drivers/gpio/gpio-rockchip.c
+            lines:
+            - 201
+            - 211
+            symbol: rockchip_gpio_set_debounce
+          - repo: linux
+            path: drivers/gpio/gpio-rockchip.c
+            lines:
+            - 245
+            - 257
+            symbol: rockchip_gpio_set_debounce
+  support:
+  - class: src
+    anchors:
+    - repo: linux
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 666
+      - 670
+      symbol: rockchip_get_bank_data
+    - repo: linux
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 672
+      - 696
+      symbol: rockchip_get_bank_data
+    - repo: linux
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 641
+      - 646
+      symbol: rockchip_clk_put
+    - repo: linux
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 201
+      - 211
+      symbol: rockchip_gpio_set_debounce
+    - repo: linux
+      path: drivers/gpio/gpio-rockchip.c
+      lines:
+      - 245
+      - 257
+      symbol: rockchip_gpio_set_debounce
+- id: hardware-programming-authority
+  section: open-questions
+  claim: 'Blocking gap: no admissible hardware document in this evidence set establishes actual clock/reset
+    field semantics, legal operating limits, mandatory order, reset pulse duration, stabilization waits,
+    side effects, or reset values. Source observations are not hardware-required operations.'
+  requirement: as-implemented
+  todo:
+    check: document
+    text: Obtain a public non-confidential RK3588 programming reference covering this exact block/revision,
+      and independently compare masks/access/side effects before executing operations.
+    method: Obtain a public non-confidential RK3588 programming reference covering this exact block/revision,
+      and independently compare masks/access/side effects before executing operations.
+  critical: true
+- id: firmware-clock-state
+  section: open-questions
+  claim: 'Blocking gap: active mux/divider/gate/reset values, oscillator quality, PLL lock/rates and firmware
+    handoff state on standard ROCK 5T V1.2 are unmeasured. Source names and device-tree assigned rates
+    are not current-state evidence. PLL retuning and a full clock tree are outside this bounded subset.'
+  requirement: as-implemented
+  todo:
+    check: hardware
+    text: With board revision and firmware recorded, use privileged read-only clock/reset observations
+      and independent frequency measurement; establish source rates and stability before applying rate
+      arithmetic or changing shared roots.
+    method: With board revision and firmware recorded, use privileged read-only clock/reset observations
+      and independent frequency measurement; establish source rates and stability before applying rate
+      arithmetic or changing shared roots.
+  critical: true
+- id: boot-sequencing-safety
+  section: open-questions
+  claim: 'Blocking gap: these operation catalogs do not establish a safe complete boot sequence or teardown
+    for shared roots, consumer ownership, pinctrl prerequisites, or GIC/architectural-timer dependencies.
+    No dependency on another campaign unit is declared here; integration is reserved for M7.'
+  requirement: as-implemented
+  todo:
+    check: document
+    text: Trace exact firmware/consumer ownership and applicable public requirements, then integrate the
+      accepted family specs; quiesce affected consumers only under an established supported procedure.
+    method: Trace exact firmware/consumer ownership and applicable public requirements, then integrate
+      the accepted family specs; quiesce affected consumers only under an established supported procedure.
+  critical: true
+- id: target-os-integration
+  section: target
+  claim: 'Target operating system integration remains explicitly unselected and out of scope: no framework
+    binding, packaging, locking integration or driver implementation is supplied.'
+  requirement: as-implemented
+  todo:
+    check: source
+    text: After an OS is selected, inspect its clock/reset and UART/GPIO interfaces and add separately
+      pinned target-role support.
+    method: After an OS is selected, inspect its clock/reset and UART/GPIO interfaces and add separately
+      pinned target-role support.
+- id: physical-validation
+  section: open-questions
+  claim: No driver reconstruction, differential test or hardware boot validation was performed. This unit
+    is a source-backed draft with blocking gaps, not implementation-ready board programming coverage.
+  requirement: as-implemented
+  todo:
+    check: hardware
+    text: After the missing programming authority and handoff prerequisites are settled, independently
+      implement the bounded operations and compare observations on the stated board revision.
+    method: After the missing programming authority and handoff prerequisites are settled, independently
+      implement the bounded operations and compare observations on the stated board revision.
+  critical: true
