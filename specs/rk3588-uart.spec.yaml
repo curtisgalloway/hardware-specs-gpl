@@ -1,0 +1,2719 @@
+# SPDX-FileCopyrightText: 2026 contributors
+# SPDX-License-Identifier: GPL-2.0-only
+
+format: 2
+kind: peripheral
+id: rk3588-uart
+name: RK3588 UART console programming observations
+orientation: Hardware programming only for standard ROCK 5T V1.2. Source observations are bounded to the
+  generic U-Boot NS16550 and Linux DesignWare 8250 paths at the pins below. Offsets are byte offsets for
+  the instance register shift; logical register indices and direct extension byte offsets must remain
+  distinct. No confidential manual is cited. Independent verification is pending.
+areas:
+- area: console programming
+  level: code-only
+  note: Accepted implementation sources establish operations; silicon requirements and firmware state
+    remain explicit gaps.
+resources:
+  repos:
+  - name: uboot
+    url: https://github.com/u-boot/u-boot
+    commit: 5508406582f6f7120dce0c4b3059819a41788db2
+    license: GPL-2.0-only
+    role: source
+    files:
+    - path: include/ns16550.h
+      license_from: license-file
+      note: GPL version 2 grant in Licenses/README lines 3-8; no alternate grant assumed.
+    - path: drivers/serial/ns16550.c
+      license_from: license-file
+      note: GPL version 2 grant in Licenses/README lines 3-8; no alternate grant assumed.
+  - name: linux-uart
+    url: https://github.com/torvalds/linux
+    commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+    license: GPL-2.0-or-later
+    role: source
+    files:
+    - path: drivers/tty/serial/8250/8250_dw.c
+      license_from: spdx-line
+    - path: drivers/tty/serial/8250/8250_dwlib.c
+      license_from: spdx-line
+    - path: drivers/tty/serial/8250/8250_dwlib.h
+      license_from: spdx-line
+    - path: drivers/tty/serial/8250/8250_port.c
+      license_from: spdx-line
+notices:
+- repo: uboot
+  path: include/ns16550.h
+  text: NS16550 Serial Port; originally from Linux arch/powerpc/boot/ns16550.h. Cleanup and unification
+    (C) 2009 Detlev Zundel, DENX Software Engineering GmbH. Modifications (c) Rob Taylor, Flying Pig Systems,
+    2000. 64-bit bus support by Richard Danter, (C) 2005 Wind River Systems. Covered by U-Boot Licenses/README
+    GPL version 2 grant; source notices retained here.
+- repo: uboot
+  path: drivers/serial/ns16550.c
+  text: COM1 NS16550 support, originally from Linux arch/powerpc/boot/ns16550.c; modified to use CONFIG_SYS_ISA_MEM
+    and new defines. U-Boot is copyrighted by Wolfgang Denk and contributors; GPL version 2 grant in Licenses/README.
+- repo: linux-uart
+  path: drivers/tty/serial/8250/8250_dw.c
+  text: Synopsys DesignWare 8250 driver. Copyright 2011 Picochip, Jamie Iles. Copyright 2013 Intel Corporation.
+    SPDX GPL-2.0+.
+- repo: linux-uart
+  path: drivers/tty/serial/8250/8250_port.c
+  text: Base port operations for 8250/16550-type serial ports. Based on drivers/char/serial.c by Linus
+    Torvalds and Theodore Ts'o. Split from 8250_core.c, Copyright (C) 2001 Russell King. SPDX GPL-2.0+.
+facts:
+- id: console-route
+  section: identity
+  claim: Apply this programming description to the board console only after resolving the board and SoC
+    route facts. The cited board selects UART2 M0; its physical connector and the SoC instance map remain
+    in their owning specs.
+  todo:
+    check: hardware
+    text: Confirm standard V1.2 identity and active UART2 M0 mux before using the connector.
+  support:
+  - class: inference
+    confidence: high
+    premises:
+    - fact: rock5t@hardware-specs-gpl#dt-console
+      uses: board console selects UART2 M0
+    - fact: rock5t@hardware-specs-docs#debug-console-is-uart2-m0
+      uses: physical debug-console route
+    - fact: rk3588@hardware-specs-gpl#dt-uart2-node
+      uses: UART2 instance, clocks and register properties
+    - fact: rk3588@hardware-specs-gpl#dt-uart2-m0-pins
+      uses: M0 pin group
+    derivation: These facts identify the board route and instance to which the programming model is applied;
+      this does not prove the running firmware selected that route.
+  critical: true
+- id: addressing
+  section: identity
+  claim: The register table uses byte offsets for UART2 reg-shift 2. U-Boot scales each logical slot by
+    1 << reg_shift, adds reg_offset, and defaults reg_offset to zero. Its dynamic reg_width 4 path uses
+    32-bit accesses. Linux dw8250_serial_in32/out32 use readl/writel at membase + (index << regshift).
+    Extended DLF/CPR/UCV offsets bypass regshift. Width means observed transaction size, not proved silicon
+    width.
+  requirement: as-implemented
+  relates:
+  - fact: rk3588@hardware-specs-gpl#dt-uart2-node
+    relation: refines
+  support:
+  - class: src
+    anchors:
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 162
+      - 168
+      symbol: ns16550_writeb
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 176
+      - 182
+      symbol: ns16550_readb
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 548
+      - 550
+      symbol: ns16550_serial_of_to_plat
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 109
+      - 116
+      symbol: serial_out_dynamic
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 129
+      - 136
+      symbol: serial_in_dynamic
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 339
+      - 350
+      symbol: dw8250_serial_out32
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dwlib.h
+      lines:
+      - 98
+      - 110
+      symbol: dw8250_readl_ext
+  critical: true
+- id: basic-aliases
+  section: gotchas
+  claim: U-Boot aliases THR and DLL to RBR, IIR to FCR, and DLM to IER. Its divisor writer selects DLAB
+    before DLL/DLM accesses and restores LCR afterward. Register rows describe these software names, not
+    simultaneous independent registers; do not read FCR through the IIR alias as a saved FIFO-control
+    value.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 129
+      - 132
+      symbol: thr
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 209
+      - 214
+      symbol: ns16550_setbrg
+  critical: true
+- id: reg-rbr
+  section: registers
+  claim: RBR software register at logical slot 0 under the U-Boot DM_SERIAL one-byte UART_REG layout and
+    pointer-to-slot accessor. This UART2 row uses reg_shift 2 and reg_offset 0; the listed byte offset
+    is relative to the register block. No reset value or silicon access class is established.
+  requirement: as-implemented
+  data:
+    register:
+      name: RBR
+      offset: '0x0'
+  support:
+  - class: src
+    anchors:
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 88
+      - 88
+      symbol: struct ns16550
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 162
+      - 163
+      symbol: ns16550_writeb
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 30
+      - 37
+      symbol: UART_REG
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 120
+      - 126
+      symbol: serial_out
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 548
+      - 548
+      symbol: ns16550_serial_of_to_plat
+  critical: true
+  relates:
+  - fact: rk3588@hardware-specs-gpl#dt-uart2-node
+    relation: refines
+- id: reg-thr
+  section: registers
+  claim: THR software register at logical slot 0 under the U-Boot DM_SERIAL one-byte UART_REG layout and
+    pointer-to-slot accessor. This UART2 row uses reg_shift 2 and reg_offset 0; the listed byte offset
+    is relative to the register block. No reset value or silicon access class is established.
+  requirement: as-implemented
+  data:
+    register:
+      name: THR
+      offset: '0x0'
+  support:
+  - class: src
+    anchors:
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 88
+      - 88
+      symbol: struct ns16550
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 129
+      - 129
+      symbol: thr
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 162
+      - 163
+      symbol: ns16550_writeb
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 30
+      - 37
+      symbol: UART_REG
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 120
+      - 126
+      symbol: serial_out
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 548
+      - 548
+      symbol: ns16550_serial_of_to_plat
+  critical: true
+  relates:
+  - fact: rk3588@hardware-specs-gpl#dt-uart2-node
+    relation: refines
+- id: reg-dll
+  section: registers
+  claim: DLL software register at logical slot 0 under the U-Boot DM_SERIAL one-byte UART_REG layout and
+    pointer-to-slot accessor. This UART2 row uses reg_shift 2 and reg_offset 0; the listed byte offset
+    is relative to the register block. No reset value or silicon access class is established.
+  requirement: as-implemented
+  data:
+    register:
+      name: DLL
+      offset: '0x0'
+  support:
+  - class: src
+    anchors:
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 88
+      - 89
+      symbol: struct ns16550
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 131
+      - 132
+      symbol: dll
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 162
+      - 163
+      symbol: ns16550_writeb
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 30
+      - 37
+      symbol: UART_REG
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 120
+      - 126
+      symbol: serial_out
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 548
+      - 548
+      symbol: ns16550_serial_of_to_plat
+  critical: true
+  relates:
+  - fact: rk3588@hardware-specs-gpl#dt-uart2-node
+    relation: refines
+- id: reg-ier
+  section: registers
+  claim: IER software register at logical slot 1 under the U-Boot DM_SERIAL one-byte UART_REG layout and
+    pointer-to-slot accessor. This UART2 row uses reg_shift 2 and reg_offset 0; the listed byte offset
+    is relative to the register block. No reset value or silicon access class is established.
+  requirement: as-implemented
+  data:
+    register:
+      name: IER
+      offset: '0x4'
+    fields:
+    - id: rdi
+      name: UART_IER_RDI
+      bits:
+      - 0
+      - 0
+      meaning: Receive-data interrupt enable (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 228
+          - 228
+          symbol: UART_IER_RDI
+          comment: true
+      requirement: as-implemented
+    - id: thri
+      name: UART_IER_THRI
+      bits:
+      - 1
+      - 1
+      meaning: Transmit-holding-register interrupt enable (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 227
+          - 227
+          symbol: UART_IER_THRI
+          comment: true
+      requirement: as-implemented
+    - id: rlsi
+      name: UART_IER_RLSI
+      bits:
+      - 2
+      - 2
+      meaning: Receive-line-status interrupt enable (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 226
+          - 226
+          symbol: UART_IER_RLSI
+          comment: true
+      requirement: as-implemented
+    - id: msi
+      name: UART_IER_MSI
+      bits:
+      - 3
+      - 3
+      meaning: Modem-status interrupt enable (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 225
+          - 225
+          symbol: UART_IER_MSI
+          comment: true
+      requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 89
+      - 89
+      symbol: struct ns16550
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 162
+      - 163
+      symbol: ns16550_writeb
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 30
+      - 37
+      symbol: UART_REG
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 120
+      - 126
+      symbol: serial_out
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 548
+      - 548
+      symbol: ns16550_serial_of_to_plat
+  critical: true
+  relates:
+  - fact: rk3588@hardware-specs-gpl#dt-uart2-node
+    relation: refines
+- id: reg-dlm
+  section: registers
+  claim: DLM software register at logical slot 1 under the U-Boot DM_SERIAL one-byte UART_REG layout and
+    pointer-to-slot accessor. This UART2 row uses reg_shift 2 and reg_offset 0; the listed byte offset
+    is relative to the register block. No reset value or silicon access class is established.
+  requirement: as-implemented
+  data:
+    register:
+      name: DLM
+      offset: '0x4'
+  support:
+  - class: src
+    anchors:
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 88
+      - 89
+      symbol: struct ns16550
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 131
+      - 132
+      symbol: dll
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 162
+      - 163
+      symbol: ns16550_writeb
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 30
+      - 37
+      symbol: UART_REG
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 120
+      - 126
+      symbol: serial_out
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 548
+      - 548
+      symbol: ns16550_serial_of_to_plat
+  critical: true
+  relates:
+  - fact: rk3588@hardware-specs-gpl#dt-uart2-node
+    relation: refines
+- id: reg-fcr
+  section: registers
+  claim: FCR software register at logical slot 2 under the U-Boot DM_SERIAL one-byte UART_REG layout and
+    pointer-to-slot accessor. This UART2 row uses reg_shift 2 and reg_offset 0; the listed byte offset
+    is relative to the register block. No reset value or silicon access class is established.
+  requirement: as-implemented
+  data:
+    register:
+      name: FCR
+      offset: '0x8'
+    fields:
+    - id: fifo
+      name: UART_FCR_FIFO_EN
+      bits:
+      - 0
+      - 0
+      meaning: FIFO enable (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 137
+          - 137
+          symbol: UART_FCR_FIFO_EN
+          comment: true
+      requirement: as-implemented
+    - id: rxclear
+      name: UART_FCR_CLEAR_RCVR
+      bits:
+      - 1
+      - 1
+      meaning: Header names this receiver FIFO clear; RXSR has the same mask (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 138
+          - 138
+          symbol: UART_FCR_CLEAR_RCVR
+          comment: true
+      requirement: as-implemented
+    - id: txclear
+      name: UART_FCR_CLEAR_XMIT
+      bits:
+      - 2
+      - 2
+      meaning: Header names this transmitter FIFO clear; TXSR has the same mask (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 139
+          - 139
+          symbol: UART_FCR_CLEAR_XMIT
+          comment: true
+      requirement: as-implemented
+    - id: dma
+      name: UART_FCR_DMA_SELECT
+      bits:
+      - 3
+      - 3
+      meaning: Header DMA selection bit; DMA programming is outside this console scope (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 140
+          - 140
+          symbol: UART_FCR_DMA_SELECT
+          comment: true
+      requirement: as-implemented
+    - id: trigger
+      name: UART_FCR_TRIGGER_MASK
+      bits:
+      - 6
+      - 7
+      meaning: Header receive FIFO trigger selector; actual RK3588 thresholds are unproved (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 141
+          - 141
+          symbol: UART_FCR_TRIGGER_MASK
+          comment: true
+      requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 90
+      - 90
+      symbol: struct ns16550
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 162
+      - 163
+      symbol: ns16550_writeb
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 30
+      - 37
+      symbol: UART_REG
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 120
+      - 126
+      symbol: serial_out
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 548
+      - 548
+      symbol: ns16550_serial_of_to_plat
+  critical: true
+  relates:
+  - fact: rk3588@hardware-specs-gpl#dt-uart2-node
+    relation: refines
+- id: reg-iir
+  section: registers
+  claim: IIR software register at logical slot 2 under the U-Boot DM_SERIAL one-byte UART_REG layout and
+    pointer-to-slot accessor. This UART2 row uses reg_shift 2 and reg_offset 0; the listed byte offset
+    is relative to the register block. No reset value or silicon access class is established.
+  requirement: as-implemented
+  data:
+    register:
+      name: IIR
+      offset: '0x8'
+    fields:
+    - id: noint
+      name: UART_IIR_NO_INT
+      bits:
+      - 0
+      - 0
+      meaning: Header no-interrupt-pending indicator (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 214
+          - 214
+          symbol: UART_IIR_NO_INT
+          comment: true
+      requirement: as-implemented
+    - id: iid
+      name: DW_UART_IIR_IID
+      bits:
+      - 0
+      - 3
+      meaning: Linux DesignWare four-bit interrupt ID extraction, overlapping the no-pending indicator;
+        do not substitute U-Boot UART_IIR_ID mask.
+      support:
+      - class: src
+        anchors:
+        - repo: linux-uart
+          path: drivers/tty/serial/8250/8250_dwlib.h
+          lines:
+          - 28
+          - 29
+          symbol: DW_UART_IIR_IID
+      requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 90
+      - 90
+      symbol: struct ns16550
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 130
+      - 130
+      symbol: iir
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 162
+      - 163
+      symbol: ns16550_writeb
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 30
+      - 37
+      symbol: UART_REG
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 120
+      - 126
+      symbol: serial_out
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 548
+      - 548
+      symbol: ns16550_serial_of_to_plat
+  critical: true
+  relates:
+  - fact: rk3588@hardware-specs-gpl#dt-uart2-node
+    relation: refines
+- id: reg-lcr
+  section: registers
+  claim: LCR software register at logical slot 3 under the U-Boot DM_SERIAL one-byte UART_REG layout and
+    pointer-to-slot accessor. This UART2 row uses reg_shift 2 and reg_offset 0; the listed byte offset
+    is relative to the register block. No reset value or silicon access class is established.
+  requirement: as-implemented
+  data:
+    register:
+      name: LCR
+      offset: '0xc'
+    fields:
+    - id: wls
+      name: UART_LCR_WLS_MSK
+      bits:
+      - 0
+      - 1
+      meaning: Word-length encoding 0/1/2/3 for 5/6/7/8 data bits in the header (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 177
+          - 181
+          symbol: UART_LCR_WLS_MSK
+          comment: true
+      requirement: as-implemented
+    - id: stop
+      name: UART_LCR_STB
+      bits:
+      - 2
+      - 2
+      meaning: Header stop-bit selection; off is one, on is 1.5 or two (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 182
+          - 182
+          symbol: UART_LCR_STB
+          comment: true
+      requirement: as-implemented
+    - id: parity
+      name: UART_LCR_PEN
+      bits:
+      - 3
+      - 3
+      meaning: Parity enable (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 183
+          - 183
+          symbol: UART_LCR_PEN
+          comment: true
+      requirement: as-implemented
+    - id: even
+      name: UART_LCR_EPS
+      bits:
+      - 4
+      - 4
+      meaning: Even-parity selection (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 184
+          - 184
+          symbol: UART_LCR_EPS
+          comment: true
+      requirement: as-implemented
+    - id: stick
+      name: UART_LCR_STKP
+      bits:
+      - 5
+      - 5
+      meaning: Stick parity (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 185
+          - 185
+          symbol: UART_LCR_STKP
+          comment: true
+      requirement: as-implemented
+    - id: break
+      name: UART_LCR_SBRK
+      bits:
+      - 6
+      - 6
+      meaning: Set break (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 186
+          - 186
+          symbol: UART_LCR_SBRK
+          comment: true
+      requirement: as-implemented
+    - id: dlab
+      name: UART_LCR_DLAB
+      bits:
+      - 7
+      - 7
+      meaning: Divisor latch access / bank-select bit (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 188
+          - 188
+          symbol: UART_LCR_DLAB
+          comment: true
+      requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 91
+      - 91
+      symbol: struct ns16550
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 162
+      - 163
+      symbol: ns16550_writeb
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 30
+      - 37
+      symbol: UART_REG
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 120
+      - 126
+      symbol: serial_out
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 548
+      - 548
+      symbol: ns16550_serial_of_to_plat
+  critical: true
+  relates:
+  - fact: rk3588@hardware-specs-gpl#dt-uart2-node
+    relation: refines
+- id: reg-mcr
+  section: registers
+  claim: MCR software register at logical slot 4 under the U-Boot DM_SERIAL one-byte UART_REG layout and
+    pointer-to-slot accessor. This UART2 row uses reg_shift 2 and reg_offset 0; the listed byte offset
+    is relative to the register block. No reset value or silicon access class is established.
+  requirement: as-implemented
+  data:
+    register:
+      name: MCR
+      offset: '0x10'
+    fields:
+    - id: dtr
+      name: UART_MCR_DTR
+      bits:
+      - 0
+      - 0
+      meaning: DTR (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 161
+          - 161
+          symbol: UART_MCR_DTR
+          comment: true
+      requirement: as-implemented
+    - id: rts
+      name: UART_MCR_RTS
+      bits:
+      - 1
+      - 1
+      meaning: RTS (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 162
+          - 162
+          symbol: UART_MCR_RTS
+          comment: true
+      requirement: as-implemented
+    - id: loop
+      name: UART_MCR_LOOP
+      bits:
+      - 4
+      - 4
+      meaning: Loopback test mode (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 165
+          - 165
+          symbol: UART_MCR_LOOP
+          comment: true
+      requirement: as-implemented
+    - id: afe
+      name: UART_MCR_AFE
+      bits:
+      - 5
+      - 5
+      meaning: Header automatic RTS/CTS enable (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 166
+          - 166
+          symbol: UART_MCR_AFE
+          comment: true
+      requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 92
+      - 92
+      symbol: struct ns16550
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 162
+      - 163
+      symbol: ns16550_writeb
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 30
+      - 37
+      symbol: UART_REG
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 120
+      - 126
+      symbol: serial_out
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 548
+      - 548
+      symbol: ns16550_serial_of_to_plat
+  critical: true
+  relates:
+  - fact: rk3588@hardware-specs-gpl#dt-uart2-node
+    relation: refines
+- id: reg-lsr
+  section: registers
+  claim: LSR software register at logical slot 5 under the U-Boot DM_SERIAL one-byte UART_REG layout and
+    pointer-to-slot accessor. This UART2 row uses reg_shift 2 and reg_offset 0; the listed byte offset
+    is relative to the register block. No reset value or silicon access class is established.
+  requirement: as-implemented
+  data:
+    register:
+      name: LSR
+      offset: '0x14'
+    fields:
+    - id: dr
+      name: UART_LSR_DR
+      bits:
+      - 0
+      - 0
+      meaning: Data ready (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 193
+          - 193
+          symbol: UART_LSR_DR
+          comment: true
+      requirement: as-implemented
+    - id: oe
+      name: UART_LSR_OE
+      bits:
+      - 1
+      - 1
+      meaning: Overrun (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 194
+          - 194
+          symbol: UART_LSR_OE
+          comment: true
+      requirement: as-implemented
+    - id: pe
+      name: UART_LSR_PE
+      bits:
+      - 2
+      - 2
+      meaning: Parity error (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 195
+          - 195
+          symbol: UART_LSR_PE
+          comment: true
+      requirement: as-implemented
+    - id: fe
+      name: UART_LSR_FE
+      bits:
+      - 3
+      - 3
+      meaning: Framing error (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 196
+          - 196
+          symbol: UART_LSR_FE
+          comment: true
+      requirement: as-implemented
+    - id: bi
+      name: UART_LSR_BI
+      bits:
+      - 4
+      - 4
+      meaning: Break (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 197
+          - 197
+          symbol: UART_LSR_BI
+          comment: true
+      requirement: as-implemented
+    - id: thre
+      name: UART_LSR_THRE
+      bits:
+      - 5
+      - 5
+      meaning: Transmit holding register empty (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 198
+          - 198
+          symbol: UART_LSR_THRE
+          comment: true
+      requirement: as-implemented
+    - id: temt
+      name: UART_LSR_TEMT
+      bits:
+      - 6
+      - 6
+      meaning: Transmitter empty (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 199
+          - 199
+          symbol: UART_LSR_TEMT
+          comment: true
+      requirement: as-implemented
+    - id: err
+      name: UART_LSR_ERR
+      bits:
+      - 7
+      - 7
+      meaning: Header names this Error; exact FIFO/error-clear semantics are unresolved (U-Boot definition).
+      support:
+      - class: src
+        anchors:
+        - repo: uboot
+          path: include/ns16550.h
+          lines:
+          - 200
+          - 200
+          symbol: UART_LSR_ERR
+          comment: true
+      requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 93
+      - 93
+      symbol: struct ns16550
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 162
+      - 163
+      symbol: ns16550_writeb
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 30
+      - 37
+      symbol: UART_REG
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 120
+      - 126
+      symbol: serial_out
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 548
+      - 548
+      symbol: ns16550_serial_of_to_plat
+  critical: true
+  relates:
+  - fact: rk3588@hardware-specs-gpl#dt-uart2-node
+    relation: refines
+- id: reg-msr
+  section: registers
+  claim: MSR software register at logical slot 6 under the U-Boot DM_SERIAL one-byte UART_REG layout and
+    pointer-to-slot accessor. This UART2 row uses reg_shift 2 and reg_offset 0; the listed byte offset
+    is relative to the register block. No reset value or silicon access class is established.
+  requirement: as-implemented
+  data:
+    register:
+      name: MSR
+      offset: '0x18'
+  support:
+  - class: src
+    anchors:
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 94
+      - 94
+      symbol: struct ns16550
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 162
+      - 163
+      symbol: ns16550_writeb
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 30
+      - 37
+      symbol: UART_REG
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 120
+      - 126
+      symbol: serial_out
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 548
+      - 548
+      symbol: ns16550_serial_of_to_plat
+  critical: true
+  relates:
+  - fact: rk3588@hardware-specs-gpl#dt-uart2-node
+    relation: refines
+- id: reg-spr
+  section: registers
+  claim: SPR software register at logical slot 7 under the U-Boot DM_SERIAL one-byte UART_REG layout and
+    pointer-to-slot accessor. This UART2 row uses reg_shift 2 and reg_offset 0; the listed byte offset
+    is relative to the register block. No reset value or silicon access class is established.
+  requirement: as-implemented
+  data:
+    register:
+      name: SPR
+      offset: '0x1c'
+  support:
+  - class: src
+    anchors:
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 95
+      - 95
+      symbol: struct ns16550
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 162
+      - 163
+      symbol: ns16550_writeb
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 30
+      - 37
+      symbol: UART_REG
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 120
+      - 126
+      symbol: serial_out
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 548
+      - 548
+      symbol: ns16550_serial_of_to_plat
+  critical: true
+  relates:
+  - fact: rk3588@hardware-specs-gpl#dt-uart2-node
+    relation: refines
+- id: reg-usr
+  section: registers
+  claim: Linux USR is logical index 0x1f; this UART2 row uses regshift 2, shifting the index to byte offset
+    0x7c relative to membase. Unlike DLF/CPR/UCV direct extension offsets, USR uses the indexed accessor.
+    This is not a statement that an optional feature is implemented in RK3588 silicon.
+  requirement: as-implemented
+  data:
+    register:
+      name: DW_UART_USR
+      offset: '0x7c'
+    fields:
+    - id: busy
+      name: DW_UART_USR_BUSY
+      bits:
+      - 0
+      - 0
+      meaning: Linux BUSY mask
+      support:
+      - class: src
+        anchors:
+        - repo: linux-uart
+          path: drivers/tty/serial/8250/8250_dwlib.h
+          lines:
+          - 37
+          - 38
+          symbol: DW_UART_USR_BUSY
+  support:
+  - class: src
+    anchors:
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dwlib.h
+      lines:
+      - 16
+      - 16
+      symbol: DW_UART_USR
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 350
+      - 350
+      symbol: dw8250_serial_in32
+  critical: true
+  relates:
+  - fact: rk3588@hardware-specs-gpl#dt-uart2-node
+    relation: refines
+- id: reg-dlf
+  section: registers
+  claim: Direct byte offset in Linux extension helpers; not a statement that this optional feature is
+    implemented in RK3588 silicon.
+  requirement: as-implemented
+  data:
+    register:
+      name: DW_UART_DLF
+      offset: '0xc0'
+  support:
+  - class: src
+    anchors:
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dwlib.h
+      lines:
+      - 21
+      - 21
+      symbol: DW_UART_DLF
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dwlib.h
+      lines:
+      - 98
+      - 110
+      symbol: dw8250_readl_ext
+  critical: true
+- id: reg-cpr
+  section: registers
+  claim: Direct byte offset in Linux extension helpers; not a statement that this optional feature is
+    implemented in RK3588 silicon.
+  requirement: as-implemented
+  data:
+    register:
+      name: DW_UART_CPR
+      offset: '0xf4'
+    fields:
+    - id: width
+      name: DW_UART_CPR_ABP_DATA_WIDTH
+      bits:
+      - 0
+      - 1
+      meaning: Linux component APB-data-width mask; decoded width is not asserted here
+      support:
+      - class: src
+        anchors:
+        - repo: linux-uart
+          path: drivers/tty/serial/8250/8250_dwlib.h
+          lines:
+          - 59
+          - 59
+          symbol: DW_UART_CPR_ABP_DATA_WIDTH
+    - id: afce
+      name: DW_UART_CPR_AFCE_MODE
+      bits:
+      - 4
+      - 4
+      meaning: Linux auto-flow-control capability mask
+      support:
+      - class: src
+        anchors:
+        - repo: linux-uart
+          path: drivers/tty/serial/8250/8250_dwlib.h
+          lines:
+          - 60
+          - 60
+          symbol: DW_UART_CPR_AFCE_MODE
+    - id: sir
+      name: DW_UART_CPR_SIR_MODE
+      bits:
+      - 6
+      - 6
+      meaning: Linux infrared capability mask
+      support:
+      - class: src
+        anchors:
+        - repo: linux-uart
+          path: drivers/tty/serial/8250/8250_dwlib.h
+          lines:
+          - 62
+          - 62
+          symbol: DW_UART_CPR_SIR_MODE
+    - id: fifo
+      name: DW_UART_CPR_FIFO_MODE
+      bits:
+      - 16
+      - 23
+      meaning: Linux FIFO-size parameter; helper multiplies extracted value by 16
+      support:
+      - class: src
+        anchors:
+        - repo: linux-uart
+          path: drivers/tty/serial/8250/8250_dwlib.h
+          lines:
+          - 70
+          - 70
+          symbol: DW_UART_CPR_FIFO_MODE
+  support:
+  - class: src
+    anchors:
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dwlib.h
+      lines:
+      - 25
+      - 25
+      symbol: DW_UART_CPR
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dwlib.h
+      lines:
+      - 98
+      - 110
+      symbol: dw8250_readl_ext
+  critical: true
+- id: reg-ucv
+  section: registers
+  claim: Direct byte offset in Linux extension helpers; not a statement that this optional feature is
+    implemented in RK3588 silicon.
+  requirement: as-implemented
+  data:
+    register:
+      name: DW_UART_UCV
+      offset: '0xf8'
+  support:
+  - class: src
+    anchors:
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dwlib.h
+      lines:
+      - 26
+      - 26
+      symbol: DW_UART_UCV
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dwlib.h
+      lines:
+      - 98
+      - 110
+      symbol: dw8250_readl_ext
+  critical: true
+- id: integer-baud
+  section: sequences
+  claim: U-Boot generic integer-divisor programming, in performing order; this is not hardware-required
+    ordering or proof of active input rate.
+  requirement: as-implemented
+  data:
+    sequence:
+      steps:
+      - id: calculate
+        action: Calculate nearest integer divisor from clock / (16 * baud).
+        support:
+        - class: src
+          anchors:
+          - repo: uboot
+            path: drivers/serial/ns16550.c
+            lines:
+            - 199
+            - 203
+            symbol: ns16550_calc_divisor
+        requirement: as-implemented
+      - id: save
+        action: Read LCR and retain all bits except bank select.
+        support:
+        - class: src
+          anchors:
+          - repo: uboot
+            path: drivers/serial/ns16550.c
+            lines:
+            - 209
+            - 209
+            symbol: ns16550_setbrg
+        requirement: as-implemented
+      - id: select
+        action: Write LCR with bank-select/ DLAB bit set.
+        support:
+        - class: src
+          anchors:
+          - repo: uboot
+            path: drivers/serial/ns16550.c
+            lines:
+            - 211
+            - 211
+            symbol: ns16550_setbrg
+        requirement: as-implemented
+      - id: low
+        action: Write divisor low eight bits to DLL.
+        support:
+        - class: src
+          anchors:
+          - repo: uboot
+            path: drivers/serial/ns16550.c
+            lines:
+            - 212
+            - 212
+            symbol: ns16550_setbrg
+        requirement: as-implemented
+      - id: high
+        action: Write next eight bits to DLM; higher bits are discarded by these writes.
+        support:
+        - class: src
+          anchors:
+          - repo: uboot
+            path: drivers/serial/ns16550.c
+            lines:
+            - 213
+            - 213
+            symbol: ns16550_setbrg
+        requirement: as-implemented
+      - id: restore
+        action: Restore saved LCR with DLAB cleared.
+        support:
+        - class: src
+          anchors:
+          - repo: uboot
+            path: drivers/serial/ns16550.c
+            lines:
+            - 214
+            - 214
+            symbol: ns16550_setbrg
+        requirement: as-implemented
+  critical: true
+  support:
+  - class: src
+    anchors:
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 199
+      - 203
+      symbol: ns16550_calc_divisor
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 209
+      - 209
+      symbol: ns16550_setbrg
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 211
+      - 211
+      symbol: ns16550_setbrg
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 212
+      - 212
+      symbol: ns16550_setbrg
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 213
+      - 213
+      symbol: ns16550_setbrg
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 214
+      - 214
+      symbol: ns16550_setbrg
+- id: uboot-initialize
+  section: sequences
+  claim: Generic U-Boot initialization slice excluding TI/OMAP/Keystone branches; actual ROCK5T build
+    configuration remains a prerequisite.
+  requirement: as-implemented
+  data:
+    sequence:
+      steps:
+      - id: drain
+        action: Poll TEMT until set; this loop has no timeout.
+        support:
+        - class: src
+          anchors:
+          - repo: uboot
+            path: drivers/serial/ns16550.c
+            lines:
+            - 240
+            - 241
+            symbol: ns16550_init
+        requirement: as-implemented
+      - id: ier
+        action: Write CFG_SYS_NS16550_IER, whose local default is zero unless overridden.
+        support:
+        - class: src
+          anchors:
+          - repo: uboot
+            path: drivers/serial/ns16550.c
+            lines:
+            - 52
+            - 54
+            symbol: CFG_SYS_NS16550_IER
+          - repo: uboot
+            path: drivers/serial/ns16550.c
+            lines:
+            - 243
+            - 243
+            symbol: ns16550_init
+        requirement: as-implemented
+      - id: modem
+        action: Write UART_MCRVAL; generic definition sets DTR and RTS.
+        support:
+        - class: src
+          anchors:
+          - repo: uboot
+            path: drivers/serial/ns16550.c
+            lines:
+            - 22
+            - 23
+            symbol: UART_MCRVAL
+          - repo: uboot
+            path: drivers/serial/ns16550.c
+            lines:
+            - 248
+            - 248
+            symbol: ns16550_init
+        requirement: as-implemented
+      - id: fifo
+        action: Write selected FCR value; generic OF path uses UART_FCR_DEFVAL (enable and receiver/transmitter
+          clears).
+        support:
+        - class: src
+          anchors:
+          - repo: uboot
+            path: drivers/serial/ns16550.c
+            lines:
+            - 249
+            - 249
+            symbol: ns16550_init
+          - repo: uboot
+            path: drivers/serial/ns16550.c
+            lines:
+            - 572
+            - 574
+            symbol: ns16550_serial_of_to_plat
+          - repo: uboot
+            path: include/ns16550.h
+            lines:
+            - 153
+            - 156
+            symbol: UART_FCR_DEFVAL
+        requirement: as-implemented
+      - id: format
+        action: Write UART_LCRVAL, the generic 8N1 format.
+        support:
+        - class: src
+          anchors:
+          - repo: uboot
+            path: drivers/serial/ns16550.c
+            lines:
+            - 21
+            - 21
+            symbol: UART_LCRVAL
+            comment: true
+          - repo: uboot
+            path: drivers/serial/ns16550.c
+            lines:
+            - 251
+            - 251
+            symbol: ns16550_init
+          - repo: uboot
+            path: include/ns16550.h
+            lines:
+            - 231
+            - 231
+            symbol: UART_LCR_8N1
+        requirement: as-implemented
+      - id: baud
+        action: Call divisor writer only when supplied divisor differs from -1; probe calls init with
+          -1, preserving divisor.
+        support:
+        - class: src
+          anchors:
+          - repo: uboot
+            path: drivers/serial/ns16550.c
+            lines:
+            - 252
+            - 253
+            symbol: ns16550_init
+          - repo: uboot
+            path: drivers/serial/ns16550.c
+            lines:
+            - 519
+            - 520
+            symbol: ns16550_serial_probe
+        requirement: as-implemented
+  critical: true
+  support:
+  - class: src
+    anchors:
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 240
+      - 241
+      symbol: ns16550_init
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 52
+      - 54
+      symbol: CFG_SYS_NS16550_IER
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 243
+      - 243
+      symbol: ns16550_init
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 22
+      - 23
+      symbol: UART_MCRVAL
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 248
+      - 248
+      symbol: ns16550_init
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 249
+      - 249
+      symbol: ns16550_init
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 572
+      - 574
+      symbol: ns16550_serial_of_to_plat
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 153
+      - 156
+      symbol: UART_FCR_DEFVAL
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 21
+      - 21
+      symbol: UART_LCRVAL
+      comment: true
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 251
+      - 251
+      symbol: ns16550_init
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 231
+      - 231
+      symbol: UART_LCR_8N1
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 252
+      - 253
+      symbol: ns16550_init
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 519
+      - 520
+      symbol: ns16550_serial_probe
+- id: poll-transmit
+  section: sequences
+  claim: Blocking generic U-Boot transmit polls capacity, not full transmitter drain.
+  requirement: as-implemented
+  data:
+    sequence:
+      steps:
+      - id: ready
+        action: Poll LSR THRE until set; this loop has no timeout.
+        support:
+        - class: src
+          anchors:
+          - repo: uboot
+            path: drivers/serial/ns16550.c
+            lines:
+            - 277
+            - 278
+            symbol: ns16550_putc
+        requirement: as-implemented
+      - id: send
+        action: Write byte to THR.
+        support:
+        - class: src
+          anchors:
+          - repo: uboot
+            path: drivers/serial/ns16550.c
+            lines:
+            - 279
+            - 279
+            symbol: ns16550_putc
+        requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 277
+      - 278
+      symbol: ns16550_putc
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 279
+      - 279
+      symbol: ns16550_putc
+- id: poll-receive
+  section: sequences
+  claim: Blocking generic U-Boot receive does not classify line errors.
+  requirement: as-implemented
+  data:
+    sequence:
+      steps:
+      - id: ready
+        action: Poll LSR DR, calling schedule while waiting.
+        support:
+        - class: src
+          anchors:
+          - repo: uboot
+            path: drivers/serial/ns16550.c
+            lines:
+            - 294
+            - 295
+            symbol: ns16550_getc
+        requirement: as-implemented
+      - id: receive
+        action: Read RBR and return its value.
+        support:
+        - class: src
+          anchors:
+          - repo: uboot
+            path: drivers/serial/ns16550.c
+            lines:
+            - 297
+            - 297
+            symbol: ns16550_getc
+        requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 294
+      - 295
+      symbol: ns16550_getc
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 297
+      - 297
+      symbol: ns16550_getc
+- id: nonblocking-poll
+  section: sub-protocols
+  claim: U-Boot driver-model putc returns -EAGAIN when THRE is clear; getc returns -EAGAIN when DR is
+    clear. pending(input) tests DR; pending(output) reports outstanding output using inverse THRE. This
+    is distinct from TEMT drain readiness.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 372
+      - 374
+      symbol: ns16550_serial_putc
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 392
+      - 395
+      symbol: ns16550_serial_pending
+    - repo: uboot
+      path: drivers/serial/ns16550.c
+      lines:
+      - 402
+      - 405
+      symbol: ns16550_serial_getc
+- id: linux-clock-reset
+  section: sequences
+  claim: Linux dw8250 probe preparation slice. These are framework operations observed in source; the
+    CRU register programming belongs to the clock/reset spec.
+  requirement: as-implemented
+  data:
+    sequence:
+      steps:
+      - id: baudclock
+        action: Get optional enabled baudclk, fall back to unnamed clock, fail on acquisition error, and
+          use its rate when present; fail if uartclk is zero.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_dw.c
+            lines:
+            - 708
+            - 721
+            symbol: dw8250_probe
+        requirement: as-implemented
+      - id: apb
+        action: Get optional enabled apb_pclk; propagate acquisition error.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_dw.c
+            lines:
+            - 723
+            - 725
+            symbol: dw8250_probe
+        requirement: as-implemented
+      - id: reset
+        action: Get optional exclusive reset array; propagate error, deassert it and fail if deassert
+          fails.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_dw.c
+            lines:
+            - 727
+            - 733
+            symbol: dw8250_probe
+        requirement: as-implemented
+      - id: cleanup
+        action: Register reset assertion as managed cleanup.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_dw.c
+            lines:
+            - 735
+            - 737
+            symbol: dw8250_probe
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_dw.c
+            lines:
+            - 611
+            - 614
+            symbol: dw8250_reset_control_assert
+        requirement: as-implemented
+  critical: true
+  support:
+  - class: src
+    anchors:
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 708
+      - 721
+      symbol: dw8250_probe
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 723
+      - 725
+      symbol: dw8250_probe
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 727
+      - 733
+      symbol: dw8250_probe
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 735
+      - 737
+      symbol: dw8250_probe
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 611
+      - 614
+      symbol: dw8250_reset_control_assert
+- id: linux-busy-divisor
+  section: sequences
+  claim: Linux integer-divisor path uses an idle transition; discard/flush operations make this unsuitable
+    as a lossless runtime reconfiguration recipe.
+  requirement: as-implemented
+  data:
+    sequence:
+      steps:
+      - id: mask
+        action: When not 16550-compatible, mark idle and write IER zero; DMA path also flushes RX and
+          may pause TX.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_dw.c
+            lines:
+            - 139
+            - 150
+            symbol: dw8250_idle_enter
+        requirement: as-implemented
+      - id: drain
+        action: Call FIFO THRE wait helper, then delay one frame time.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_dw.c
+            lines:
+            - 159
+            - 160
+            symbol: dw8250_idle_enter
+        requirement: as-implemented
+      - id: loopback
+        action: Set MCR loopback, try clearing FIFOs and polling USR BUSY up to four times with frame
+          delays.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_dw.c
+            lines:
+            - 162
+            - 171
+            symbol: dw8250_idle_enter
+        requirement: as-implemented
+      - id: discard
+        action: If LSR DR is set, read RX and clear saved LSR flags. If BUSY remains, restore idle state
+          and return -EBUSY.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_dw.c
+            lines:
+            - 173
+            - 182
+            symbol: dw8250_idle_enter
+        requirement: as-implemented
+      - id: select
+        action: Caller aborts on idle failure; otherwise set DLAB and verify it read back.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_dw.c
+            lines:
+            - 194
+            - 200
+            symbol: dw8250_set_divisor
+        requirement: as-implemented
+      - id: write
+        action: Write quotient via serial_dl_write, then restore LCR.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_dw.c
+            lines:
+            - 202
+            - 203
+            symbol: dw8250_set_divisor
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_port.c
+            lines:
+            - 327
+            - 330
+            symbol: default_serial_dl_write
+        requirement: as-implemented
+      - id: restore
+        action: On either DLAB failure or completion, idle exit restores FCR when FIFO-capable, MCR and
+          IER; resumes TX DMA when configured.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_dw.c
+            lines:
+            - 205
+            - 206
+            symbol: dw8250_set_divisor
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_dw.c
+            lines:
+            - 107
+            - 119
+            symbol: dw8250_idle_exit
+        requirement: as-implemented
+  critical: true
+  support:
+  - class: src
+    anchors:
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 139
+      - 150
+      symbol: dw8250_idle_enter
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 159
+      - 160
+      symbol: dw8250_idle_enter
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 162
+      - 171
+      symbol: dw8250_idle_enter
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 173
+      - 182
+      symbol: dw8250_idle_enter
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 194
+      - 200
+      symbol: dw8250_set_divisor
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 202
+      - 203
+      symbol: dw8250_set_divisor
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_port.c
+      lines:
+      - 327
+      - 330
+      symbol: default_serial_dl_write
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 205
+      - 206
+      symbol: dw8250_set_divisor
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 107
+      - 119
+      symbol: dw8250_idle_exit
+- id: linux-fractional-probe
+  section: sequences
+  claim: Linux optional fractional-divisor detection actively writes DLF; it preserves the original DLF
+    but does not prove RK3588 implements the feature.
+  requirement: as-implemented
+  data:
+    sequence:
+      steps:
+      - id: save
+        action: Read old DLF.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_dwlib.c
+            lines:
+            - 213
+            - 213
+            symbol: dw8250_setup_port
+        requirement: as-implemented
+      - id: probe
+        action: Write all ones to DLF, read back, and restore old DLF.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_dwlib.c
+            lines:
+            - 214
+            - 216
+            symbol: dw8250_setup_port
+        requirement: as-implemented
+      - id: install
+        action: If nonzero readback, set dlf_size to highest set-bit position and replace get_divisor/set_divisor
+          callbacks.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_dwlib.c
+            lines:
+            - 218
+            - 221
+            symbol: dw8250_setup_port
+        requirement: as-implemented
+  critical: true
+  support:
+  - class: src
+    anchors:
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dwlib.c
+      lines:
+      - 213
+      - 213
+      symbol: dw8250_setup_port
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dwlib.c
+      lines:
+      - 214
+      - 216
+      symbol: dw8250_setup_port
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dwlib.c
+      lines:
+      - 218
+      - 221
+      symbol: dw8250_setup_port
+- id: fractional-baud
+  section: gotchas
+  claim: If fractional callbacks were installed, Linux computes quot = uartclk / (16 * baud), remainder
+    = uartclk % (16 * baud), and rounded fraction = (remainder << dlf_size) / (16 * baud). It writes DLF
+    then calls serial8250_do_set_divisor. This callback replaces dw8250.c's idle-divisor callback; do
+    not claim both paths execute together.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dwlib.c
+      lines:
+      - 29
+      - 34
+      symbol: dw8250_get_divisor
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dwlib.c
+      lines:
+      - 42
+      - 43
+      symbol: dw8250_set_divisor
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dwlib.c
+      lines:
+      - 218
+      - 221
+      symbol: dw8250_setup_port
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 645
+      - 645
+      symbol: dw8250_probe
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_port.c
+      lines:
+      - 2551
+      - 2556
+      symbol: serial8250_do_set_divisor
+  critical: true
+- id: component-discovery
+  section: identity
+  claim: Linux reads UCV and CPR; when CPR is zero it tries its platform cpr_value and returns if still
+    zero. A nonzero FIFO_MODE selects 16550A, sets fifosize to field * 16 and FIFO capabilities. AFCE_MODE
+    and SIR_MODE add capabilities. Do not assume FIFO depth or synthesis version from the generic compatible.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dwlib.c
+      lines:
+      - 224
+      - 249
+      symbol: dw8250_setup_port
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dwlib.h
+      lines:
+      - 70
+      - 73
+      symbol: DW_UART_CPR_FIFO_SIZE
+- id: fifo-clear
+  section: sequences
+  claim: Linux capability-gated FIFO-clear sequence, destructive to queued data as named by the source
+    masks; silicon side effects and status-clear timing require independent evidence.
+  requirement: as-implemented
+  data:
+    sequence:
+      steps:
+      - id: enable
+        action: If UART_CAP_FIFO, write FCR enable.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_port.c
+            lines:
+            - 496
+            - 497
+            symbol: serial8250_clear_fifos
+        requirement: as-implemented
+      - id: clear
+        action: Write enable plus receiver/transmitter clear masks.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_port.c
+            lines:
+            - 498
+            - 499
+            symbol: serial8250_clear_fifos
+          - repo: uboot
+            path: include/ns16550.h
+            lines:
+            - 137
+            - 139
+            symbol: UART_FCR_CLEAR_RCVR
+            comment: true
+        requirement: as-implemented
+      - id: disable
+        action: Write FCR zero; clear_and_reinit_fifos subsequently restores configured FCR.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_port.c
+            lines:
+            - 500
+            - 500
+            symbol: serial8250_clear_fifos
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_port.c
+            lines:
+            - 510
+            - 511
+            symbol: serial8250_clear_and_reinit_fifos
+        requirement: as-implemented
+  critical: true
+  support:
+  - class: src
+    anchors:
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_port.c
+      lines:
+      - 496
+      - 497
+      symbol: serial8250_clear_fifos
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_port.c
+      lines:
+      - 498
+      - 499
+      symbol: serial8250_clear_fifos
+    - repo: uboot
+      path: include/ns16550.h
+      lines:
+      - 137
+      - 139
+      symbol: UART_FCR_CLEAR_RCVR
+      comment: true
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_port.c
+      lines:
+      - 500
+      - 500
+      symbol: serial8250_clear_fifos
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_port.c
+      lines:
+      - 510
+      - 511
+      symbol: serial8250_clear_and_reinit_fifos
+- id: interrupt-dispatch
+  section: interrupts
+  claim: For snps,dw-apb-uart Linux selects dw8250_dw_apb with USR index DW_UART_USR and no listed quirk
+    flags. Probe installs the DW handler unless snps,uart-16550-compatible is true. Handler reads IIR,
+    extracts the low four-bit ID and returns unhandled for NO_INT; the BUSY branch reads USR and returns
+    handled. BUSY numeric cause encoding is not established by admitted definitions here.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 844
+      - 846
+      symbol: dw8250_dw_apb
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 891
+      - 892
+      symbol: dw8250_of_match
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 743
+      - 755
+      symbol: dw8250_probe
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 399
+      - 400
+      symbol: dw8250_handle_irq
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 406
+      - 424
+      symbol: dw8250_handle_irq
+  critical: true
+- id: interrupt-timeout
+  section: interrupts
+  claim: In non-DMA RX-timeout handling Linux reads LSR; when neither DR nor BI is present it reads RX
+    anyway, then calls serial8250_handle_irq_locked. The comment attributes this read to preventing repeated
+    timeout interrupts with no data. This is observed recovery behavior, not proof of a hardware read-to-clear
+    contract.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 429
+      - 437
+      symbol: dw8250_handle_irq
+      comment: true
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 439
+      - 443
+      symbol: dw8250_handle_irq
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 456
+      - 456
+      symbol: dw8250_handle_irq
+  critical: true
+- id: interrupt-service
+  section: interrupts
+  claim: Linux core reads LSR and invokes FIFO clear-and-reinit for no-DR plus FIFOE. For DR/BI and !skip_rx,
+    it invokes serial8250_rx_chars only when DMA is absent or handle_rx_dma returns true; auto-flow-control
+    stopped conditions can set skip_rx. It services modem status, and services transmit for THRE plus
+    enabled THRI when DMA is absent or failed. Receive loop handles at most 256 characters, re-reading
+    LSR until DR/BI is clear.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_port.c
+      lines:
+      - 1803
+      - 1810
+      symbol: serial8250_handle_irq_locked
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_port.c
+      lines:
+      - 1820
+      - 1839
+      symbol: serial8250_handle_irq_locked
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_port.c
+      lines:
+      - 1658
+      - 1666
+      symbol: serial8250_rx_chars
+- id: line-errors
+  section: interrupts
+  claim: Linux receive reads RX only when DR is set, otherwise supplies zero; it merges saved LSR flags
+    then clears the saved flags. Break suppresses parity/framing classification. If uart_handle_break
+    consumes the break, the function returns before overrun counting and character reporting. Otherwise
+    overrun is counted separately from parity/framing, and read_status_mask determines error reporting;
+    SysRq handling can consume the character before insertion. These software bookkeeping operations do
+    not establish silicon flag-clearing semantics.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_port.c
+      lines:
+      - 1593
+      - 1603
+      symbol: serial8250_read_char
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_port.c
+      lines:
+      - 1607
+      - 1627
+      symbol: serial8250_read_char
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_port.c
+      lines:
+      - 1632
+      - 1645
+      symbol: serial8250_read_char
+- id: linux-shutdown
+  section: sequences
+  claim: Linux teardown slice relevant to interrupt and data loss; synchronization is OS behavior, not
+    standalone firmware instructions.
+  requirement: as-implemented
+  data:
+    sequence:
+      steps:
+      - id: mask
+        action: Set saved IER and UART IER to zero; synchronize the IRQ.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_port.c
+            lines:
+            - 2390
+            - 2395
+            symbol: serial8250_do_shutdown
+        requirement: as-implemented
+      - id: release
+        action: Release DMA, clear DMA pointer; update modem control and clear break from LCR.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_port.c
+            lines:
+            - 2397
+            - 2398
+            symbol: serial8250_do_shutdown
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_port.c
+            lines:
+            - 2405
+            - 2413
+            symbol: serial8250_do_shutdown
+        requirement: as-implemented
+      - id: discard
+        action: Clear FIFOs then read RX.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_port.c
+            lines:
+            - 2416
+            - 2416
+            symbol: serial8250_do_shutdown
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_port.c
+            lines:
+            - 2424
+            - 2424
+            symbol: serial8250_do_shutdown
+        requirement: as-implemented
+      - id: lateirq
+        action: Synchronize IRQ again before releasing handler; source comment says DW LCR writes may
+          trigger late unmaskable interrupts.
+        support:
+        - class: src
+          anchors:
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_port.c
+            lines:
+            - 2426
+            - 2429
+            symbol: serial8250_do_shutdown
+            comment: true
+          - repo: linux-uart
+            path: drivers/tty/serial/8250/8250_port.c
+            lines:
+            - 2433
+            - 2433
+            symbol: serial8250_do_shutdown
+        requirement: as-implemented
+  critical: true
+  support:
+  - class: src
+    anchors:
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_port.c
+      lines:
+      - 2390
+      - 2395
+      symbol: serial8250_do_shutdown
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_port.c
+      lines:
+      - 2397
+      - 2398
+      symbol: serial8250_do_shutdown
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_port.c
+      lines:
+      - 2405
+      - 2413
+      symbol: serial8250_do_shutdown
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_port.c
+      lines:
+      - 2416
+      - 2416
+      symbol: serial8250_do_shutdown
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_port.c
+      lines:
+      - 2424
+      - 2424
+      symbol: serial8250_do_shutdown
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_port.c
+      lines:
+      - 2426
+      - 2429
+      symbol: serial8250_do_shutdown
+      comment: true
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_port.c
+      lines:
+      - 2433
+      - 2433
+      symbol: serial8250_do_shutdown
+- id: power-clock-order
+  section: gotchas
+  claim: Linux runtime suspend disables baud clock then APB clock. Resume enables APB clock first then
+    baud clock; on baud-clock failure it disables APB again. set_termios requests baud * 16 as the clock
+    rate, disabling and reenabling baudclk around rate negotiation before termios programming.
+  requirement: as-implemented
+  support:
+  - class: src
+    anchors:
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 815
+      - 817
+      symbol: dw8250_runtime_suspend
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 827
+      - 834
+      symbol: dw8250_runtime_resume
+    - repo: linux-uart
+      path: drivers/tty/serial/8250/8250_dw.c
+      lines:
+      - 476
+      - 490
+      symbol: dw8250_set_termios
+- id: hardware-contract
+  section: open-questions
+  claim: No admitted RK3588 UART databook establishes mandatory access width, register access/reset classes,
+    ordering/barriers, BUSY write rejection guarantees, FIFO/status clear side effects or synthesized
+    optional features. All tables above are code observations.
+  todo:
+    check: document
+    text: Obtain an applicable nonconfidential public UART/RK3588 register contract and compare every
+      basic/extension offset, mask, access size and clear operation; confirm safe readbacks on hardware
+      only after documentation establishes their safety.
+- id: clock-reset-prerequisites
+  section: open-questions
+  claim: Active UART2 input rate, clock gates/reset state and firmware handoff are unresolved. Linux obtains
+    optional reset controls; that does not prove no reset is needed when the device tree omits resets.
+  todo:
+    check: hardware
+    text: Resolve the clock/reset peripheral and board handoff facts; read safe clock/mux/gate and divisor
+      state at entry, measure TX baud using a test byte, and record firmware/build identity before changing
+      state.
+- id: irq-encodings
+  section: open-questions
+  claim: The admitted basic header supplies MSI/THRI/RDI/RLSI encodings, but BUSY and RX-timeout numeric
+    codes and exact per-cause acknowledgment/clear behavior remain unresolved; the rejected serial_reg.h
+    is not evidence.
+  todo:
+    check: source
+    text: Find an independently accepted applicable DW header or public register contract; compare IIR
+      codes and cause clearing against performing branches. Follow UART2 interrupt numbering/routing in
+      the SoC and interrupt-controller specs.
+- id: fifo-thresholds
+  section: open-questions
+  claim: FIFO depth, threshold encodings and timing cannot be taken from generic U-Boot trigger comments
+    as RK3588 facts. DLF size and CPR/UCV availability also remain synthesis-dependent.
+  todo:
+    check: document
+    text: Read admitted synthesis-specific evidence or obtain safe identified CPR/UCV readback; do not
+      execute destructive DLF or RS485 capability probes as a default bring-up step.
+- id: target-os-integration
+  section: target
+  claim: No target operating system was selected; binding, framework adaptation, IRQ registration, locking,
+    mappings, packaging, power management and console policy are not delivered.
+  todo:
+    check: source
+    text: Select the target OS and add a separately pinned target-role evidence entry for its required
+      integration contract.
+- id: coverage-boundary
+  section: open-questions
+  claim: Coverage is the basic console path plus Linux DW busy/fractional/capability/interrupt/error/teardown
+    observations. MSR/SPR fields, MCR OUT1/OUT2, DMA programming, RS485/9-bit/infrared, shadow/FIFO-level/software-reset
+    registers and unrelated TI/OMAP/Octeon/Renesas quirks are outside this typed map. No driver was built
+    or run and no hardware test was performed.
+  todo:
+    check: source
+    text: Extend only when the boot console needs a named omitted feature; obtain admitted definitions
+      and performing code, then independently verify that added slice.
