@@ -556,3 +556,37 @@ facts:
       text: on the stock loader's console, run `help`, `pci`, `net list` (or `dhcp`) and `fastboot usb 0`.
     relates:
       - {fact: "rock5t@hardware-specs-docs#netboot-stock-loader", relation: refines}
+  - id: boot-programming-path
+    section: quick-facts
+    title: V1.2 boot programming path
+    claim: The V1.2 console header route and pinned ROCK 5T device-tree console selection meet at UART2
+      M0. The SoC boot trace connects that route to UART2, its clocks/reset and mux programming; interrupt
+      and GPIO ownership traces preserve their unresolved prerequisites. No firmware state or board
+      boot result is established by this integration.
+    critical: true
+    support:
+    - class: inference
+      premises:
+      - fact: rock5t@hardware-specs-docs#debug-console-is-uart2-m0
+      - fact: '#dt-console'
+      - fact: rk3588#boot-console-dependency-trace
+      - fact: rk3588#boot-interrupt-topology
+      - fact: rk3588#boot-gpio-ownership
+      derivation: Match UART2_M0 names between the board wiring and pinned board tree, then follow
+        the SoC dependency relations; this is static evidence composition, not a measured firmware
+        handoff.
+    todo:
+      check: hardware
+      text: Confirm standard board V1.2, loaded device tree, firmware handoff and each programming
+        prerequisite on authorized hardware before relying on the path.
+    relates:
+    - fact: rock5t@hardware-specs-docs#debug-console-is-uart2-m0
+      relation: qualifies
+    - fact: '#dt-console'
+      relation: qualifies
+    - fact: rk3588#boot-console-dependency-trace
+      relation: qualifies
+    - fact: rk3588#boot-interrupt-topology
+      relation: qualifies
+    - fact: rk3588#boot-gpio-ownership
+      relation: qualifies

@@ -5,7 +5,7 @@ format: 2
 spec: rk3588-pinctrl
 spec_file: rk3588-pinctrl.spec.yaml
 canonical: fact-v1
-spec_sha256: 785327d6d7b76a50bdb675e8bcd00e4f32537e50d3024bdc1c20a213f1460c49
+spec_sha256: f7fdb5a957d979aeab1e15d40358c74e9507e20a98e3441777c12fbbdc92780a
 sources:
 - name: linux-pinctrl-binding-dts
   commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
@@ -18,6 +18,13 @@ sources:
   fetch: ok
   note: Related board-fact dependency; hash matched and sheet36 read for UART2 console routing. No confidential
     document used.
+- name: linux
+  commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+  fetch: ok
+- name: rock5t-product-brief
+  sha256: 4d1f0f030114abed6e73cc6844aafa1e02c1f2b7ee602ed304cf38dec0c891b4
+  fetch: ok
+  note: Pinned PDF byte hash checked; printedp8 alternate-function and GPIO rating table read.
 verdicts:
   controller-identity:
     basis: 602e983efcbce3bce72ea95966f99a561e338fdda32e4d062d758acdadf83085
@@ -34,11 +41,11 @@ verdicts:
     - verifier: GPT-6.1 Sol / Codex / verify_m5_b
       verdict: PASS
       date: '2026-10-11'
-      note: "5236\u20135257 and macro307\u2013308 establish five32-pin banks, repeated four-bit flags\
-        \ and pull-type assignment; match5302\u20135303 selects that controller. Other SoC descriptors\
-        \ have routes and recalculations, RK3588 has neither. Enum wording is explicitly not supply measurement.\
-        \ Contrary search: read adjacent calculation,set/get paths,alternative SoC cases and RK3588 controller\
-        \ initialization; no contradictory numeric source behavior found."
+      note: '5236–5257 and macro307–308 establish five32-pin banks, repeated four-bit flags and pull-type
+        assignment; match5302–5303 selects that controller. Other SoC descriptors have routes and recalculations,
+        RK3588 has neither. Enum wording is explicitly not supply measurement. Contrary search: read adjacent
+        calculation,set/get paths,alternative SoC cases and RK3588 controller initialization; no contradictory
+        numeric source behavior found.'
   pin-numbering:
     basis: ed74f9bcc2ffdaa4a6c65b293cd939b29075a667c7155c7867a370f8ab42a1a2
     verdict: PASS
@@ -54,10 +61,10 @@ verdicts:
     - verifier: GPT-6.1 Sol / Codex / verify_m5_b
       verdict: PASS
       date: '2026-10-11'
-      note: "Binding12\u201345 and internal header21\u2013181 agree on local/global indices; calculator3127\u2013\
-        3133 computes bank*32+local. Verified B5=13 and B6=14; no contrary numbering found. Contrary search:\
-        \ read adjacent calculation,set/get paths,alternative SoC cases and RK3588 controller initialization;\
-        \ no contradictory numeric source behavior found."
+      note: 'Binding12–45 and internal header21–181 agree on local/global indices; calculator3127–3133
+        computes bank*32+local. Verified B5=13 and B6=14; no contrary numbering found. Contrary search:
+        read adjacent calculation,set/get paths,alternative SoC cases and RK3588 controller initialization;
+        no contradictory numeric source behavior found.'
   ioc-dt-window:
     basis: 2d7af77d70777899d1ae5033136044e5b97bdf47d4936bce785c364616e04c3e
     verdict: PASS
@@ -73,10 +80,10 @@ verdicts:
     - verifier: GPT-6.1 Sol / Codex / verify_m5_b
       verdict: PASS
       date: '2026-10-11'
-      note: "DT729\u2013732 gives fd5f0000/10000;3526\u20133529 references ioc as rockchip,grf. Neighbor\
-        \ UART controller address belongs to a different peripheral and is not used as IOC. Contrary search:\
-        \ read adjacent calculation,set/get paths,alternative SoC cases and RK3588 controller initialization;\
-        \ no contradictory numeric source behavior found."
+      note: 'DT729–732 gives fd5f0000/10000;3526–3529 references ioc as rockchip,grf. Neighbor UART controller
+        address belongs to a different peripheral and is not used as IOC. Contrary search: read adjacent
+        calculation,set/get paths,alternative SoC cases and RK3588 controller initialization; no contradictory
+        numeric source behavior found.'
   ioc-domain-offsets:
     basis: e2fd3d992df99f7eef6947064b69dce58c6c08a174ed44ca423a696060bc1edf
     verdict: PASS
@@ -92,10 +99,10 @@ verdicts:
     - verifier: GPT-6.1 Sol / Codex / verify_m5_b
       verdict: PASS
       date: '2026-10-11'
-      note: "Source3014\u20133021 defines all eight offsets exactly. Adjacent drive/pull/Schmitt tables\
-        \ use these offsets; domain names do not establish voltages. Contrary search: read adjacent calculation,set/get\
-        \ paths,alternative SoC cases and RK3588 controller initialization; no contradictory numeric source\
-        \ behavior found."
+      note: 'Source3014–3021 defines all eight offsets exactly. Adjacent drive/pull/Schmitt tables use
+        these offsets; domain names do not establish voltages. Contrary search: read adjacent calculation,set/get
+        paths,alternative SoC cases and RK3588 controller initialization; no contradictory numeric source
+        behavior found.'
   mux-offset-calculation:
     basis: 4ff1ae077a853cc4bb577a0162d3173e2e4215321ae09a9810e4222df37ebe7b
     verdict: PASS
@@ -150,26 +157,27 @@ verdicts:
         to apply stricter corrections and reverify automatically. Preserve dissent; PASS requires actual
         agreeing readings at the corrected basis.
   mux-domain-branches:
-    basis: e60b2843c51f998d0373e6e6632b6b66bdd932cb65baefed40b04a0bbe1a52d2
+    basis: 945cf3bd5987ca2f28018d30594fcd054ac8b36fae5c1ca603b939bd082ad816
     verdict: PASS
     date: '2026-10-11'
-    verifier: GPT-6.1 Sol, Codex, verify_m5_a
-    note: 'C1356-1397/1422-1428 implements GPIO0 boundary12..31, mux<8 single PMU2 request, mux>=8 PMU2
-      then BUS with ret OR and no abort. Checked verify_mux1255-1278 and route logic1398-1421; no RK3588
-      route/recalc entries. Banks1..4 apply BUS offset and mux>15 guard. Contrary scope: pinned RK3588
-      initializer, complete relevant helper and adjacent SoC-specific branches; no numerical/control-flow
-      contradiction found.'
+    verifier: GPT-6.1 Sol / Codex / verify_m7_primary_clean final
+    note: 'Current anchors independently establish whole claim: source1330-1337 defines four-bit mask0xf;
+      binding12-43 gives PB4=12/PD7=31; source1356-1397 establishes PMU2/BUS branches, OR returns and
+      bank0 early returns; source1416-1420 shows generic masked update. Other-bank/mux<8/route-error branches
+      inspected; numeric thresholds, literal15 and source policy match. Newly added mask anchor agrees
+      with previously independently read immutable bytes; no silicon semantics or applied firmware state
+      inferred.'
     contrary_evidence: none-found
     citation_precision: exact
     readers:
-    - verifier: GPT-6.1 Sol / Codex / verify_m5_b
+    - verifier: GPT-6.1 Sol / Codex / verify_m7_second_clean / final narrow round
       verdict: PASS
       date: '2026-10-11'
-      note: "1356\u20131397 and1422\u20131428 match all three GPIO0 branches, bank>0 BUS displacement,\
-        \ >mask rejection and final arguments. GPIO0 returns before generic >mask check. Both >=8 calls\
-        \ occur regardless of first result and results combine by bitwise OR. Contrary search: read adjacent\
-        \ calculation,set/get paths,alternative SoC cases and RK3588 controller initialization; no contradictory\
-        \ numeric source behavior found."
+      note: Pin constants establish PB4 = 12 and PD7 = 31; the newly cited setter establishes mask 15.
+        Domain branches match the GPIO0 ranges, low-mux displacement, selector 8 then BUS request, and
+        OR-combined results without aborting after the first error. GPIO1–4 add 0x8000 and reject mux
+        > 15. Adjacent generic route-write failures were inspected; the statement describes a conditional
+        source path. Added numeric evidence makes the citation exact.
   mux-readback:
     basis: 3eb826131944926c652b4267b418582ac76bf88c0466d53e8ffb65e9a90b2e26
     verdict: PASS
@@ -185,30 +193,30 @@ verdicts:
     - verifier: GPT-6.1 Sol / Codex / verify_m5_b
       verdict: PASS
       date: '2026-10-11'
-      note: "1200\u20131254 reads PMU2 then tests whole-register BIT(8), not nibble equality to8; read\
-        \ errors return immediately. B5 uses nibble4\u20137 yet selector decision tests bit8. No silent\
-        \ nibble substitution is supported. Contrary search: read adjacent calculation,set/get paths,alternative\
-        \ SoC cases and RK3588 controller initialization; no contradictory numeric source behavior found."
+      note: '1200–1254 reads PMU2 then tests whole-register BIT(8), not nibble equality to8; read errors
+        return immediately. B5 uses nibble4–7 yet selector decision tests bit8. No silent nibble substitution
+        is supported. Contrary search: read adjacent calculation,set/get paths,alternative SoC cases and
+        RK3588 controller initialization; no contradictory numeric source behavior found.'
   masked-update-intent:
-    basis: 09be3cdee28f3b736fb88a71eae00231196ac616a707a76a4610f033420b6a1f
+    basis: e20702afa68c9dcbe4322a64e74985c2136b4cb1d6d7a41417a9ffb5d9da1884
     verdict: PASS
     date: '2026-10-11'
-    verifier: GPT-6.1 Sol, Codex, verify_m5_a
-    note: 'C1356-1389/1422-1428 builds request masks/data exactly. Source operands mux&15 in ordinary
-      branches and unmasked mux in GPIO0 BUS branch checked, including mux8 and15 boundary. Adjacent comment1280-1289
-      is qualified source commentary, not proof of backend/raw-write or silicon behavior. Contrary scope:
-      pinned RK3588 initializer, complete relevant helper and adjacent SoC-specific branches; no numerical/control-flow
-      contradiction found.'
+    verifier: GPT-6.1 Sol / Codex / verify_m7_primary_clean final
+    note: Reread pinned source1330-1337 plus1356-1389 and1416-1420. Added anchor explicitly defines four-bit
+      mask0xf/bit position; request M/D and special selector8/unmasked-mux10 branches agree. Adjacent
+      three/two-bit and other SoC branches limit this to the RK3588 four-bit model; no bus-emitted word
+      or silicon RMW contract asserted. Corrected citation now reaches numeric mask evidence.
     contrary_evidence: none-found
     citation_precision: exact
     readers:
-    - verifier: GPT-6.1 Sol / Codex / verify_m5_b
+    - verifier: GPT-6.1 Sol / Codex / verify_m7_second_clean / final narrow round
       verdict: PASS
       date: '2026-10-11'
-      note: "Exact setter assignments1356\u20131389/1422\u20131428 establish M and D request operands,\
-        \ including unmasked high GPIO0 mux. Source behavior is correctly distinguished from backend raw\
-        \ writes and silicon contract. Contrary search: read adjacent calculation,set/get paths,alternative\
-        \ SoC cases and RK3588 controller initialization; no contradictory numeric source behavior found."
+      note: 'Source lines 1330–1337 explicitly establish the four-bit mask 0xf and shift. Lines 1356–1389
+        and 1416–1420 establish the stated request masks and data: GPIO0 mux >= 8 uses selector 8 followed
+        by the unmasked requested mux. Adjacent two/three-bit alternatives and error paths were read;
+        RK3588 banks use four-bit flags. This supports request arguments only, with no backend write-value
+        or silicon safety guarantee. Citations are exact.'
   uart2-routes:
     basis: d8c0f145ce7bd6a34e7f8ab01d1f4cbc24d642d421a16424d79636bfde893fc4
     verdict: PASS
@@ -224,11 +232,11 @@ verdicts:
     - verifier: GPT-6.1 Sol / Codex / verify_m5_b
       verdict: PASS
       date: '2026-10-11'
-      note: "DT3210\u20133237 declares m0 B6/B5,m1 D1/D0,m2 B2/B1 with mux10 and pull-up phandle. Included\
-        \ pinconf7\u201310 declares bias-pull-up. All eight source files, including added pinconf, byte-match\
-        \ pinned git blobs. Routes are alternatives rather than measured runtime state. Contrary search:\
-        \ read adjacent calculation,set/get paths,alternative SoC cases and RK3588 controller initialization;\
-        \ no contradictory numeric source behavior found."
+      note: 'DT3210–3237 declares m0 B6/B5,m1 D1/D0,m2 B2/B1 with mux10 and pull-up phandle. Included
+        pinconf7–10 declares bias-pull-up. All eight source files, including added pinconf, byte-match
+        pinned git blobs. Routes are alternatives rather than measured runtime state. Contrary search:
+        read adjacent calculation,set/get paths,alternative SoC cases and RK3588 controller initialization;
+        no contradictory numeric source behavior found.'
   board-selects-m0:
     basis: 36dcbb770deeef1b862e3ded11f42c4e9f875ec15b4fea4c50b31e0f476f4dc9
     verdict: PASS
@@ -247,11 +255,11 @@ verdicts:
     - verifier: GPT-6.1 Sol / Codex / verify_m5_b
       verdict: PASS
       date: '2026-10-11'
-      note: "Board include5 and shared976\u2013980 override disabled base2811\u20132823 from m1 to enabled\
-        \ m0. Schematic hash matches declared identity; sheet36 routes header8/10 through R442/R443100R\
-        \ to UART2_TX/RX_M0, and separate SoC sheet labels these GPIO0_B5/B6. Source selection and board\
-        \ routing are kept distinct. Contrary search: read adjacent calculation,set/get paths,alternative\
-        \ SoC cases and RK3588 controller initialization; no contradictory numeric source behavior found."
+      note: 'Board include5 and shared976–980 override disabled base2811–2823 from m1 to enabled m0. Schematic
+        hash matches declared identity; sheet36 routes header8/10 through R442/R443100R to UART2_TX/RX_M0,
+        and separate SoC sheet labels these GPIO0_B5/B6. Source selection and board routing are kept distinct.
+        Contrary search: read adjacent calculation,set/get paths,alternative SoC cases and RK3588 controller
+        initialization; no contradictory numeric source behavior found.'
   drive-threshold-catalog:
     basis: e0f8f1b6838c39aac4be31fe5cd15fc805f431c0ee898cc7f19b650cd364d0d4
     verdict: PASS
@@ -271,13 +279,13 @@ verdicts:
     - verifier: GPT-6.1 Sol / Codex / verify_m5_b
       verdict: PASS
       date: '2026-10-11'
-      note: "Independently rechecked all41 source table entries and domain sums; every declared threshold/offset\
-        \ matches. Added3152\u20133164 directly establishes global bank*32+local and descending scan first<=\
-        \ match, so complete selection claim now has precise evidence. GPIO4_C2 split threshold remains\
-        \ correctly represented; bit calculation retains original local modulo4. Contrary search: reread\
-        \ exact pinned source tables, calculation functions, adjacent set/get alternatives, RK3588 descriptor\
-        \ and allocation paths; no contradictory evidence found. Console inference TODO recomputation\
-        \ is feasible and was performed; this is not hardware observation."
+      note: 'Independently rechecked all41 source table entries and domain sums; every declared threshold/offset
+        matches. Added3152–3164 directly establishes global bank*32+local and descending scan first<=
+        match, so complete selection claim now has precise evidence. GPIO4_C2 split threshold remains
+        correctly represented; bit calculation retains original local modulo4. Contrary search: reread
+        exact pinned source tables, calculation functions, adjacent set/get alternatives, RK3588 descriptor
+        and allocation paths; no contradictory evidence found. Console inference TODO recomputation is
+        feasible and was performed; this is not hardware observation.'
     readings:
     - verifier: GPT-6.1 Sol, Codex, verify_m5_a
       verdict: PASS
@@ -288,12 +296,12 @@ verdicts:
         helper and adjacent SoC-specific branches; no numerical/control-flow contradiction found. '
     - verifier: GPT-6.1 Sol / Codex / verify_m5_b
       verdict: FAIL
-      reasoning: "All41 thresholds and offsets match source3023\u20133065 after evaluating domain additions.\
-        \ Reverse scan behavior is real but appears in3156\u20133164 rather than the cited table ranges.\
-        \ Contrary search: read adjacent calculation,set/get paths,alternative SoC cases and RK3588 controller\
-        \ initialization; no contradictory numeric source behavior found. Add source locator 3156\u2013\
-        3164 for the stated last-not-greater selection algorithm, or move that sentence to electrical-index-calculation\
-        \ and declare that dependency. Numeric catalog contents themselves match."
+      reasoning: 'All41 thresholds and offsets match source3023–3065 after evaluating domain additions.
+        Reverse scan behavior is real but appears in3156–3164 rather than the cited table ranges. Contrary
+        search: read adjacent calculation,set/get paths,alternative SoC cases and RK3588 controller initialization;
+        no contradictory numeric source behavior found. Add source locator 3156–3164 for the stated last-not-greater
+        selection algorithm, or move that sentence to electrical-index-calculation and declare that dependency.
+        Numeric catalog contents themselves match.'
     adjudication:
       decision: Apply the stricter derivation and dependency evidence and reverify. Fresh primary and
         second readings support the corrected claim.
@@ -320,12 +328,12 @@ verdicts:
     - verifier: GPT-6.1 Sol / Codex / verify_m5_b
       verdict: PASS
       date: '2026-10-11'
-      note: "Independently rechecked all23 source table entries/domain sums. Added3127\u20133139 directly\
-        \ supports global index and reverse first<= threshold selection. GPIO0_B5,GPIO2_A6,GPIO4_C2 split\
-        \ points and offsets all match; original-local modulo8 determines bits. Contrary search: reread\
-        \ exact pinned source tables, calculation functions, adjacent set/get alternatives, RK3588 descriptor\
-        \ and allocation paths; no contradictory evidence found. Console inference TODO recomputation\
-        \ is feasible and was performed; this is not hardware observation."
+      note: 'Independently rechecked all23 source table entries/domain sums. Added3127–3139 directly supports
+        global index and reverse first<= threshold selection. GPIO0_B5,GPIO2_A6,GPIO4_C2 split points
+        and offsets all match; original-local modulo8 determines bits. Contrary search: reread exact pinned
+        source tables, calculation functions, adjacent set/get alternatives, RK3588 descriptor and allocation
+        paths; no contradictory evidence found. Console inference TODO recomputation is feasible and was
+        performed; this is not hardware observation.'
     readings:
     - verifier: GPT-6.1 Sol, Codex, verify_m5_a
       verdict: PASS
@@ -336,13 +344,12 @@ verdicts:
         no numerical/control-flow contradiction found. '
     - verifier: GPT-6.1 Sol / Codex / verify_m5_b
       verdict: FAIL
-      reasoning: "All23 thresholds and offsets match source3067\u20133091 after domain additions. GPIO0_B5,GPIO2_A6,GPIO4_C2\
-        \ split thresholds confirmed. Last-threshold selection appears in3131\u20133139, outside cited\
-        \ ranges. Contrary search: read adjacent calculation,set/get paths,alternative SoC cases and RK3588\
-        \ controller initialization; no contradictory numeric source behavior found. Add source locator\
-        \ 3131\u20133139 for the stated last-not-greater selection algorithm, or move that sentence to\
-        \ electrical-index-calculation and declare that dependency. Numeric catalog contents themselves\
-        \ match."
+      reasoning: 'All23 thresholds and offsets match source3067–3091 after domain additions. GPIO0_B5,GPIO2_A6,GPIO4_C2
+        split thresholds confirmed. Last-threshold selection appears in3131–3139, outside cited ranges.
+        Contrary search: read adjacent calculation,set/get paths,alternative SoC cases and RK3588 controller
+        initialization; no contradictory numeric source behavior found. Add source locator 3131–3139 for
+        the stated last-not-greater selection algorithm, or move that sentence to electrical-index-calculation
+        and declare that dependency. Numeric catalog contents themselves match.'
     adjudication:
       decision: Apply the stricter derivation and dependency evidence and reverify. Fresh primary and
         second readings support the corrected claim.
@@ -369,12 +376,12 @@ verdicts:
     - verifier: GPT-6.1 Sol / Codex / verify_m5_b
       verdict: PASS
       date: '2026-10-11'
-      note: "Independently rechecked all23 source table entries/domain sums. Added3178\u20133190 directly\
-        \ supports global index and reverse first<= threshold selection. GPIO0_B5,GPIO2_A6,GPIO4_C2 split\
-        \ points and offsets match; original-local modulo8 determines bits. Contrary search: reread exact\
-        \ pinned source tables, calculation functions, adjacent set/get alternatives, RK3588 descriptor\
-        \ and allocation paths; no contradictory evidence found. Console inference TODO recomputation\
-        \ is feasible and was performed; this is not hardware observation."
+      note: 'Independently rechecked all23 source table entries/domain sums. Added3178–3190 directly supports
+        global index and reverse first<= threshold selection. GPIO0_B5,GPIO2_A6,GPIO4_C2 split points
+        and offsets match; original-local modulo8 determines bits. Contrary search: reread exact pinned
+        source tables, calculation functions, adjacent set/get alternatives, RK3588 descriptor and allocation
+        paths; no contradictory evidence found. Console inference TODO recomputation is feasible and was
+        performed; this is not hardware observation.'
     readings:
     - verifier: GPT-6.1 Sol, Codex, verify_m5_a
       verdict: PASS
@@ -385,12 +392,12 @@ verdicts:
         contradiction found. '
     - verifier: GPT-6.1 Sol / Codex / verify_m5_b
       verdict: FAIL
-      reasoning: "All23 thresholds and offsets match source3093\u20133117; GPIO0_B5,GPIO2_A6,GPIO4_C2\
-        \ confirmed. Last-threshold selection appears in3182\u20133190, outside cited ranges. Contrary\
-        \ search: read adjacent calculation,set/get paths,alternative SoC cases and RK3588 controller\
-        \ initialization; no contradictory numeric source behavior found. Add source locator 3182\u2013\
-        3190 for the stated last-not-greater selection algorithm, or move that sentence to electrical-index-calculation\
-        \ and declare that dependency. Numeric catalog contents themselves match."
+      reasoning: 'All23 thresholds and offsets match source3093–3117; GPIO0_B5,GPIO2_A6,GPIO4_C2 confirmed.
+        Last-threshold selection appears in3182–3190, outside cited ranges. Contrary search: read adjacent
+        calculation,set/get paths,alternative SoC cases and RK3588 controller initialization; no contradictory
+        numeric source behavior found. Add source locator 3182–3190 for the stated last-not-greater selection
+        algorithm, or move that sentence to electrical-index-calculation and declare that dependency.
+        Numeric catalog contents themselves match.'
     adjudication:
       decision: Apply the stricter derivation and dependency evidence and reverify. Fresh primary and
         second readings support the corrected claim.
@@ -415,11 +422,11 @@ verdicts:
     - verifier: GPT-6.1 Sol / Codex / verify_m5_b
       verdict: PASS
       date: '2026-10-11'
-      note: "3119\u20133193 matches reverse scan, global index, regmap_base, offsets, modulo original-local\
-        \ pin bits and fallback-EINVAL for each property. For GPIO4_C2,drive remains bit8 despite new\
-        \ threshold; for GPIO2_A6,pull bit12 and Schmitt bit6. No threshold subtraction occurs. Contrary\
-        \ search: read adjacent calculation,set/get paths,alternative SoC cases and RK3588 controller\
-        \ initialization; no contradictory numeric source behavior found."
+      note: '3119–3193 matches reverse scan, global index, regmap_base, offsets, modulo original-local
+        pin bits and fallback-EINVAL for each property. For GPIO4_C2,drive remains bit8 despite new threshold;
+        for GPIO2_A6,pull bit12 and Schmitt bit6. No threshold subtraction occurs. Contrary search: read
+        adjacent calculation,set/get paths,alternative SoC cases and RK3588 controller initialization;
+        no contradictory numeric source behavior found.'
   pull-encoding:
     basis: 99fe840a7359ec32f4471158ecb68f08ea780c3fb4f09e1d2d5546752482012a
     verdict: PASS
@@ -436,11 +443,11 @@ verdicts:
     - verifier: GPT-6.1 Sol / Codex / verify_m5_b
       verdict: PASS
       date: '2026-10-11'
-      note: "Header273\u2013276 selects second row via enum1; banks5236\u20135247 and table3440\u2013\
-        3453 establish codes0disable,1down,2disable,3up. Ascending setter search selects0 fordisable and\
-        \ unsupported-EINVAL. Getter3496\u20133512 and setter3563\u20133600 match formulas; RK3568 special\
-        \ remapping does not apply. Contrary search: read adjacent calculation,set/get paths,alternative\
-        \ SoC cases and RK3588 controller initialization; no contradictory numeric source behavior found."
+      note: 'Header273–276 selects second row via enum1; banks5236–5247 and table3440–3453 establish codes0disable,1down,2disable,3up.
+        Ascending setter search selects0 fordisable and unsupported-EINVAL. Getter3496–3512 and setter3563–3600
+        match formulas; RK3568 special remapping does not apply. Contrary search: read adjacent calculation,set/get
+        paths,alternative SoC cases and RK3588 controller initialization; no contradictory numeric source
+        behavior found.'
   drive-encoding:
     basis: 8a09e3a7d8b50b2f77cdc46e7b326a5781c167503a7f6e0fb2ed2135964cacb7
     verdict: PASS
@@ -457,11 +464,11 @@ verdicts:
     - verifier: GPT-6.1 Sol / Codex / verify_m5_b
       verdict: PASS
       date: '2026-10-11'
-      note: "3290\u20133312 takes raw strength on RK3588 and jumps to config;3417\u20133437 constructs\
-        \ four-bit M and unmasked strength-shift operand. Alternative current-table and thermometer encodings\
-        \ do not apply. No mA or safe range is asserted. Contrary search: read adjacent calculation,set/get\
-        \ paths,alternative SoC cases and RK3588 controller initialization; no contradictory numeric source\
-        \ behavior found."
+      note: '3290–3312 takes raw strength on RK3588 and jumps to config;3417–3437 constructs four-bit
+        M and unmasked strength-shift operand. Alternative current-table and thermometer encodings do
+        not apply. No mA or safe range is asserted. Contrary search: read adjacent calculation,set/get
+        paths,alternative SoC cases and RK3588 controller initialization; no contradictory numeric source
+        behavior found.'
   schmitt-encoding:
     basis: a2cd03f75cbec722ddee936773f951466f5d84131e120fb2610b3733f7240032
     verdict: PASS
@@ -479,63 +486,57 @@ verdicts:
     - verifier: GPT-6.1 Sol / Codex / verify_m5_b
       verdict: PASS
       date: '2026-10-11'
-      note: "Pinned setter3693\u20133740 and RK3588 descriptor5249\u20135257 place RK3588 in the default\
-        \ branch; D=BIT(b+16)|(enable<<b) and M=BIT(b+16)|BIT(b), followed by regmap_update_bits. Enable\
-        \ shifts directly without normalization. Adjacent RK3562/RK3568 ternary encoding and later RK3506/RV1103B\
-        \ overrides do not apply to RK3588. Revised claim omits the previously unsupported documented-boolean-interface\
-        \ assertion and remains solely source request behavior; it establishes no threshold or hysteresis\
-        \ voltage. Contrary search read adjacent SoC-specific cases, calculation-error returns, GPIO setup,\
-        \ deferred allocation and level/input dispatch; no contrary source behavior found within this\
-        \ scope."
+      note: Pinned setter3693–3740 and RK3588 descriptor5249–5257 place RK3588 in the default branch;
+        D=BIT(b+16)|(enable<<b) and M=BIT(b+16)|BIT(b), followed by regmap_update_bits. Enable shifts
+        directly without normalization. Adjacent RK3562/RK3568 ternary encoding and later RK3506/RV1103B
+        overrides do not apply to RK3588. Revised claim omits the previously unsupported documented-boolean-interface
+        assertion and remains solely source request behavior; it establishes no threshold or hysteresis
+        voltage. Contrary search read adjacent SoC-specific cases, calculation-error returns, GPIO setup,
+        deferred allocation and level/input dispatch; no contrary source behavior found within this scope.
   console-pmu2-mux:
-    basis: c725a70707de117acce5bdf24d302cd963a969d15d474741ca3fa5cb1eec7f20
+    basis: 8bcebc8a00cdd5a30e7b408906565865bf5366d77b92354c2539a8ba0a63c48a
     verdict: PASS
     date: '2026-10-11'
-    verifier: GPT-6.1 Sol, Codex, verify_m5_a
-    note: 'Fresh full current fact and premises reading: DT3210-3217 gives m0 TX B5/local13 and RX B6/local14,mux10;
-      allocation group1 starts8 and high-half+4 gives12; domain C1356-1389 yields12+0x4000-12=0x4000,bit4/8,width4.
-      Payload matches. Clarified claim now points to actual formal premises, not obsolete generic dependencies.
-      Inference scope is software indexing only; source recomputation TODO feasible and independently
-      performed. Contrary search: complete pinned RK3588 initializer and allocation remainder4355-4398,recalculation/routes
-      absent there,full setter and getter including fixed BIT8 readback,all electrical calculator/catalog
-      alternatives and UART2 m1/m2 DT groups. No conflicting evidence for these scoped software claims.'
+    verifier: GPT-6.1 Sol / Codex / verify_m7_primary_clean final
+    note: 'Independently reread allocation/source branches and declared premises. m0 mux10 uses local13/14;
+      group1 raw R12 and b4/8. PMU2 R+0x4000-0xc=0x4000, fields4-7/8-11 agree. BUS and other-bank/mux<8
+      paths inspected; no hardware access width/reset/reserved-bit or firmware-state assertion. Source-recomputation
+      TODO is executable and was performed; hardware applicability remains open. Final citation-only addition
+      to declared mux-domain dependency reviewed: mask0xf is now directly anchored by that dependency,
+      numeric values unchanged and no new premise required.'
     contrary_evidence: none-found
     citation_precision: exact
     readers:
-    - verifier: GPT-6.1 Sol / Codex / verify_m5_b
+    - verifier: GPT-6.1 Sol / Codex / verify_m7_second_clean / final narrow round
       verdict: PASS
       date: '2026-10-11'
-      note: "Revised prose names formal property-specific premises and does not introduce a contradictory\
-        \ generic dependency list. Independently recomputed local13/14,group1offset8 plus4=raw12; PMU2\
-        \ offset12+4000-c=4000;bits4/8 yield4\u20137/8\u201311. DT mux10 selects>=8 branch. Inference\
-        \ tracks the required source premises and asserts software request indexing only. Contrary search:\
-        \ reread exact pinned source tables, calculation functions, adjacent set/get alternatives, RK3588\
-        \ descriptor and allocation paths; no contradictory evidence found. Console inference TODO recomputation\
-        \ is feasible and was performed; this is not hardware observation."
+      note: Independently substituted B5/B6 as local pins 13/14 into the pinned allocation and domain
+        branches. Group offset 8 plus 4 gives raw offset 0xc; PMU2 displacement 0x4000 - 0xc yields offset
+        0x4000. Shifts 4/8 give fields 4–7/8–11. Typed data matches. Low-mux and other-bank alternatives
+        were read. The source TODO is feasible and recomputed here; hardware access, reset, reserved bits
+        and applied state remain unknown.
   console-bus-mux:
-    basis: c17f427f2ef2abf9398fb874414a17ac17abc7892efbdbcedf99c5dce4e8e7f2
+    basis: 1b5a062ccb37c7f7c0980df091ca47d7d045389d6388b57dab42017e21a33620
     verdict: PASS
     date: '2026-10-11'
-    verifier: GPT-6.1 Sol, Codex, verify_m5_a
-    note: 'Fresh full current fact and all premises: m0 TX local13/RX local14,mux10; group1 allocation8
-      plus4 gives12; BUS displacement0x8000 gives0x800c,bit4/8,width4. Typed data and derivation match
-      exact pinned source. Corrected prose identifies actual premises. Source recomputation TODO feasible
-      and performed; no hardware ordering/access/default interpretation. Contrary search: complete pinned
-      RK3588 initializer and allocation remainder4355-4398,recalculation/routes absent there,full setter
-      and getter including fixed BIT8 readback,all electrical calculator/catalog alternatives and UART2
-      m1/m2 DT groups. No conflicting evidence for these scoped software claims.'
+    verifier: GPT-6.1 Sol / Codex / verify_m7_primary_clean final
+    note: 'Independently reread allocation/source branches and declared premises. DT m0 mux10 uses GPIO0
+      B5/B6; binding gives13/14. Group1 allocated offset8, high half adds4, raw R12; b=(local%4)*4 gives4/8
+      and mask15. BUS R+0x8000=0x800c, field ranges4-7/8-11 match typed data. PMU2 and other-bank/mux<8
+      paths inspected; bounded Linux indexing does not assert raw bus writes or hardware semantics. Source-recomputation
+      TODO is executable and was performed; hardware applicability remains open. Final citation-only addition
+      to declared mux-domain dependency reviewed: mask0xf is now directly anchored by that dependency,
+      numeric values unchanged and no new premise required.'
     contrary_evidence: none-found
     citation_precision: exact
     readers:
-    - verifier: GPT-6.1 Sol / Codex / verify_m5_b
+    - verifier: GPT-6.1 Sol / Codex / verify_m7_second_clean / final narrow round
       verdict: PASS
       date: '2026-10-11'
-      note: "Revised prose now follows actual formal premises. Source allocation gives raw12 for B5/B6;BUS8000\
-        \ yields800c;bits4/8 andwidth4 yield4\u20137/8\u201311. Pinned m0 DTmux10 and>=8 branch establish\
-        \ application of this displacement. Hardware access/runtime state remain unresolved. Contrary\
-        \ search: reread exact pinned source tables, calculation functions, adjacent set/get alternatives,\
-        \ RK3588 descriptor and allocation paths; no contradictory evidence found. Console inference TODO\
-        \ recomputation is feasible and was performed; this is not hardware observation."
+      note: Independent local-pin substitution gives raw offset 0xc, shifts 4/8 and mask 15. For mux 10,
+        the BUS displacement yields offset 0x800c with fields 4–7/8–11. Typed data matches and alternative
+        branches were inspected. The source TODO is feasible and recomputed here. This proves software
+        indexing only; hardware register behavior and applied firmware state remain unknown.
   console-pull:
     basis: 2c3cf135950ea1e7737776210b2eb36859cce5e7a43c223ce3b49af1b5f545fc
     verdict: PASS
@@ -554,12 +555,12 @@ verdicts:
     - verifier: GPT-6.1 Sol / Codex / verify_m5_b
       verdict: PASS
       date: '2026-10-11'
-      note: "Revised property-specific prose matches formal premises. Renewed catalog selection evidence\
-        \ plus calculator choose GPIO0_B5 register4028 for local13/14;2*(13%8)=10,2*(14%8)=12 andwidth2\
-        \ yield10\u201311/12\u201313. No selected-threshold subtraction. Inference scoped to software\
-        \ indexing. Contrary search: reread exact pinned source tables, calculation functions, adjacent\
-        \ set/get alternatives, RK3588 descriptor and allocation paths; no contradictory evidence found.\
-        \ Console inference TODO recomputation is feasible and was performed; this is not hardware observation."
+      note: 'Revised property-specific prose matches formal premises. Renewed catalog selection evidence
+        plus calculator choose GPIO0_B5 register4028 for local13/14;2*(13%8)=10,2*(14%8)=12 andwidth2
+        yield10–11/12–13. No selected-threshold subtraction. Inference scoped to software indexing. Contrary
+        search: reread exact pinned source tables, calculation functions, adjacent set/get alternatives,
+        RK3588 descriptor and allocation paths; no contradictory evidence found. Console inference TODO
+        recomputation is feasible and was performed; this is not hardware observation.'
   console-drive:
     basis: 5d916316b3b934912625ca12a8835c8c8f57809c91835566257e0c64a467deba
     verdict: PASS
@@ -577,11 +578,11 @@ verdicts:
     - verifier: GPT-6.1 Sol / Codex / verify_m5_b
       verdict: PASS
       date: '2026-10-11'
-      note: "Revised prose matches actual premises. Renewed catalog/calculator choose GPIO0_B4 register4014\
-        \ for local13/14;4*(13%4)=4 and4*(14%4)=8,width4 yield4\u20137/8\u201311. No mA/range guarantee\
-        \ is asserted. Contrary search: reread exact pinned source tables, calculation functions, adjacent\
-        \ set/get alternatives, RK3588 descriptor and allocation paths; no contradictory evidence found.\
-        \ Console inference TODO recomputation is feasible and was performed; this is not hardware observation."
+      note: 'Revised prose matches actual premises. Renewed catalog/calculator choose GPIO0_B4 register4014
+        for local13/14;4*(13%4)=4 and4*(14%4)=8,width4 yield4–7/8–11. No mA/range guarantee is asserted.
+        Contrary search: reread exact pinned source tables, calculation functions, adjacent set/get alternatives,
+        RK3588 descriptor and allocation paths; no contradictory evidence found. Console inference TODO
+        recomputation is feasible and was performed; this is not hardware observation.'
   console-schmitt:
     basis: 6b95a253d970eef84f1b1b0b8e6360519a252e280fc35593ce7437e2146a7511
     verdict: PASS
@@ -605,32 +606,28 @@ verdicts:
         descriptor and allocation paths; no contradictory evidence found. Console inference TODO recomputation
         is feasible and was performed; this is not hardware observation.'
   console-mux-sequence:
-    basis: 4180746f802574d3a598dcef3177e0ae7c304ea3bab91bbcee2058ff52b093a0
+    basis: be6c70008239a533ce1c6e8c5e7878893f59be548aa8896e36e797fc236316f7
     verdict: PASS
     date: '2026-10-11'
-    verifier: GPT-6.1 Sol, Codex, verify_m5_a
-    note: 'Fresh full dependency closure reading despite unchanged local prose: formal premises track
-      route,mux10,local13/14,allocation,domain branch,mask requests and renewed two console mux register
-      facts. C1368-1379 requests PMU2 selector8 at0x4000 before BUS mux10 at0x800c,ret OR even after first
-      error. bit4 gives M0x00f000f0,firstD0x00f00080,secondD0x00f000a0;bit8 gives M0x0f000f00,firstD0x0f000800,secondD0x0f000a00.
-      All step formulas agree. Source TODO feasible and performed; hardware ordering/backend raw write
-      behavior remains unestablished. Contrary search: complete pinned RK3588 initializer and allocation
-      remainder4355-4398,recalculation/routes absent there,full setter and getter including fixed BIT8
-      readback,all electrical calculator/catalog alternatives and UART2 m1/m2 DT groups. No conflicting
-      evidence for these scoped software claims.'
+    verifier: GPT-6.1 Sol / Codex / verify_m7_primary_clean final
+    note: 'Recomputed at current premises: local13/14 give b4/8, PMU2 offset0x4000 then BUS0x800c, mask
+      M=(15<<(b+16))|(15<<b), data selector8 then mux10. Code ORs return values without intervening abort;
+      generic route-write failure path is distinct. Formal allocation, pin-numbering, branches, masked
+      request and derived-offset premises are all declared. Steps and claim cover Linux requests, not
+      backend-emitted word or hardware-required sequencing. Final citation-only addition to declared mux-domain
+      dependency reviewed: mask0xf is now directly anchored by that dependency, numeric values unchanged
+      and no new premise required.'
     contrary_evidence: none-found
     citation_precision: exact
     readers:
-    - verifier: GPT-6.1 Sol / Codex / verify_m5_b
+    - verifier: GPT-6.1 Sol / Codex / verify_m7_second_clean / final narrow round
       verdict: PASS
       date: '2026-10-11'
-      note: 'Renewed dependency closure independently rechecked: m0 DT gives B5TX/B6RX,mux10;numbering13/14;allocation/branch/register
-        premises yield PMU2selector8 at4000 thenBUSmux10 at800c,bits4/8. Mask M=(15<<(b+16))|(15<<b) and
-        each D use matching operands8then10. Source performs second call despite first error and bitwise-ORs
-        results. Request ordering is correctly distinguished from hardware-required ordering. Contrary
-        search: reread exact pinned source tables, calculation functions, adjacent set/get alternatives,
-        RK3588 descriptor and allocation paths; no contradictory evidence found. Console inference TODO
-        recomputation is feasible and was performed; this is not hardware observation.'
+      note: For TX, the recomputed mask is 0x00f000f0, selector data 0x00f00080 and BUS data 0x00f000a0.
+        For RX, the corresponding values are 0x0f000f00, 0x0f000800 and 0x0f000a00. Source requests PMU2
+        selector 8 at 0x4000 before BUS mux 10 at 0x800c, OR-combining results even after first-request
+        failure. Corrected anchors cover numeric mask and pin bounds. The source TODO was independently
+        recomputed; no hardware-required sequence or raw backend emission follows.
   electrical-update-sequence:
     basis: 7b1176f4c5305b650ec27fe4a9f302b9342f0f5a4b13d8cbd4fcb9b9245d9aca
     verdict: PASS
@@ -661,16 +658,16 @@ verdicts:
     - verifier: GPT-6.1 Sol / Codex / verify_m5_b
       verdict: PASS
       date: '2026-10-11'
-      note: "Pinned3900\u20133911 explicitly applies !gpio || !gpio->direction_output under bank->deferred_lock\
-        \ to both PIN_CONFIG_LEVEL and PIN_CONFIG_INPUT_ENABLE, including checking output callback availability\
-        \ for input configuration.3936\u20133957 requests RK_FUNC_GPIO for each then dispatches direction_output(arg)\
-        \ or direction_input and propagates callback errors; source tests mux result !=RK_FUNC_GPIO, whose\
-        \ value0 is confirmed in binding45. Adjacent setup gives gpio=&bank->gpio_chip; the claim correctly\
-        \ reports the literal null/output guard rather than asserting a separate input-callback guard.\
-        \ Deferred helper3865\u20133881 queues configuration or returns-ENOMEM; claim does not promise\
-        \ unconditional successful deferral. No GPIO-controller register or electrical guarantee is asserted.\
-        \ Contrary search read adjacent SoC-specific cases, calculation-error returns, GPIO setup, deferred\
-        \ allocation and level/input dispatch; no contrary source behavior found within this scope."
+      note: Pinned3900–3911 explicitly applies !gpio || !gpio->direction_output under bank->deferred_lock
+        to both PIN_CONFIG_LEVEL and PIN_CONFIG_INPUT_ENABLE, including checking output callback availability
+        for input configuration.3936–3957 requests RK_FUNC_GPIO for each then dispatches direction_output(arg)
+        or direction_input and propagates callback errors; source tests mux result !=RK_FUNC_GPIO, whose
+        value0 is confirmed in binding45. Adjacent setup gives gpio=&bank->gpio_chip; the claim correctly
+        reports the literal null/output guard rather than asserting a separate input-callback guard. Deferred
+        helper3865–3881 queues configuration or returns-ENOMEM; claim does not promise unconditional successful
+        deferral. No GPIO-controller register or electrical guarantee is asserted. Contrary search read
+        adjacent SoC-specific cases, calculation-error returns, GPIO setup, deferred allocation and level/input
+        dispatch; no contrary source behavior found within this scope.
   mux-errors-and-recovery:
     basis: dd5a70ebd53c2601072bf8ce883ba70f01434b4774e04d0884c6c471ca99ccba
     verdict: PASS
@@ -687,11 +684,11 @@ verdicts:
     - verifier: GPT-6.1 Sol / Codex / verify_m5_b
       verdict: PASS
       date: '2026-10-11'
-      note: "1255\u20131278 verifies group,unrouted and GPIO-only cases; setter1304\u20131306 invokes\
-        \ verifier;3770\u20133808 loops and on failure writes function0 only to earlier completed pins,ignoring\
-        \ rollback errors. It does not restore original mux values or guarantee board-safe rollback. Contrary\
-        \ search: read adjacent calculation,set/get paths,alternative SoC cases and RK3588 controller\
-        \ initialization; no contradictory numeric source behavior found."
+      note: '1255–1278 verifies group,unrouted and GPIO-only cases; setter1304–1306 invokes verifier;3770–3808
+        loops and on failure writes function0 only to earlier completed pins,ignoring rollback errors.
+        It does not restore original mux values or guarantee board-safe rollback. Contrary search: read
+        adjacent calculation,set/get paths,alternative SoC cases and RK3588 controller initialization;
+        no contradictory numeric source behavior found.'
   hardware-access-contract:
     basis: 0657db22eca5882d87eb4761b0b65c86cd2cf243543e94bc2e297bb3fa14521d
     verdict: GAP
@@ -704,16 +701,27 @@ verdicts:
     contrary_evidence: not-checked
     citation_precision: imprecise
   board-electrical-and-ownership:
-    basis: 642f172d466ee1431905056940c3140de470972f5ba591bdca08f21e41ef61ed
+    basis: b777ad8322e26e1a78978fb9d914e081289c8958f9ba6c257de6e3fcdfd09bfa
     verdict: GAP
     date: '2026-10-11'
-    verifier: GPT-6.1 Sol, Codex, verify_m5_a
-    note: 'No support: GAP. Controlled observation/documentation can resolve settings/ownership; simple
-      register readback cannot establish analog pad voltage,resistance,Schmitt thresholds or exclusive
-      ownership. Use suitable electrical measurements and firmware/OS lifecycle inspection. No claimed
-      value to search or cite.'
+    verifier: GPT-6.1 Sol / Codex / verify_m7_primary_clean corrected
+    note: No support, so GAP. Revised wording distinguishes published voltage ratings from actual pad
+      voltage/rail state, drive/pull/Schmitt configuration, access permissions and ownership. Public product
+      brief voltage ratings do not establish these settings; source PULL_TYPE_IO_1V8_ONLY is only classification.
+      TODO can establish bounded documented/observed properties with board/firmware/conditions/readback
+      retained; no such hardware observation performed. No supported value to compare for contrary evidence;
+      citation absent.
     contrary_evidence: not-checked
     citation_precision: imprecise
+    readers:
+    - verifier: GPT-6.1 Sol / Codex / verify_m7_second_clean / corrected round
+      verdict: GAP
+      date: '2026-10-11'
+      note: 'No support: GAP. Public product brief printedp8 publishes GPIO3.3V and3.63V tolerance, but
+        corrected claim distinguishes published ratings from actual configured rails/pads, legal current/encodings,
+        access contract and ownership. Controlled measurement/document TODO is feasible; no supported
+        asserted value/citation exists, so precision imprecise and contrary supported-value search not
+        applicable.'
   firmware-state:
     basis: 3e0bdf3f825f77833808ddcd2bf65a2d1216af611e69a20555af38aa255f6d20
     verdict: GAP
@@ -752,14 +760,14 @@ verdicts:
     - verifier: GPT-6.1 Sol / Codex / verify_m5_b
       verdict: PASS
       date: '2026-10-11'
-      note: "Direct source statements match macro150\u2013167 and307\u2013308, descriptor5236\u20135257,\
-        \ allocation4295\u20134354 and setter1313\u20131345. Repeated flags are four-bit only, therefore\
-        \ SOURCE_PMU branches do not apply; offset -1 selects ongoing GRF counter starting at static zero.\
-        \ This fact describes individual assignments/operations, not a closed-form index theorem. Contrary\
-        \ search independently reread exact pinned source macros, allocation loop, RK3588 descriptor,\
-        \ set/get branches, nearby alternative SoCs, UART2 m0 DT and property calculators; no contradictory\
-        \ evidence found. For six inference facts, TODO source recomputation is feasible and was performed\
-        \ for this reading; it does not purport to validate silicon access or actual firmware."
+      note: Direct source statements match macro150–167 and307–308, descriptor5236–5257, allocation4295–4354
+        and setter1313–1345. Repeated flags are four-bit only, therefore SOURCE_PMU branches do not apply;
+        offset -1 selects ongoing GRF counter starting at static zero. This fact describes individual
+        assignments/operations, not a closed-form index theorem. Contrary search independently reread
+        exact pinned source macros, allocation loop, RK3588 descriptor, set/get branches, nearby alternative
+        SoCs, UART2 m0 DT and property calculators; no contradictory evidence found. For six inference
+        facts, TODO source recomputation is feasible and was performed for this reading; it does not purport
+        to validate silicon access or actual firmware.
 summary:
   pass: 27
   fail: 0

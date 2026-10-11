@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 contributors
+# SPDX-License-Identifier: GPL-2.0-only
+format: 2
+kind: ip
+id: rk3588-dw-apb-uart-ip
+name: Source-declared rk3588-dw-apb-uart-ip interface family
+triggers:
+- rk3588-dw-apb-uart-ip
+resources:
+  repos:
+  - name: linux-dts
+    url: https://github.com/torvalds/linux
+    commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+    license: GPL-2.0-or-later OR MIT
+    role: source
+    status: merged
+    files:
+    - path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      license_from: spdx-line
+    verified: 2026-10-09
+    fetch: ok
+    fetch_via: git
+    note: Linux v7.2. The RK3588 device-tree sources are dual-licensed (GPL-2.0+ OR MIT).
+orientation: Source-declared rk3588-dw-apb-uart-ip interface family
+facts:
+- id: compatible-identity
+  section: variants-quirks
+  title: Source-declared compatible identity
+  claim: The pinned RK3588 device tree identifies its UART2 block with rockchip,rk3588-uart and snps,dw-apb-uart.
+    These compatibles identify the software interface family; they do not establish a DesignWare
+    synthesis version, FIFO size or measured silicon revision.
+  support:
+  - class: DT
+    anchors:
+    - repo: linux-dts
+      path: arch/arm64/boot/dts/rockchip/rk3588-base.dtsi
+      lines:
+      - 2812
+      - 2812
+      node: serial@feb50000
