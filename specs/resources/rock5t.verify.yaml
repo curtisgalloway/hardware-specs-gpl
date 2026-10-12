@@ -114,35 +114,38 @@ verdicts:
     contrary_evidence: none-found
     citation_precision: exact
   uboot-config:
-    basis: ea6accbc7b5666400f580193625ef802efc34aab294edecdcb8fc418c98cd1f8
+    basis: e8a104a81edbdb4ae70c998e5e4bf111f4e6568eeec75c655626bba93df48e16
     upstream:
-      rock5t@hardware-specs-docs#mainline-boot-chain: abad0a2e6fd2b55c2035c65f3b01d86685dc0874460ccf34ee67ec470dc5e9ca
+      rock5t@hardware-specs-docs#mainline-boot-chain: d10254eb75ce4991cde5fb08457785d4c7fe7503f0db732c2b911f02103c6531
     verdict: PASS
-    date: 2026-10-09
-    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
-    note: 'Mode DELTA (upstream changed: docs mainline-boot-chain, which now says BL31 may be TF-A or
-      the rkbin binary and no longer states the TPL/SPL/BL31 packaging order). This claim says only that
-      the configuration sets CONFIG_SPL_ATF; that option makes the SPL load a BL31 and does not say whose,
-      so it still follows, though "TF-A loading" is the older wording. Re-read configs/rock5b-rk3588_defconfig:
-      line 4 COUNTER_FREQUENCY 24000000; 13 SYS_LOAD_ADDR 0xc00800; 15-16 debug UART 0xFEB50000 at 24
-      MHz; 33-34 SYS_SPI_U_BOOT_OFFS 0x60000 and SPL_ATF; 42 CMD_ROCKUSB; 49 OF_LIST including rk3588-rock-5t;
-      19, 72-77 PCI, RTL8169, NVME_PCI, PCIE_DW_ROCKCHIP, combo PHY; 83-85 BAUDRATE 1500000, shift 2,
-      MEM32. board/radxa/rock5b-rk3588/rock5b-rk3588.c:25-28 has the LPDDR5 926-1106 rock-5t row. Precision:
-      "ADC channel 5" (HW_ID_CHANNEL at line 16, adc_channel_single_shot at 37) and the run-time selection
-      logic (30-51, 53-71) are not in the cited lines 25-28; extend the anchor to the whole file region
-      13-71. License: the defconfig is license-file via Licenses/README (GPL v2, later for most files).'
+    date: '2026-10-11'
+    verifier: Claude Code, claude-sonnet-5-5, reader mainline-chain-upstream-primary
+    note: Upstream-only renewal after a previous PASS. The upstream change to mainline-boot-chain in the
+      docs repository only renamed one heading locator from 'Package the image with U-Boot TPL/SPL' to '1.
+      Package the image with U-Boot TPL/SPL'; the claim text is unchanged. I fetched rockchip.rst at its
+      pinned commit and confirmed that heading, plus Rockchip boards, TF-A, TPL and U-Boot, appear verbatim,
+      and that the board table lists Radxa ROCK 5B/5B+/5T as rock5b-rk3588. The claim rests on source anchors
+      in the u-boot defconfig and board file, which did not change; it only refines the boot chain fact,
+      so it still follows. The local reading it rests on is the 2026-10-09 verdict by Claude Code, claude-sonnet-5-5,
+      reader rock5t-r2-primary-gpl.
     contrary_evidence: none-found
-    citation_precision: imprecise
+    citation_precision: exact
     readers:
-    - verifier: Claude Code, claude-opus-5-5, reader rock5t-r2-second
+    - verifier: Claude Code, claude-opus-5-5, reader mainline-chain-upstream-second
       verdict: PASS
-      date: 2026-10-09
-      note: 'DELTA reading. Upstream mainline-boot-chain added the rkbin BL31 option and dropped the stage
-        order; nothing here depends on either, so the refinement still follows. Rechecked defconfig lines
-        4, 13-16, 19, 33-34, 42, 49, 72-77 and 83-85: every value matches. Contrary: none-found. Citation
-        imprecise: "hardware-ID ADC channel 5" and the run-time choice are at rock5b-rk3588.c:16 (HW_ID_CHANNEL
-        5) and 30-71 (get_board_model, rk_board_late_init, board_fit_config_name_match), outside the cited
-        25-28.'
+      date: '2026-10-11'
+      note: 'Upstream change read independently (hardware-specs-docs commits 354d2ed and e3caa50). The only
+        edit to rock5t#mainline-boot-chain is its fifth heading locator, from "Package the image with U-Boot
+        TPL/SPL" to "1. Package the image with U-Boot TPL/SPL"; the claim text and the other four locators
+        are unchanged (354d2ed touched only maskrom-recovery). Fetched doc/board/rockchip/rockchip.rst at
+        the pinned U-Boot commit 5508406 (sha256 af0f3a75...6de4) and found the new heading verbatim at
+        line 333, with the sector-64 SD write at line 346 and the SPI offset-0 write at line 391 beneath
+        it; "Radxa ROCK 5B/5B+/5T (rock5b-rk3588)" is at line 173. This fact refines the upstream claim
+        only through the shared rock5b-rk3588 configuration name, which the change does not touch, so the
+        dependent claim still follows. Local defconfig and board sources are unchanged and were not reread.
+        Contrary-evidence search in the same file: the only other numbered packaging heading is "2. Package
+        the image with Rockchip miniloader" (line 403), a different path, so the new locator is unambiguous;
+        none found against the dependency.'
   uboot-rtl8125b:
     basis: e4d522e3a0a76c6e6d977374e6c70ea2170f4a435727b63e13c3b84615cd5fbc
     verdict: PASS
@@ -156,84 +159,83 @@ verdicts:
     contrary_evidence: none-found
     citation_precision: exact
   mainline-netboot:
-    basis: be856115639da942d337c38afb277b0112936a3eef586fb581653c2c36e47015
+    basis: 0171c401ada6026721725e089649cc584175b86820a30cf3e1add2f1e0a969e8
     upstream:
       rock5t@hardware-specs-docs#ethernet: 655a77b27b255e1e8b1fba22ea21b23a96ead47555cba1546de13fd0f433169e
-      rock5t@hardware-specs-docs#mainline-boot-chain: abad0a2e6fd2b55c2035c65f3b01d86685dc0874460ccf34ee67ec470dc5e9ca
+      rock5t@hardware-specs-docs#mainline-boot-chain: d10254eb75ce4991cde5fb08457785d4c7fe7503f0db732c2b911f02103c6531
       rock5t@hardware-specs-docs#netboot-stock-loader: fa4e0a40c907f16c25726d77010383469fb2b338f4c6ca5e98212ead7f3306b2
     verdict: PASS
-    date: 2026-10-09
-    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
-    note: 'Mode FULL. Premises checked: docs ethernet (two RTL8125B on PCIE20_0 and PCIE20_2); configs/rock5b-rk3588_defconfig:19,72-77
-      PCI, RTL8169, NVME_PCI, PCIE_DW_ROCKCHIP, combo PHY; drivers/net/rtl8169.c:289 and 376 (RTL-8125B
-      0x64, PCI id 0x8125); Linux DT pcie2x1l0 and pcie2x1l2 enabled (rk3588-rock-5b-5bp-5t.dtsi:475-491);
-      boot order from rockchip-common.h:17. Assumption uboot-net-commands-built checked as far as plausible:
-      arch/arm/Kconfig ARCH_ROCKCHIP imply BOOTSTD_DEFAULTS, which selects BOOT_DEFAULTS, and boot/Kconfig
-      BOOT_DEFAULTS_CMDS selects CMD_DHCP and CMD_PXE when CMD_NET and NET are set; that CMD_NET/NET are
-      on for this build was not traced. The boot-order wording holds: boot/bootstd-uclass.c:116 reads
-      env boot_targets and boot/bootdev-uclass.c:402-406 recognizes the labels pxe and dhcp. The claim
-      is hedged (most likely, medium) and the derivation says nothing read shows the pieces working together;
-      a real link bring-up with the RTL8125B is not evidenced, which the TODO covers.'
+    date: '2026-10-11'
+    verifier: Claude Code, claude-sonnet-5-5, reader mainline-chain-upstream-primary
+    note: Upstream-only renewal after a previous PASS. The upstream change to mainline-boot-chain in the
+      docs repository only renamed one heading locator from 'Package the image with U-Boot TPL/SPL' to '1.
+      Package the image with U-Boot TPL/SPL'; the claim text is unchanged. I fetched rockchip.rst at its
+      pinned commit and confirmed that heading, plus Rockchip boards, TF-A, TPL and U-Boot, appear verbatim,
+      and that the board table lists Radxa ROCK 5B/5B+/5T as rock5b-rk3588. It depends on the boot chain
+      only through uboot-config, whose support is unchanged; the inference still follows. The local reading
+      it rests on is the 2026-10-09 verdict by Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl.
     contrary_evidence: none-found
     citation_precision: exact
   mainline-console-at-handoff:
-    basis: 71f91ee4a33fd41c8b9f4369430a62fa28b9f518ae2a56c10814d22e6a73a1c9
+    basis: 15dfe44cc27dfa14b19c1fc40fcb269b659a005bd5fd421f2537c1ef15722cc7
     upstream:
       rk3588@hardware-specs-docs#uart2-pinmux: f32cdddc96b87ce8be8146ef3acab83c56094e57fbcef213a9c7eceab203ea10
       rock5t@hardware-specs-docs#debug-console-is-uart2-m0: 1febfa371e03ba19a8e6269bca4ba2e250969cb620d8993825fa9ebd59f5c0b7
-      rock5t@hardware-specs-docs#mainline-boot-chain: abad0a2e6fd2b55c2035c65f3b01d86685dc0874460ccf34ee67ec470dc5e9ca
+      rock5t@hardware-specs-docs#mainline-boot-chain: d10254eb75ce4991cde5fb08457785d4c7fe7503f0db732c2b911f02103c6531
       rock5t@hardware-specs-docs#uart2-state-at-handoff: eec313134247beed7dbac994da3f4dd02c875f001cc0dd2ae1fc85ef5b8e0cc1
     verdict: PASS
-    date: 2026-10-09
-    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r3-primary
-    note: 'DELTA reading. The only upstream change reaching this inference is the added relates entry
-      on debug-console-is-uart2-m0; its claim is unchanged and I confirmed it (UART2 M0 pins, schematic
-      sheet 36 and brief section 6.1.1). The premise #dt-console is re-confirmed at the pin (stdout-path
-      serial2:1500000n8, uart2m0_xfer). The conclusion remains hedged (''very likely'', mainline only,
-      clock caveat named, stock loader excluded) and its hardware TODO is a legitimate observation. No
-      change to the derivation is needed.'
+    date: '2026-10-11'
+    verifier: Claude Code, claude-sonnet-5-5, reader mainline-chain-upstream-primary
+    note: Upstream-only renewal after a previous PASS. The upstream change to mainline-boot-chain in the
+      docs repository only renamed one heading locator from 'Package the image with U-Boot TPL/SPL' to '1.
+      Package the image with U-Boot TPL/SPL'; the claim text is unchanged. I fetched rockchip.rst at its
+      pinned commit and confirmed that heading, plus Rockchip boards, TF-A, TPL and U-Boot, appear verbatim,
+      and that the board table lists Radxa ROCK 5B/5B+/5T as rock5b-rk3588. It depends on the boot chain
+      only through uboot-config, whose support is unchanged; the inference still follows. The local reading
+      it rests on is the 2026-10-09 verdict by Claude Code, claude-sonnet-5-5, reader rock5t-r3-primary.
     contrary_evidence: none-found
     citation_precision: exact
     readers:
-    - verifier: Claude Code, claude-opus-5-5, reader rock5t-r3-second
+    - verifier: Claude Code, claude-opus-5-5, reader mainline-chain-upstream-second
       verdict: PASS
-      date: 2026-10-09
-      note: 'DELTA reading. The upstream change to rock5t@hardware-specs-docs#debug-console-is-uart2-m0
-        adds only a relates entry; the M0 wiring this inference relies on (through the #dt-console premise)
-        is unchanged, so the derivation still follows at medium confidence, with the 24 MHz clock condition
-        and the stock-loader exclusion stated. Contrary-evidence search at the U-Boot pin: drivers/serial/ns16550.c
-        and serial_rockchip.c declare no remove hook or OS-prepare flag (only DM_FLAG_PRE_RELOC), and
-        arch/arm/lib/bootm.c has no device-removal call, so nothing read tears the console down before
-        the jump; none found. The TODO (read both IOMUX registers and the divisor, write THR at kernel
-        entry) can observe the question. Citation precision exact.'
+      date: '2026-10-11'
+      note: 'The upstream change to rock5t#mainline-boot-chain is a locator-only edit (fifth heading now
+        "1. Package the image with U-Boot TPL/SPL", confirmed verbatim at line 333 of rockchip.rst at U-Boot
+        commit 5508406); the claim text is unchanged. This inference reaches the upstream fact only through
+        #uboot-config, whose use here (debug UART at 0xFEB50000, 24 MHz clock, 1500000 baud) comes from
+        unchanged defconfig anchors, and through rk3588#uboot-debug-uart-pinmux and #dt-console, which the
+        change does not touch. The derivation and its stated medium confidence and open condition (UART2
+        clock under U-Boot proper) are unaffected. Contrary-evidence search limited to the changed upstream
+        fact and its cited document section: none found.'
   mainline-cntfrq:
-    basis: ce7e9cd91a66f34c3075a8e64de3862a8fae27ce5dbcabe7071a94048be45e72
+    basis: 5c61145359599f36a6f1e66aa63cab61ec1ec2b13a486c4c71353817c02def58
     upstream:
       rk3588@hardware-specs-docs#system-counter: c82e986f0f3c6c9ff9aa1950c2170fb264b5e00c194596e9df6ca36a583b8376
-      rock5t@hardware-specs-docs#mainline-boot-chain: abad0a2e6fd2b55c2035c65f3b01d86685dc0874460ccf34ee67ec470dc5e9ca
+      rock5t@hardware-specs-docs#mainline-boot-chain: d10254eb75ce4991cde5fb08457785d4c7fe7503f0db732c2b911f02103c6531
     verdict: PASS
-    date: 2026-10-09
-    verifier: Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl
-    note: 'Mode DELTA (upstream changed: docs system-counter, TODO wording only, and mainline-boot-chain,
-      which now allows BL31 from rkbin). Premises: rk3588.c:162-174 writes CONFIG_COUNTER_FREQUENCY to
-      CNTFRQ_EL0 unless the timer is already enabled (call sites arch/arm/mach-rockchip/spl.c:123 and
-      tpl.c:49); the defconfig sets 24000000. Corroboration found while looking for contrary evidence:
-      TF-A plat/rockchip/rk3588/rk3588_def.h:178 SYS_COUNTER_FREQ_IN_TICKS is 24000000. A BL31 from rkbin
-      was not read, and the claim is hedged ("very likely"), as is the derivation''s note about the DDR
-      blob starting the timer first. Follows.'
+    date: '2026-10-11'
+    verifier: Claude Code, claude-sonnet-5-5, reader mainline-chain-upstream-primary
+    note: Upstream-only renewal after a previous PASS. The upstream change to mainline-boot-chain in the
+      docs repository only renamed one heading locator from 'Package the image with U-Boot TPL/SPL' to '1.
+      Package the image with U-Boot TPL/SPL'; the claim text is unchanged. I fetched rockchip.rst at its
+      pinned commit and confirmed that heading, plus Rockchip boards, TF-A, TPL and U-Boot, appear verbatim,
+      and that the board table lists Radxa ROCK 5B/5B+/5T as rock5b-rk3588. It depends on the boot chain
+      only through uboot-config, whose support is unchanged; the inference still follows. The local reading
+      it rests on is the 2026-10-09 verdict by Claude Code, claude-sonnet-5-5, reader rock5t-r2-primary-gpl.
     contrary_evidence: none-found
     citation_precision: exact
     readers:
-    - verifier: Claude Code, claude-opus-5-5, reader rock5t-r2-second
+    - verifier: Claude Code, claude-opus-5-5, reader mainline-chain-upstream-second
       verdict: PASS
-      date: 2026-10-09
-      note: 'DELTA reading. Upstream system-counter changed only its TODO. mainline-boot-chain now allows
-        a TF-A or rkbin BL31, which runs after the SPL at EL3 and could rewrite CNTFRQ. Contrary search:
-        TF-A 1d5aa93 lib/psci/psci_setup.c:312-316 (psci_arch_setup) writes plat_get_syscnt_freq2(), and
-        plat/rockchip/rk3588/rk3588_def.h:178 sets SYS_COUNTER_FREQ_IN_TICKS 24000000, so a TF-A BL31
-        also yields 24 MHz; the rkbin BL31 is unread. The medium-confidence conclusion still follows.
-        Should-fix: add a BL31 premise (TF-A writes 24 MHz; rkbin unknown); the derivation names only
-        the DDR blob. Citation exact.'
+      date: '2026-10-11'
+      note: 'The upstream change to rock5t#mainline-boot-chain only renames a heading locator to the document''s
+        numbered form "1. Package the image with U-Boot TPL/SPL", found verbatim at line 333 of rockchip.rst
+        at the pinned U-Boot commit; the claim, including that the rkbin DDR binary is packaged as TPL where
+        U-Boot cannot initialize DRAM (TPL section, lines 221-226, unchanged), is the same. The inference''s
+        premises, rk3588#uboot-spl-sets-cntfrq and #uboot-config''s CONFIG_COUNTER_FREQUENCY=24000000, and
+        its caveat about the DDR blob having already started the timer, are untouched, so the dependent
+        claim still follows. Contrary-evidence search limited to the changed upstream fact and its cited
+        section: none found.'
   stock-uboot-config:
     basis: 655439d74a0465d725cfe3df475f482cd52e0ed94b32bb2c91bd33d6ff50aaef
     upstream:
