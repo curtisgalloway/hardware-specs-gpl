@@ -3,7 +3,7 @@
 format: 2
 spec: bcm2711
 spec_file: bcm2711.spec.yaml
-spec_sha256: 41b74cf65f855fe514fc803837672dff5605843738e7866f4f7db7e1b06a9b03
+spec_sha256: cc3526b977cabde168583daee830ce6333ee64e317cd4417adccdb95be07b226
 canonical: fact-v1
 sources:
 - name: linux
@@ -305,24 +305,34 @@ verdicts:
       key: Quick-facts/13 "GENET"
       format: 1
   pcie-and-the-soc-s-xhci:
-    basis: 70af57097f892758a9bc7a145a7e93048e0b74fa4993bd1848c9dc25476d011a
+    basis: 5f8c4834c59b767eb2b988f0d147a6fc4f58572f903f7278ff91e9c6c7d6c257
     upstream:
-      bcm2711@hardware-specs-docs#usb-controllers: bf582b754128810b366a96a73975cdbb13f49bbe5cca47e31a9d8dd50b3cdc33
+      bcm2711@hardware-specs-docs#usb-controllers: 286448b7b4ad82690b6e4f8c096e45eafcdcfde81a7dc429407f298431f4b11f
     verdict: PASS
-    date: '2026-10-09'
-    verifier: Claude Code, claude-sonnet-5-5, reader bcm2711-sf2-11-primary
-    note: 'linux 8d3ae592 arch/arm/boot/dts/broadcom/bcm2711.dtsi lines 545-618: pcie@7d500000 compatible
-      brcm,bcm2711-pcie, SPIs 147 (pcie) and 148 (msi), interrupt-map SPIs 143-146 (IDs 175-178),
-      ranges 0x02000000 0x0 0xf8000000 0x6 0x0 size 0x04000000 (64 MB), dma-ranges identity 0..0xc0000000
-      (3 GB) under the comment about a wrapper bug; xhci@7e9c0000 compatible brcm,bcm2711-xhci, SPI
-      176 (ID 208), status disabled, with the shared-PHY lockup comment and bootloader-decides text.
-      All values match. The relation (qualifies bcm2711@hardware-specs-docs#usb-controllers) fits:
-      that docs fact says the main USB ports are a separate PCIe-attached USB 3.0 controller and the
-      SoC''s xHCI is the otg_mode=1 host option; this claim adds that the SoC xHCI node is a different,
-      disabled-by-default controller, and the xhci node sits on the SoC bus, not under the PCIe node.
-      The negative "not the PCIe-attached controller" is supported by that placement together with
-      the related docs fact. Read neighboring nodes (genet, v3d) and the scb-bus ranges; no conflicting
-      statement. Resolve: 37 anchors resolved, 0 skipped.'
+    date: '2026-10-11'
+    verifier: Claude Code, claude-sonnet-5-5, reader explorer-pin-upstream
+    note: 'Upstream-only renewal after a previous PASS. Upstream usb-controllers changed only in its locator
+      (commit 354d2ed): heading otg_mode became "otg_mode (Raspberry Pi 4 only)"; claim text and class are
+      unchanged. I fetched config_txt/boot.adoc at pinned commit 42deaefb and confirmed that heading exists
+      verbatim and its text matches the upstream claim (PCIe-attached USB 3.0 controller drives the main
+      ports on Pi 4B and 400, the legacy USB 2.0 controller is a device on USB-C with otg_mode=0, otg_mode=1
+      selects an XHCI USB 2.0 host, CM4 has no USB 3.0 controller). The GPL claim''s last sentence, that
+      the disabled SoC brcm,bcm2711-xhci is not the separate PCIe-attached USB 3.0 controller described
+      by the docs USB bullet, still follows. The qualifies relation holds. Local DT sources were unchanged
+      and not re-read. Searched the otg_mode section and its neighbors in boot.adoc for qualifications or
+      conflicting statements about the SoC xHCI; none found. The local reading it rests on is the 2026-10-09
+      verdict by Claude Code, claude-sonnet-5-5, reader bcm2711-sf2-11-primary: linux 8d3ae592 arch/arm/boot/dts/broadcom/bcm2711.dtsi
+      lines 545-618: pcie@7d500000 compatible brcm,bcm2711-pcie, SPIs 147 (pcie) and 148 (msi), interrupt-map
+      SPIs 143-146 (IDs 175-178), ranges 0x02000000 0x0 0xf8000000 0x6 0x0 size 0x04000000 (64 MB), dma-ranges
+      identity 0..0xc0000000 (3 GB) under the comment about a wrapper bug; xhci@7e9c0000 compatible brcm,bcm2711-xhci,
+      SPI 176 (ID 208), status disabled, with the shared-PHY lockup comment and bootloader-decides text.
+      All values match. The relation (qualifies bcm2711@hardware-specs-docs#usb-controllers) fits: that
+      docs fact says the main USB ports are a separate PCIe-attached USB 3.0 controller and the SoC''s xHCI
+      is the otg_mode=1 host option; this claim adds that the SoC xHCI node is a different, disabled-by-default
+      controller, and the xhci node sits on the SoC bus, not under the PCIe node. The negative "not the
+      PCIe-attached controller" is supported by that placement together with the related docs fact. Read
+      neighboring nodes (genet, v3d) and the scb-bus ranges; no conflicting statement. Resolve: 37 anchors
+      resolved, 0 skipped.'
     contrary_evidence: none-found
     citation_precision: exact
   the-3-gb-inbound-limit-is-a-default-tied-to-early-revisions:
