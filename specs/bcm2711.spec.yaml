@@ -101,6 +101,22 @@ facts:
       lines:
       - 56
       - 66
+    - repo: linux
+      path: arch/arm/boot/dts/broadcom/bcm2711.dtsi
+      lines:
+      - 41
+      - 43
+  - class: src
+    anchors:
+    - repo: linux
+      path: Documentation/devicetree/bindings/interrupt-controller/arm,gic.yaml
+      lines:
+      - 96
+      - 116
+      symbol: reg
+  relates:
+  - {fact: '#address-translation-in-the-tree', relation: refines}
+  - {fact: 'bcm2711@hardware-specs-docs#interrupt-ids-at-the-gic', relation: refines}
 - id: ppi-flags-are-not-hardware-polarity
   section: quick-facts
   title: PPI flags are not hardware polarity
