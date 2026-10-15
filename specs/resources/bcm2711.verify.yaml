@@ -19,6 +19,12 @@ sources:
   commit: 439b6198a9b340de5998dd14a26a0d9d38a6bcac
   fetch: ok
   note: armstubs/armstub8.S read for the related timer-frequency fact only.
+- name: gic-400-trm
+  sha256: 15463e9ac6c82114378b4dc7cee1fb4eaa545f4b5073af4bf8a57d22b9403c52
+  url: https://documentation-service.arm.com/static/5e8f15e27100066a414f7424
+  fetch: ok
+  note: Reused cached input; identity checked. run docs-dir copy; SHA-256 matches the docs spec. Read
+    2.3.2 (Table 2-3), 2.3.3, the distributor register summary (GICD_ICFGRn) and 3.4.2.
 summary:
   pass: 19
   fail: 0
@@ -27,283 +33,211 @@ summary:
   adjudicate: 0
 verdicts:
   gic-node:
-    basis: a4812409e037fe372a1bb295de24a11cd630bb5696f1613b192de780827db50c
+    basis: 27e71358a71db891c7a3c65731d28ec5630e42bb80eb7d91e0562851f72c232c
+    upstream:
+      bcm2711@hardware-specs-docs#interrupt-ids-at-the-gic: dc2a16810cf2239d29eea67c93c7190b6b9b9fb9858da38d3c89a403b4d102be
     verdict: PASS
-    date: '2026-10-08'
-    verifier: Claude Opus 5.5, Claude Code subagent (delta verification of d4721e5 against the 89557f7
-      record; second reader run separately)
-    note: 'lines 56-66: `arm,gic-400`, three interrupt cells, reg
-
-      0x40041000/0x1000, 0x40042000/0x2000, 0x40044000, 0x40046000; translated through the ARM Local
-
-      range to 0xff841000 and 0xff842000; maintenance interrupt GIC_PPI 9 with
-
-      GIC_CPU_MASK_SIMPLE(4) and IRQ_TYPE_LEVEL_HIGH (PPI 9 is ID 25).'
-    carried_from:
-      repo: hardware-specs-gpl
-      commit: ee658356abb8527b90bf8000cfca9f07f2657553
-      path: specs/resources/bcm2711.verify.md
-      key: Quick-facts/2 "GIC node"
-      format: 1
+    date: '2026-10-14'
+    verifier: Claude Code subagent, claude-opus-5-5, Claude Code, session gpl-p4
+    note: 'bcm2711.dtsi lines 56-66 (gicv2 node): interrupt-controller, #interrupt-cells = <3>, compatible
+      arm,gic-400, reg regions 0x40041000/0x1000, 0x40042000/0x2000, 0x40044000, 0x40046000, interrupts
+      GIC_PPI 9 with GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_HIGH; all match the claim (4 KB, 8 KB,
+      four CPUs, level-high flag). Lines 41-43 give the soc ranges entry 0x40000000 -> 0xFF800000
+      size 8 MB, so the distributor and CPU interface translate to 0xFF84_1000 and 0xFF84_2000 as
+      claimed (the checker''s "hex values absent" warning is this translation; both operands are in
+      this fact''s own anchors and the claim states the translation basis, consistent with the related
+      address-translation-in-the-tree fact). Binding lines 96-116 name the four reg regions in the
+      claimed order (distributor, CPU interface, virtual interface control, virtual CPU interface)
+      and describe interrupts on a primary GIC as the VGIC maintenance interrupt. PPI 9 -> ID 25 follows
+      the 16 + n PPI offset; the docs root''s interrupt-ids-at-the-gic gives the virtual maintenance
+      interrupt as PPI 25, and the GIC-400 TRM Table 2-3 (and section 2.3.3 text) names ID 25 the
+      virtual maintenance interrupt; TRM memory map offsets 0x1000/0x2000/0x4000/0x6000 for distributor/CPU
+      interface/virtual interface control/virtual CPU interface agree with the reg offsets. Licenses:
+      bcm2711.dtsi and the binding carry SPDX GPL-2.0, consistent with the declared GPL-2.0-only.
+      Contrary-evidence search: other gicv2 or interrupt-controller@40041000 definitions in arch/arm/boot/dts/broadcom
+      (only bcm2711.dtsi defines it), root/soc cell overrides in bcm283x.dtsi (bcm2711.dtsi''s later
+      2/1 root cells override bcm283x''s 1/1; soc child cells are 1), and the TRM''s PPI table; none
+      conflicts. Note the level-high flag differs from the TRM''s active-low PPI inputs; the claim
+      states only the tree''s encoding, so this is not a conflict (the separate ppi-flags-are-not-hardware-polarity
+      fact covers it). Macro values in the dt-bindings headers were not read; the claim names the
+      macros, not their numeric values.'
+    contrary_evidence: none-found
+    citation_precision: exact
   ppi-flags-are-not-hardware-polarity:
     basis: 9f647a8011d28df136af68b8908c2e6c6db79d9a7ea227dbbfea5cd75cddf0c8
     upstream:
       bcm2711@hardware-specs-docs#interrupt-ids-at-the-gic: dc2a16810cf2239d29eea67c93c7190b6b9b9fb9858da38d3c89a403b4d102be
     verdict: PASS
-    date: '2026-10-08'
-    verifier: Claude Opus 5.5, Claude Code subagent (delta verification of d4721e5 against the 89557f7
-      record; second reader run separately)
-    note: 'now an `[inference]`. Premise 1
-
-      holds: bcm2711.dtsi lines 64-65 encode the maintenance interrupt GIC_PPI 9 with
-
-      IRQ_TYPE_LEVEL_HIGH and lines 446-453 encode the four timer PPIs with IRQ_TYPE_LEVEL_LOW.
-
-      Premise 2 holds: the docs spec (at e7529fe) has a Quick-facts bullet "Interrupt IDs at the GIC"
-
-      stating that PPI inputs are active-low level-sensitive, cited to the GIC-400 TRM §2.3.2, and
-      the
-
-      TRM''s §2.3.2 does say all PPI signals are active-low level-sensitive; "fixed" is no longer
-
-      claimed. Premise 3 holds: the nested anchor resolves at the pin (arm,gic.yaml lines 82-94, the
-
-      third-cell flags under `#interrupt-cells`), and those lines say PPI configurability is
-
-      implementation defined and that most SoCs of 2014 ignore the flag and use the hardware default.
-
-      The derivation follows: inputs that share one polarity cannot all match two different flags,
-      so
-
-      the flags do not convey polarity, and the binding supports not expecting a write to take
-
-      effect. `TODO (verify on hardware)` present. Contrary glance: the GIC-400 TRM''s distributor
-
-      register summary (§3.3, Table 3-2) lists GICD_ICFGR1 (the PPI word) as read-only with reset
-      value 0x55540000,
-
-      which agrees with the conclusion and means the hardware TODO should read back that value.'
-    carried_from:
-      repo: hardware-specs-gpl
-      commit: ee658356abb8527b90bf8000cfca9f07f2657553
-      path: specs/resources/bcm2711.verify.md
-      key: Quick-facts/3 "PPI flags are not hardware polarity"
-      format: 1
+    date: '2026-10-14'
+    verifier: Claude Code subagent, claude-opus-5-5, Claude Code, session gpl-p1
+    note: 'Premise 1: bcm2711.dtsi 64-65 encode the maintenance PPI level-high; 446-453 encode the
+      four timer PPIs level-low; confirmed. Premise 2 (docs fact, checked at its source): GIC-400
+      TRM 2.3.2 states all PPI signals are active-LOW level-sensitive. Premise 3: arm,gic.yaml 82-94
+      says PPI configurability is implementation defined and often ignored in favor of the hardware
+      default; confirmed. Conclusion follows: with every PPI documented active-low, the level-high
+      flag on PPI 9 cannot be the input''s polarity, so the flags do not convey it, and the binding
+      says writing them may have no effect. Wording note for the author: the derivation''s "the same
+      inputs" should read "inputs of one documented polarity" (PPI 9 and the timer PPIs are different
+      inputs; the maintenance PPI is internal per TRM 2.2). Contrary search: GIC-400 TRM register
+      summary shows GICD_ICFGRn at 0xC04 (PPIs) as RO with reset 0x55540000 and 3.4.2 notes legacy
+      bits read-only; this supports, not contradicts, the claim and could be added as a premise. The
+      TODO (write GICD_ICFGR1 PPI bits and read back) can observe whether writes take effect; not
+      performed.'
+    contrary_evidence: none-found
+    citation_precision: exact
   architected-timer-and-pmu:
     basis: 18241ef3421134e61aec59c57dea7717566b8f052b2b7011a8c1e9f6197da2e5
     verdict: PASS
-    date: '2026-10-08'
-    verifier: Claude Opus 5.5, Claude Code subagent (delta verification of d4721e5 against the 89557f7
-      record; second reader run separately)
-    note: 'lines 435-454: `arm,armv8-timer` with GIC_PPI
-
-      13, 14, 11, 10 (IDs 29, 30, 27, 26), each GIC_CPU_MASK_SIMPLE(4) and IRQ_TYPE_LEVEL_LOW;
-
-      `arm,cortex-a72-pmu` on GIC_SPI 16-19 (IDs 48-51) with interrupt-affinity to cpu0-cpu3.'
-    carried_from:
-      repo: hardware-specs-gpl
-      commit: ee658356abb8527b90bf8000cfca9f07f2657553
-      path: specs/resources/bcm2711.verify.md
-      key: Quick-facts/4 "Architected timer and PMU"
-      format: 1
+    date: '2026-10-14'
+    verifier: Claude Code subagent, claude-opus-5-5, Claude Code, session gpl-p1
+    note: 'bcm2711.dtsi 435-454: pmu compatible arm,cortex-a72-pmu, GIC_SPI 16-19 (level-high), one
+      interrupt-affinity per cpu0-3; timer compatible arm,armv8-timer, GIC_PPI 13, 14, 11, 10, each
+      GIC_CPU_MASK_SIMPLE(4) and IRQ_TYPE_LEVEL_LOW. IDs 29, 30, 27, 26 and 48-51 follow the PPI+16
+      / SPI+32 numbering (uncited convention; consistent with GIC-400 TRM Table 2-3 and the docs root''s
+      interrupt-ID fact). Contrary search: arm/arm64 bcm2711 board files and bcm2711-rpi*.dtsi for
+      timer/pmu overrides; none found.'
+    contrary_evidence: none-found
+    citation_precision: imprecise
   cpu-nodes:
     basis: 0bc828f13997d6d820ef7181c1e1f6a720c521e7250bafdf0aba578f1b22dc9f
     verdict: PASS
-    date: '2026-10-08'
-    verifier: Claude Opus 5.5, Claude Code subagent (delta verification of d4721e5 against the 89557f7
-      record; second reader run separately)
-    note: 'lines 456-542: four `arm,cortex-a72` CPUs with reg 0-3, each
-
-      CPU node with enable-method "spin-table" and cpu-release-addr 0xd8, 0xe0, 0xe8, 0xf0; the `cpus`
-
-      node carries enable-method "brcm,bcm2836-smp" with the line-459 comment "for ARM 32-bit", now
-
-      attributed to the comment rather than stated as fact, and the "For arm64" claim is gone;
-
-      d-cache-size 0x8000 (32 KB) with 64-byte lines, i-cache-size 0xc000 (48 KB), and the L2 node
-
-      cache-size 0x100000 (1 MB), unified and the next-level cache of all four CPUs, which supports
-
-      "shared". Contrary glance: none of bcm283x.dtsi, bcm2711-rpi.dtsi, bcm2711-rpi-4-b.dts or
-
-      bcm2711-rpi-cm4.dtsi overrides an enable-method or cpu-release-addr.'
-    carried_from:
-      repo: hardware-specs-gpl
-      commit: ee658356abb8527b90bf8000cfca9f07f2657553
-      path: specs/resources/bcm2711.verify.md
-      key: Quick-facts/5 "CPU nodes"
-      format: 1
+    date: '2026-10-14'
+    verifier: Claude Code subagent, claude-opus-5-5, Claude Code, session gpl-p1
+    note: 'bcm2711.dtsi 456-542: four cpu@0-3 compatible arm,cortex-a72, reg 0-3, enable-method spin-table,
+      cpu-release-addr 0xd8, 0xe0, 0xe8, 0xf0; cpus node enable-method brcm,bcm2836-smp with comment
+      "for ARM 32-bit"; d-cache-size 0x8000 line 64, i-cache-size 0xc000, l2 cache-size 0x100000.
+      All match. Contrary search: cpu-release-addr, enable-method and &cpus overrides across arm/arm64
+      bcm27xx files and bcm2835-rpi*.dtsi; none found.'
+    contrary_evidence: none-found
+    citation_precision: exact
   reserved-stub-page:
     basis: 2b0dbc24a43a29958d2933590188870aa618293677e9a02d821153d50df89149
     verdict: PASS
-    date: '2026-10-08'
-    verifier: Claude Opus 5.5, Claude Code subagent (delta verification of d4721e5 against the 89557f7
-      record; second reader run separately)
-    note: 'bcm283x.dtsi line 11 reserves 0x0 for 0x1000; the
-
-      comment on lines 8-10 is attributed as a comment and matches (firmware startup stubs, secondary
-
-      CPUs spinning). bcm2711.dtsi includes bcm283x.dtsi (line 2).'
-    carried_from:
-      repo: hardware-specs-gpl
-      commit: ee658356abb8527b90bf8000cfca9f07f2657553
-      path: specs/resources/bcm2711.verify.md
-      key: Quick-facts/6 "Reserved stub page"
-      format: 1
+    date: '2026-10-14'
+    verifier: Claude Code subagent, claude-opus-5-5, Claude Code, session gpl-p1
+    note: 'bcm283x.dtsi 8-11: comment about firmware startup stubs where secondary CPUs spin, then
+      /memreserve/ 0x0 size 0x1000, i.e. 0x0-0xFFF. Contrary search: other memreserve entries in bcm27xx/bcm2835-rpi
+      files; none found.'
+    contrary_evidence: none-found
+    citation_precision: exact
   memory-node:
     basis: dcaa409bd78549fd41bd17f509a8622595e2f02257ac05cc4656813a204f2a3f
     verdict: PASS
-    date: '2026-10-08'
-    verifier: Claude Opus 5.5, Claude Code subagent (delta verification of d4721e5 against the 89557f7
-      record; second reader run separately)
-    note: 'bcm2711-rpi.dtsi lines 6-11: memory@0 with reg <0 0 0> and
-
-      the comment that the bootloader fills it, attributed; bcm2711.dtsi lines 1124-1131: the cma
-
-      alloc-ranges is 0x0 for 0x40000000 (1 GB), with the comment about devices that can address only
-
-      the lower 1 GB, attributed. Neither board file overrides memory@0.'
-    carried_from:
-      repo: hardware-specs-gpl
-      commit: ee658356abb8527b90bf8000cfca9f07f2657553
-      path: specs/resources/bcm2711.verify.md
-      key: Quick-facts/7 "Memory node"
-      format: 1
+    date: '2026-10-14'
+    verifier: Claude Code subagent, claude-opus-5-5, Claude Code, session gpl-p1
+    note: 'bcm2711-rpi.dtsi 6-11: memory@0, device_type memory, reg <0 0 0>, comment "Will be filled
+      by the bootloader". bcm2711.dtsi 1125-1131: &cma comment that some devices can address only
+      the lower 1G and alloc-ranges <0x0 0x0 0x40000000>. Reading that as base 0, size 1 GB depends
+      on &rmem #address-cells = <2> at bcm2711.dtsi 1112-1114 (bcm283x.dtsi defines the reserved-memory
+      node with one address cell); that line is outside the citation, hence imprecise; suggest extending
+      the second anchor to 1112-1131. Contrary search: other memory@ and &cma definitions in arm/arm64
+      bcm2711 board files; none found.'
+    contrary_evidence: none-found
+    citation_precision: imprecise
   uart-nodes:
     basis: 0b5e77d7bbb0360528072ef572a9679e3963392e25c23917a9e795c2fd8aab33
     verdict: PASS
-    date: '2026-10-08'
-    verifier: Claude Opus 5.5, Claude Code subagent (delta verification of d4721e5 against the 89557f7
-      record; second reader run separately)
-    note: 'bcm283x.dtsi lines 304-312: uart0 serial@7e201000,
-
-      `arm,pl011`/`arm,primecell`, reg size 0x200, clocks BCM2835_CLOCK_UART and BCM2835_CLOCK_VPU
-
-      named uartclk and apb_pclk, periphid 0x00241011; bcm2711.dtsi lines 1178-1181 override uart0''s
-
-      periphid to 0x00341011 and interrupt to GIC_SPI 121 level-high (ID 153); lines 130-172 define
-
-      uart2-5 at 0x7e201400, 0x7e201600, 0x7e201800, 0x7e201a00 with the same compatible, size,
-
-      interrupt, clocks and periphid, all disabled. bcm283x.dtsi lines 385-391: uart1
-
-      serial@7e215040 `brcm,bcm2835-aux-uart`; bcm2711.dtsi lines 1159-1165 and 1183-1185 put spi1,
-
-      spi2 and uart1 on GIC_SPI 93 (ID 125).'
-    carried_from:
-      repo: hardware-specs-gpl
-      commit: ee658356abb8527b90bf8000cfca9f07f2657553
-      path: specs/resources/bcm2711.verify.md
-      key: Quick-facts/8 "UART nodes"
-      format: 1
+    date: '2026-10-14'
+    verifier: Claude Code subagent, claude-opus-5-5, Claude Code, session gpl-p1
+    note: 'bcm283x.dtsi 304-312: uart0 serial@7e201000, arm,pl011 + arm,primecell, reg size 0x200,
+      clocks BCM2835_CLOCK_UART and BCM2835_CLOCK_VPU from &clocks (the cprman node, line 86) as uartclk/apb_pclk,
+      base periphid 0x00241011. bcm2711.dtsi 1178-1181 overrides uart0 periphid to 0x00341011 and
+      interrupt to GIC_SPI 121 level-high. bcm2711.dtsi 130-172: uart2-5 at 0x7e201400/1600/1800/1a00,
+      same compatibles, size, clocks, SPI 121 level-high, periphid 0x00341011, status disabled. bcm283x.dtsi
+      385-391: uart1 serial@7e215040 brcm,bcm2835-aux-uart; bcm2711.dtsi 1159-1165, 1183-1184: spi1,
+      spi2 and uart1 all on GIC_SPI 93. IDs 153 and 125 use the SPI+32 convention (uncited). Contrary
+      search: &uart overrides in arm/arm64 bcm2711 board files; none affecting these properties found.'
+    contrary_evidence: none-found
+    citation_precision: imprecise
     readers:
-    - verifier: Claude Code, claude-opus-5-5, reader bcm2711-sf2-10b-second
+    - verifier: Claude Code subagent, claude-opus-5-5, Claude Code, session pg-r2
       verdict: PASS
-      date: '2026-10-09'
-      note: 'bcm283x.dtsi 304-312: uart0 serial@7e201000, arm,pl011 + arm,primecell, reg size 0x200,
-        clocks BCM2835_CLOCK_UART and BCM2835_CLOCK_VPU from cprman (line 86) named uartclk and apb_pclk;
-        385-391 uart1 serial@7e215040 brcm,bcm2835-aux-uart. bcm2711.dtsi 130-172: uart2-5 at 7e201400-7e201a00,
-        same compatibles, reg 0x200, GIC_SPI 121 level-high, periphid 0x00341011, status disabled;
-        1159-1185: spi1, spi2 and uart1 on GIC_SPI 93, uart0 overridden to periphid 0x00341011 and
-        GIC_SPI 121. 121+32 = 153 and 93+32 = 125. Matches. Licenses: bcm2711.dtsi SPDX GPL-2.0; bcm283x.dtsi
-        has no SPDX line and the tree COPYING at the pin gives GPL-2.0 only, matching the declared
-        GPL-2.0-only for this license-file entry. Contrary search: arm and arm64 bcm2711 board files
-        override only pinctrl and status on uart0/uart1; none found.'
+      date: '2026-10-14'
+      note: 'spec.py resolve (gpl root, linux bound to the pinned checkout): 37 anchors resolved,
+        0 skipped. bcm283x.dtsi 304-312: uart0 serial@7e201000, arm,pl011 + arm,primecell, reg size
+        0x200, clocks CLOCK_UART and CLOCK_VPU of the cprman node (line 86, overridden to brcm,bcm2711-cprman
+        at bcm2711.dtsi 637-639), clock-names uartclk/apb_pclk, periphid 0x00241011. bcm2711.dtsi
+        1178-1181 overrides uart0 periphid to 0x00341011 and interrupt to GIC_SPI 121 level-high.
+        bcm2711.dtsi 130-172: uart2-5 at 0x7e201400/600/800/a00, same compatibles, reg size, clocks,
+        SPI 121 level-high, periphid 0x00341011, status disabled. bcm283x.dtsi 385-391: uart1 serial@7e215040
+        brcm,bcm2835-aux-uart; bcm2711.dtsi 1159-1185 sets spi1, spi2 and uart1 all to GIC_SPI 93,
+        so shared. ID arithmetic 121+32=153 and 93+32=125 correct. Contrary search: grepped all &uartN
+        overrides in bcm2711*.dts* and bcm283x.dtsi; board files (rpi-4-b, cm4) add pinctrl, rtscts
+        and uart1 status okay only, none touching claimed properties; the claim states no status for
+        uart0/uart1, so the board-level okay does not conflict. License: bcm2711.dtsi SPDX GPL-2.0;
+        bcm283x.dtsi has no SPDX line and the pinned COPYING states GPL-2.0 only, matching GPL-2.0-only.'
   system-timer-and-gpio:
     basis: b84fe3c5377503947bad668901e37cf3dff76635cfd1bd5803c5f72176c1b335
     verdict: PASS
-    date: '2026-10-08'
-    verifier: Claude Opus 5.5, Claude Code subagent (delta verification of d4721e5 against the 89557f7
-      record; second reader run separately)
-    note: 'bcm283x.dtsi lines 69-78: system timer
-
-      `brcm,bcm2835-system-timer` at 0x7e003000, clock-frequency 1000000; bcm2711.dtsi lines 1167-1172
-
-      move it to GIC_SPI 64-67 (IDs 96-99). bcm283x.dtsi lines 107-109: gpio at 0x7e200000;
-
-      bcm2711.dtsi lines 655-662: compatible `brcm,bcm2711-gpio`, GIC_SPI 113-116 (IDs 145-148),
-
-      gpio-ranges of 58 pins.'
-    carried_from:
-      repo: hardware-specs-gpl
-      commit: ee658356abb8527b90bf8000cfca9f07f2657553
-      path: specs/resources/bcm2711.verify.md
-      key: Quick-facts/9 "System timer and GPIO"
-      format: 1
+    date: '2026-10-14'
+    verifier: Claude Code subagent, claude-opus-5-5, Claude Code, session gpl-p1
+    note: 'bcm283x.dtsi 69-78: timer@7e003000 brcm,bcm2835-system-timer, clock-frequency 1000000;
+      107-109: gpio@7e200000. bcm2711.dtsi 655-662: compatible brcm,bcm2711-gpio, GIC_SPI 113-116,
+      gpio-ranges 0..58; 1167-1172: system timer GIC_SPI 64-67. IDs 96-99 and 145-148 use the SPI+32
+      convention (uncited). Contrary search: &gpio in bcm2711-rpi-4-b.dts, bcm2711-rpi-cm4-io.dts
+      and bcm2835-rpi.dtsi (pin and line-name settings only) and &system_timer elsewhere; nothing
+      changes these values.'
+    contrary_evidence: none-found
+    citation_precision: imprecise
   firmware-mailbox-and-clocks:
     basis: 9dbd9df6f30667304538c8bd1d03ac1c902192cfdd83ae8a5bac06398a7bd9a0
     verdict: PASS
-    date: '2026-10-08'
-    verifier: Claude Opus 5.5, Claude Code subagent (delta verification of d4721e5 against the 89557f7
-      record; second reader run separately)
-    note: 'bcm283x.dtsi lines 100-105:
-
-      `brcm,bcm2835-mbox` at 0x7e00b880 size 0x40; bcm2711.dtsi lines 1143-1145: GIC_SPI 33 (ID 65);
-
-      bcm2835-rpi.dtsi lines 3-12: `raspberrypi,bcm2835-firmware` with mboxes to the mailbox and child
-
-      `raspberrypi,firmware-clocks` with one clock cell; bcm2711.dtsi lines 637-639: cprman compatible
-
-      `brcm,bcm2711-cprman`.'
-    carried_from:
-      repo: hardware-specs-gpl
-      commit: ee658356abb8527b90bf8000cfca9f07f2657553
-      path: specs/resources/bcm2711.verify.md
-      key: Quick-facts/10 "Firmware mailbox and clocks"
-      format: 1
+    date: '2026-10-14'
+    verifier: Claude Code subagent, claude-opus-5-5, Claude Code, session gpl-p2
+    note: 'bcm283x.dtsi 100-105: mailbox@7e00b880, brcm,bcm2835-mbox, reg 0x7e00b880 size 0x40 (its
+      interrupts cell there is the BCM2835 controller''s); bcm2711.dtsi 1143-1145 overrides the interrupt
+      to GIC SPI 33 level-high, so ID 65. bcm2835-rpi.dtsi 3-12: rpi-firmware node compatible raspberrypi,bcm2835-firmware
+      (+simple-mfd) with mboxes = the mailbox, child raspberrypi,firmware-clocks with #clock-cells
+      1. bcm2711.dtsi 637-639 overrides the clocks (cprman) node''s compatible to brcm,bcm2711-cprman
+      (base node in bcm283x.dtsi 86-87 says bcm2835-cprman). bcm2835-rpi.dtsi reaches BCM2711 boards
+      through bcm2711-rpi.dtsi line 2. Contrary search: grepped all BCM2711 SoC and board files for
+      mailbox/mbox/cprman/firmware clocks overrides; only other mailbox-like node is vchiq mailbox@7e00b840
+      in bcm2835-rpi.dtsi, a separate VCHIQ interface that does not contradict which node the firmware
+      driver uses. No further override of the mailbox reg or cprman compatible. License: bcm283x.dtsi
+      and bcm2835-rpi.dtsi have no SPDX line; COPYING at the pin puts the tree under GPL-2.0 (syscall
+      note applies to user API only), matching GPL-2.0-only.'
+    contrary_evidence: none-found
+    citation_precision: exact
   firmware-clock-ids:
     basis: 08dd7ca8f916458bf9974c15806c2a9882d822383b6cc31f683ceed54d9509b3
     verdict: PASS
-    date: '2026-10-08'
-    verifier: Claude Opus 5.5, Claude Code subagent (delta verification of d4721e5 against the 89557f7
-      record; second reader run separately)
-    note: 'raspberrypi,bcm2835-firmware.yaml lines 39-43:
-
-      `#clock-cells` is const 1 and its description says the argument is the ID of the clocks in the
-
-      firmware messages. The claim is about the binding, which `[src]` supports.'
-    carried_from:
-      repo: hardware-specs-gpl
-      commit: ee658356abb8527b90bf8000cfca9f07f2657553
-      path: specs/resources/bcm2711.verify.md
-      key: Quick-facts/11 "Firmware clock IDs"
-      format: 1
+    date: '2026-10-14'
+    verifier: Claude Code subagent, claude-opus-5-5, Claude Code, session gpl-p2
+    note: 'raspberrypi,bcm2835-firmware.yaml lines 39-43, under the clocks child (compatible raspberrypi,firmware-clocks,
+      lines 31-37): #clock-cells is const 1, described as the ID of the clocks contained by the firmware
+      messages. Claim matches, scoped to what the binding defines. SPDX GPL-2.0 line present (line
+      1). Contrary search: read the binding''s other child definitions (gpio, reset) and the in-tree
+      users (bcm2711-rpi.dtsi uses firmware clock specifiers 4, 5, 13, 14 with one cell); nothing
+      contrary.'
+    contrary_evidence: none-found
+    citation_precision: exact
   emmc2:
     basis: 017185817819f2125829bb7ad433f2a0392b699d3436e16aa709ae25a85c2a3f
     verdict: PASS
-    date: '2026-10-08'
-    verifier: Claude Opus 5.5, Claude Code subagent (delta verification of d4721e5 against the 89557f7
-      record; second reader run separately)
-    note: 'bcm2711.dtsi lines 412-433: emmc2bus with mmc@7e340000
-
-      `brcm,bcm2711-emmc2`, GIC_SPI 126 (ID 158), clock BCM2711_CLOCK_EMMC2; the comment on lines
-
-      412-417 (revision-dependent DMA constraints; firmware edits the bus''s dma-ranges when the
-
-      emmc2bus alias exists) is attributed; bcm2711-rpi.dtsi line 14 defines the alias.'
-    carried_from:
-      repo: hardware-specs-gpl
-      commit: ee658356abb8527b90bf8000cfca9f07f2657553
-      path: specs/resources/bcm2711.verify.md
-      key: Quick-facts/12 "EMMC2"
-      format: 1
+    date: '2026-10-14'
+    verifier: Claude Code subagent, claude-opus-5-5, Claude Code, session gpl-p2
+    note: 'bcm2711.dtsi 412-433: comment says emmc2 DMA constraints differ by SoC revision, it was
+      moved to its own bus so RPi4 firmware can update them, and firmware edits that bus''s dma-ranges
+      if the emmc2bus alias is defined; emmc2bus simple-bus contains mmc@7e340000, brcm,bcm2711-emmc2,
+      reg 0x7e340000, GIC SPI 126 level-high (ID 158), clocks BCM2711_CLOCK_EMMC2. bcm2711-rpi.dtsi
+      line 14 defines the emmc2bus alias. Contrary search: grepped SoC and board files for emmc2 overrides;
+      boards only add supplies/status/bus-width. Qualification found but not contrary: the legacy
+      sdhci node is also given SPI 126 (bcm2711.dtsi 1147-1149); the claim does not say the interrupt
+      is exclusive.'
+    contrary_evidence: none-found
+    citation_precision: exact
   genet:
     basis: 0eb0b71a4113776d7e1c8453ae10cde4f8877b9243f3e96bb29a7d9e41271250
     verdict: PASS
-    date: '2026-10-08'
-    verifier: Claude Opus 5.5, Claude Code subagent (delta verification of d4721e5 against the 89557f7
-      record; second reader run separately)
-    note: 'lines 587-603: `brcm,bcm2711-genet-v5`, reg 0x7d580000 size
-
-      0x10000 (64 KB), GIC_SPI 157 and 158 (IDs 189, 190), child mdio@e14 with reg 0xe14; no clocks
-
-      property in the node.'
-    carried_from:
-      repo: hardware-specs-gpl
-      commit: ee658356abb8527b90bf8000cfca9f07f2657553
-      path: specs/resources/bcm2711.verify.md
-      key: Quick-facts/13 "GENET"
-      format: 1
+    date: '2026-10-14'
+    verifier: Claude Code subagent, claude-opus-5-5, Claude Code, session gpl-p2
+    note: 'bcm2711.dtsi 587-603: ethernet@7d580000, brcm,bcm2711-genet-v5, reg 0x7d580000 size 0x10000
+      (64 KB), GIC SPIs 157 and 158 (IDs 189, 190), child mdio@e14 (brcm,genet-mdio-v5, reg 0xe14
+      size 8); no clocks property in the node. Contrary search: grepped bcm2711.dtsi, bcm2711-rpi.dtsi,
+      bcm2711-rpi-4-b.dts, bcm2711-rpi-cm4.dtsi and bcm2711-rpi-400.dts for &genet overrides; they
+      add phy-handle, phy-mode and status, never clocks.'
+    contrary_evidence: none-found
+    citation_precision: exact
   pcie-and-the-soc-s-xhci:
     basis: 5f8c4834c59b767eb2b988f0d147a6fc4f58572f903f7278ff91e9c6c7d6c257
     upstream:
@@ -311,71 +245,68 @@ verdicts:
     verdict: PASS
     date: '2026-10-11'
     verifier: Claude Code, claude-sonnet-5-5, reader explorer-pin-upstream
-    note: 'Upstream-only renewal after a previous PASS. Upstream usb-controllers changed only in its locator
-      (commit 354d2ed): heading otg_mode became "otg_mode (Raspberry Pi 4 only)"; claim text and class are
-      unchanged. I fetched config_txt/boot.adoc at pinned commit 42deaefb and confirmed that heading exists
-      verbatim and its text matches the upstream claim (PCIe-attached USB 3.0 controller drives the main
-      ports on Pi 4B and 400, the legacy USB 2.0 controller is a device on USB-C with otg_mode=0, otg_mode=1
-      selects an XHCI USB 2.0 host, CM4 has no USB 3.0 controller). The GPL claim''s last sentence, that
-      the disabled SoC brcm,bcm2711-xhci is not the separate PCIe-attached USB 3.0 controller described
-      by the docs USB bullet, still follows. The qualifies relation holds. Local DT sources were unchanged
-      and not re-read. Searched the otg_mode section and its neighbors in boot.adoc for qualifications or
-      conflicting statements about the SoC xHCI; none found. The local reading it rests on is the 2026-10-09
-      verdict by Claude Code, claude-sonnet-5-5, reader bcm2711-sf2-11-primary: linux 8d3ae592 arch/arm/boot/dts/broadcom/bcm2711.dtsi
-      lines 545-618: pcie@7d500000 compatible brcm,bcm2711-pcie, SPIs 147 (pcie) and 148 (msi), interrupt-map
-      SPIs 143-146 (IDs 175-178), ranges 0x02000000 0x0 0xf8000000 0x6 0x0 size 0x04000000 (64 MB), dma-ranges
-      identity 0..0xc0000000 (3 GB) under the comment about a wrapper bug; xhci@7e9c0000 compatible brcm,bcm2711-xhci,
-      SPI 176 (ID 208), status disabled, with the shared-PHY lockup comment and bootloader-decides text.
-      All values match. The relation (qualifies bcm2711@hardware-specs-docs#usb-controllers) fits: that
-      docs fact says the main USB ports are a separate PCIe-attached USB 3.0 controller and the SoC''s xHCI
-      is the otg_mode=1 host option; this claim adds that the SoC xHCI node is a different, disabled-by-default
-      controller, and the xhci node sits on the SoC bus, not under the PCIe node. The negative "not the
-      PCIe-attached controller" is supported by that placement together with the related docs fact. Read
-      neighboring nodes (genet, v3d) and the scb-bus ranges; no conflicting statement. Resolve: 37 anchors
-      resolved, 0 skipped.'
+    note: 'Upstream-only renewal after a previous PASS. Upstream usb-controllers changed only in its
+      locator (commit 354d2ed): heading otg_mode became "otg_mode (Raspberry Pi 4 only)"; claim text
+      and class are unchanged. I fetched config_txt/boot.adoc at pinned commit 42deaefb and confirmed
+      that heading exists verbatim and its text matches the upstream claim (PCIe-attached USB 3.0
+      controller drives the main ports on Pi 4B and 400, the legacy USB 2.0 controller is a device
+      on USB-C with otg_mode=0, otg_mode=1 selects an XHCI USB 2.0 host, CM4 has no USB 3.0 controller).
+      The GPL claim''s last sentence, that the disabled SoC brcm,bcm2711-xhci is not the separate
+      PCIe-attached USB 3.0 controller described by the docs USB bullet, still follows. The qualifies
+      relation holds. Local DT sources were unchanged and not re-read. Searched the otg_mode section
+      and its neighbors in boot.adoc for qualifications or conflicting statements about the SoC xHCI;
+      none found. The local reading it rests on is the 2026-10-09 verdict by Claude Code, claude-sonnet-5-5,
+      reader bcm2711-sf2-11-primary: linux 8d3ae592 arch/arm/boot/dts/broadcom/bcm2711.dtsi lines
+      545-618: pcie@7d500000 compatible brcm,bcm2711-pcie, SPIs 147 (pcie) and 148 (msi), interrupt-map
+      SPIs 143-146 (IDs 175-178), ranges 0x02000000 0x0 0xf8000000 0x6 0x0 size 0x04000000 (64 MB),
+      dma-ranges identity 0..0xc0000000 (3 GB) under the comment about a wrapper bug; xhci@7e9c0000
+      compatible brcm,bcm2711-xhci, SPI 176 (ID 208), status disabled, with the shared-PHY lockup
+      comment and bootloader-decides text. All values match. The relation (qualifies bcm2711@hardware-specs-docs#usb-controllers)
+      fits: that docs fact says the main USB ports are a separate PCIe-attached USB 3.0 controller
+      and the SoC''s xHCI is the otg_mode=1 host option; this claim adds that the SoC xHCI node is
+      a different, disabled-by-default controller, and the xhci node sits on the SoC bus, not under
+      the PCIe node. The negative "not the PCIe-attached controller" is supported by that placement
+      together with the related docs fact. Read neighboring nodes (genet, v3d) and the scb-bus ranges;
+      no conflicting statement. Resolve: 37 anchors resolved, 0 skipped.'
     contrary_evidence: none-found
     citation_precision: exact
   the-3-gb-inbound-limit-is-a-default-tied-to-early-revisions:
     basis: 0a288397ce558806cb736eb45ee57f1628f924b523123e06d4da67b745204b5f
     verdict: PASS
-    date: '2026-10-08'
-    verifier: Claude Opus 5.5, Claude Code subagent (delta verification of d4721e5 against the 89557f7
-      record; second reader run separately)
-    note: 'pcie-brcmstb.c lines 1023-1031 lie in `brcm_pcie_get_inbound_wins` (defined at line 937)
-      and
-
-      say the driver validates the inbound view because of a PCIe integration bug on early Raspberry
-
-      Pi 4 revisions that prohibits access above 3 GB and makes the firmware edit dma-ranges; lines
-
-      1056-1061 reject a zero size, a misaligned offset, and an offset strictly between 2 GB and
-
-      4 GB. The bullet attributes the revision history to the comment, which `[src]` supports.'
-    carried_from:
-      repo: hardware-specs-gpl
-      commit: ee658356abb8527b90bf8000cfca9f07f2657553
-      path: specs/resources/bcm2711.verify.md
-      key: Quick-facts/15 "The 3 GB inbound limit is a default, tied to early revisions"
-      format: 1
+    date: '2026-10-14'
+    verifier: Claude Code subagent, claude-opus-5-5, Claude Code, session gpl-p2
+    note: 'pcie-brcmstb.c (SPDX GPL-2.0+, matching the linux-pcie entry) lines 1023-1031, inside brcm_pcie_get_inbound_wins:
+      the comment says the driver validates the inbound view even though it should trust the device
+      tree, because of a hardware issue on early Raspberry Pi 4 (bcm2711) revisions whose firmware
+      has to edit dma-ranges dynamically, due to a PCIe controller integration bug that prohibits
+      access above the lower 3 GB. Lines 1056-1061: the check fails with -EINVAL when size is zero,
+      the offset is misaligned to size, or the offset is above 2 GB and below 4 GB; the claim''s "rejects
+      an offset between 2 GB and 4 GB" is the last condition (strict bounds), and does not claim it
+      is the only check. That the window is read from the tree is shown by lines 965-989 (iterating
+      the bridge''s dma_ranges; error when the node has none), adjacent to the cited range. Contrary
+      search: grepped the driver for SZ_3G, 0xc0000000, 3GB and BCM2711-specific branches; BCM2711
+      branches concern PERST# and burst size only, no fixed 3 GB window. The tree''s own comment (bcm2711.dtsi
+      577-581) states the wrapper bug without a revision qualifier, which differs in emphasis but
+      does not contradict the claim, which reports the driver''s comment. Raspberry Pi documentation
+      checkout (rpi-docs, fw-wiki) has no text on PCIe dma-ranges.'
+    contrary_evidence: none-found
+    citation_precision: exact
   board-dependence:
     basis: 1823ade9a4d792dd554d3c7a418c037aaa933f020664227de3b9528410f0dfbf
     verdict: PASS
-    date: '2026-10-08'
-    verifier: Claude Opus 5.5, Claude Code subagent (delta verification of d4721e5 against the 89557f7
-      record; second reader run separately)
-    note: 'bcm2711.dtsi lines 431 and 594: emmc2 and genet
-
-      disabled; bcm2711-rpi-4-b.dts lines 191-201 and bcm2711-rpi-cm4.dtsi lines 45-54 and 84-87 add
-
-      vqmmc/vmmc supplies to emmc2 and phy-handle and phy-mode rgmii-rxid to genet, each with status
-
-      okay, in separate files.'
-    carried_from:
-      repo: hardware-specs-gpl
-      commit: ee658356abb8527b90bf8000cfca9f07f2657553
-      path: specs/resources/bcm2711.verify.md
-      key: Quick-facts/16 "Board dependence"
-      format: 1
+    date: '2026-10-14'
+    verifier: Claude Code subagent, claude-opus-5-5, Claude Code, session gpl-p2
+    note: 'bcm2711.dtsi 426-432 (emmc2 status disabled, no supplies) and 587-603 (genet status disabled,
+      no phy-handle or phy-mode). bcm2711-rpi-4-b.dts 191-201: &emmc2 adds vqmmc/vmmc supplies and
+      okay; &genet adds phy-handle, phy-mode rgmii-rxid, okay. bcm2711-rpi-cm4.dtsi 45-54 and 84-87:
+      same pattern (plus bus-width 8, hs200). The 4B and CM4 files are separate files each including
+      bcm2711.dtsi and bcm2711-rpi.dtsi. Contrary search: bcm2711-rpi-400.dts includes the 4B dts
+      rather than being independent, and adds its own genet_mdio PHY; consistent with "take these
+      from the board spec or the live tree". License note: bcm2711-rpi-4-b.dts and bcm2711-rpi-cm4.dtsi
+      both carry an SPDX GPL-2.0 line at the pin although the spec declares license_from: license-file;
+      COPYING agrees (GPL-2.0 only), so no mismatch, but the author could switch those two to spdx-line.'
+    contrary_evidence: none-found
+    citation_precision: exact
   system-oscillator:
     basis: 2b76cb800fd936569d2f390640ade3a79e02d84881c48cf5f05bd87b77f41dcb
     upstream:
@@ -395,25 +326,23 @@ verdicts:
   take-pcie-dma-bounds-from-the-live-tree:
     basis: 400b7b890386387db27b342c46da7debb9a03c2b6684ef1905b07f53a9cad583
     verdict: PASS
-    date: '2026-10-08'
-    verifier: Claude Opus 5.5, Claude Code subagent (delta verification of d4721e5 against the 89557f7
-      record; second reader run separately)
-    note: 'premises hold: the default window
-
-      at bcm2711.dtsi lines 577-583 (identity, 3 GB) and Quick-facts/15''s driver comment on firmware
-
-      edits and early revisions; the driver''s check on the inbound offset (lines 1056-1061) shows
-      the
-
-      inbound PCI offset need not be zero, which supports "wrong addresses". The conclusion follows;
-
-      TODO present.'
-    carried_from:
-      repo: hardware-specs-gpl
-      commit: ee658356abb8527b90bf8000cfca9f07f2657553
-      path: specs/resources/bcm2711.verify.md
-      key: Gotchas/1 "Take PCIe DMA bounds from the live tree"
-      format: 1
+    date: '2026-10-14'
+    verifier: Claude Code subagent, claude-opus-5-5, Claude Code, session gpl-p2
+    note: 'Premise 1: bcm2711.dtsi 577-583, the wrapper-bug comment and dma-ranges mapping PCI 0 to
+      CPU 0 for 0xC000_0000 (3 GB). Premise 2: the-3-gb fact (PASS in this reading): firmware edits
+      dma-ranges at run time, the driver reads and validates the window from the tree and permits
+      nonzero PCI offsets outside 2-4 GB. Derivation follows: a window firmware can change must be
+      read from the live tree; assuming 3 GB identity mapping can under-use memory if firmware widens
+      it, and gives wrong bus addresses if firmware sets a nonzero PCI offset. The "wrong addresses"
+      consequence rests on premise 2''s offset clause (and the driver comment''s 4 GB+ example at
+      lines 1050-1055) rather than on the "uses" text, which names only the comment on firmware edits;
+      acceptable, but the author could name the offset clause in "uses". "Keep buffers within what
+      each endpoint can address" is general DMA advice, not a hardware assertion. The hardware TODO
+      (dump dma-ranges on boards of different revisions and memory sizes) can observe the remaining
+      question; not performed. Contrary search: as for the-3-gb fact; no evidence of a fixed window
+      in the driver.'
+    contrary_evidence: none-found
+    citation_precision: exact
   address-translation-in-the-tree:
     basis: aa728e6ead4401440bb15f0a8c9061e3d6719bd9d8f6a6d1d04e345a3d85496d
     verdict: PASS
